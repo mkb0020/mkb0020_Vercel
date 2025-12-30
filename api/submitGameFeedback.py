@@ -10,7 +10,6 @@ DB_URL = os.environ.get("DATABASE_URL")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL")
 
-# BLUEPRINT 
 feedback_bp = Blueprint('feedback', __name__)
 
 @feedback_bp.route('/api/feedback', methods=['POST'])
@@ -25,6 +24,12 @@ def submit_feedback():
             jump_physics_str = ", ".join(jump_physics)
         else:
             jump_physics_str = jump_physics
+        
+        not_completed = data.get("not_completed_reasons", [])
+        if isinstance(not_completed, list):
+            not_completed_str = ", ".join(not_completed)
+        else:
+            not_completed_str = not_completed
 
         with psycopg.connect(DB_URL, autocommit=True) as conn:
             with conn.cursor() as cur:
@@ -53,9 +58,9 @@ def submit_feedback():
                     """,
                     (
                         data.get("name"),
-                        data.get("beat_game"),
-                        data.get("feel_smile"),
-                        data.get("feel_chuckle"),
+                        data.get("game_completed"),  
+                        data.get("smile"), 
+                        data.get("puns_chuckle"), 
                         data.get("final_thoughts"),
                         data.get("mechanics_natural"),
                         data.get("engagement_slider"),
@@ -73,6 +78,7 @@ def submit_feedback():
                     ),
                 )
 
+      
         email_payload = {
             "from": "Niels <onboarding@resend.dev>",
             "to": [NOTIFY_EMAIL],
@@ -92,4 +98,5 @@ def submit_feedback():
         return jsonify({"success": True, "message": "Feedback submitted!"})
 
     except Exception as e:
+        print(f"Error: {str(e)}")  
         return jsonify({"success": False, "error": str(e)}), 500

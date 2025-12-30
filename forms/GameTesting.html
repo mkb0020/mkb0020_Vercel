@@ -8,52 +8,42 @@
   <meta name="description" content="GAME TEST" />
 
 <style>
-    .flash-messages {
-      position: fixed;
-      top: 60px;
-      right: 20px;
-      z-index: 9999;
-      max-width: 400px;
-    }
+.flash-message {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: rgba(23, 0, 50, 0.95);
+  border: 2px solid var(--AlphaAqua);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 0 30px var(--AlphaGlow2);
+  animation: slideInRight 0.4s ease;
+  z-index: 9999;
+  max-width: 400px;
+}
 
-    .flash-message {
-      background: rgba(23, 0, 50, 0.95);
-      border: 2px solid var(--VortexViolet);
-      border-radius: 12px;
-      padding: 1rem 1.5rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 0 30px var(--VortexGlow2);
-      animation: slideInRight 0.4s ease;
-      backdrop-filter: blur(10px);
-    }
+.flash-message.error {
+  border-color: var(--RadiationRed);
+  box-shadow: 0 0 30px rgba(115, 1, 50, 0.5);
+}
 
-    .flash-message.success {
-      border-color: var(--AlphaAqua);
-      box-shadow: 0 0 30px var(--AlphaGlow2);
-    }
+.flash-message p {
+  color: var(--White);
+  margin: 0;
+  font-family: 'GothNerd', sans-serif;
+  font-size: 1.1rem;
+}
 
-    .flash-message.error {
-      border-color: var(--RadiationRed);
-      box-shadow: 0 0 30px rgba(115, 1, 50, 0.5);
-    }
-
-    .flash-message p {
-      color: var(--White);
-      margin: 0;
-      font-family: 'GothNerd', sans-serif;
-      font-size: 1.1rem;
-    }
-
-    @keyframes slideInRight {
-      from {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 
     .page-content {
       margin-top: 30px;
@@ -583,13 +573,6 @@ h2 {
   </div>
 
   <!-- ==================== 1. PLAYER CHOICE ==================== -->
-
-
-
-
-
-
-
   <div class="form-card">
     <h2>1. General Info</h2>
 
@@ -1184,8 +1167,7 @@ h2 {
 
 </form>
 
-    
-
+  
 </div>
 
   <div id="stars"></div> <!-- STAR BACKGROUND -->
@@ -1230,7 +1212,7 @@ h2 {
                 h.style.animation = null;
             });
         });
-    </script>
+  </script>
 
   <script>
         const starsDiv = document.getElementById('stars');
@@ -1291,6 +1273,68 @@ h2 {
     });
   });
 </script>
+
+
+
+<script>
+    document.getElementById('gameFeedbackForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const submitBtn = this.querySelector('.submit-btn');
+      submitBtn.textContent = '🔄 Sending...';
+      submitBtn.disabled = true;
+
+      const formData = new FormData(this);
+      const data = {};
+      
+      for (let [key, value] of formData.entries()) {
+        if (key.endsWith('[]')) {
+          if (!data[key]) data[key] = [];
+          data[key].push(value);
+        } else {
+          data[key] = value;
+        }
+      }
+
+      try {
+        const response = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showFlashMessage('✅ Purr-fect! Your feedback has been submitted! 🐾', 'success');
+          this.reset();
+        } else {
+          showFlashMessage('❌ Oh no! Something went wrong: ' + result.error, 'error');
+        }
+      } catch (error) {
+        showFlashMessage('❌ Network error - please try again!', 'error');
+      } finally {
+        submitBtn.textContent = '🐾 SEND FEEDBACK RIGHT MEOW 🐾';
+        submitBtn.disabled = false;
+      }
+    });
+
+    function showFlashMessage(message, type) {
+      const flash = document.createElement('div');
+      flash.className = `flash-message ${type}`;
+      flash.innerHTML = `<p>${message}</p>`;
+      document.body.appendChild(flash);
+      
+      setTimeout(() => {
+        flash.style.animation = 'slideInRight 0.4s ease reverse';
+        setTimeout(() => flash.remove(), 400);
+      }, 4000);
+    }
+</script>
+
+
 
 </body>
 </html>
