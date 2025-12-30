@@ -1,0 +1,98 @@
+import os
+import psycopg
+from flask import Blueprint, request, jsonify
+import json
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DB_URL = os.environ.get("DATABASE_URL")
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL")
+
+support_bp = Blueprint('support', __name__)
+
+@support_bp.route('/api/support', methods=['POST'])
+def submit_support_ticket():
+    """
+    Handles support ticket submission (POST only)
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data received"}), 400
+        
+        name = data.get("name", "").strip()
+        page = data.get("page", "").strip()
+        issue_description = data.get("issue_description", "").strip()
+        
+        if not name or not page or not issue_description:
+            return jsonify({
+                "success": False, 
+                "error": "Name, page, and issue description are required"
+            }), 400
+        
+        email = data.get("email", "").strip() or None
+        
+        if len(name) > 100:
+            return jsonify({"success": False, "error": "Name too long (max 100 characters)"}), 400
+        if email and len(email) > 100:
+            return jsonify({"success": False, "error": "Email too long (max 100 characters)"}), 400
+        if len(page) > 100:
+            return jsonify({"success": False, "error": "Page name too long (max 100 characters)"}), 400
+        if len(issue_description) > 2000:
+            return jsonify({"success": False, "error": "Issue description too long (max 2000 characters)"}), 400
+        
+        with psycopg.connect(DB_URL, autocommit=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO support_tickets (name, email, page, issue_description)
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING id, created_at
+                    """,
+                    (name, email, page, issue_description)
+                )
+                
+                result = cur.fetchone()
+                ticket_id = result[0]
+                created_at = result[1]
+        
+        email_payload = {
+            "from": "Niels <onboarding@resend.dev>",
+            "to": [NOTIFY_EMAIL],
+            "subject": f"🚨 NEW SUPPORT TICKET #{ticket_id} - {page}",
+            "text": f"""New support ticket received:
+
+Ticket ID: #{ticket_id}
+Name: {name}
+Email: {email if email else 'Not provided'}
+Problem Page: {page}
+Created: {created_at}
+
+Issue Description:
+{issue_description}
+
+---
+Reply to user: {email if email else 'No email provided'}
+"""
+        }
+        
+        requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            data=json.dumps(email_payload)
+        )
+        
+        return jsonify({
+            "success": True,
+            "message": "Support ticket submitted successfully!",
+            "ticket_id": ticket_id
+        })
+    
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
