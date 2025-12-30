@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="/static/css/KittyStyle.css">
+  <title>GAME TEST</title>
+  <meta name="description" content="GAME TEST" />
+
+<style>
+    .flash-messages {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      z-index: 9999;
+      max-width: 400px;
+    }
+
+    .flash-message {
+      background: rgba(23, 0, 50, 0.95);
+      border: 2px solid var(--VortexViolet);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 30px var(--VortexGlow2);
+      animation: slideInRight 0.4s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .flash-message.success {
+      border-color: var(--AlphaAqua);
+      box-shadow: 0 0 30px var(--AlphaGlow2);
+    }
+
+    .flash-message.error {
+      border-color: var(--RadiationRed);
+      box-shadow: 0 0 30px rgba(115, 1, 50, 0.5);
+    }
+
+    .flash-message p {
+      color: var(--White);
+      margin: 0;
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.1rem;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .page-content {
+      margin-top: 30px;
+      padding: 2rem 1rem;
+      min-height: calc(100vh - 80px);
+      position: relative;
+      z-index: 10;
+      justify-content: center;
+      align-items: center;
+    }
+
+h2 {
+    color: var(--ParticlePink);
+    font-family: 'GothNerd', sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px var(--NuclearGlow2);
+
+}
+
+    @media (max-width: 768px) {
+      .flash-messages {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+      }
+
+      .page-content {
+        padding: 1rem 0.5rem;
+      }
+    }
+
+
+    .alert-box {
+    background: rgba(115, 1, 50, 0.3);
+    border: 2px solid var(--RadiationRed);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 20px rgba(115, 1, 50, 0.4);
+  }
+
+  .alert-box h3 {
+    color: var(--NuclearFuscia);
+    font-family: 'GothNerd', sans-serif;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px var(--NuclearGlow2);
+  }
+
+  .alert-box p {
+    color: var(--White);
+    margin: 0.5rem 0;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+  }
+  
+  .Niels {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .form-title {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .form-title h1 {
+    font-family: 'Orbitron', 'Courier New', monospace;
+    font-size: 3rem;
+    background: linear-gradient(45deg, var(--NuclearFuscia), #00FFFF, var(--NuclearFuscia));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 15px var(--NuclearGlow3);
+    margin-bottom: 1rem;
+    animation: neonPulse 2s ease-in-out infinite alternate;
+  }
+
+  .form-title p {
+    color: var(--MutedGray);
+    font-size: 1.3rem;
+    font-family: Arial, sans-serif;
+  }
+
+  .form-card {
+    background: linear-gradient(135deg, 
+        rgba(55, 2, 90, 0.587), 
+        rgba(41, 0, 92, 0.562));
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--VortexViolet);
+    border-radius: 18px;
+    padding: 30px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    box-shadow: 0 8px 32px var(--VortexGlow2), inset 0 1px 0 var(--PlasmaGlow2);
+    z-index: 1;
+}
+  .form-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, 
+        rgba(131, 12, 222, 0.15) 0%, 
+        transparent 70%);
+    opacity: 0;
+    transition: opacity 0.6s;
+    pointer-events: none;
+}
+
+.form-card:hover {
+    border-color: #A55AFF;
+    box-shadow: 
+        0 20px 50px rgba(131,12,222, 0.3),
+        0 0 40px rgba(165,90,255, 0.4);
+}
+
+
+
+
+  .form-card p {
+      color: var(--White);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1.3rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-group label {
+    display: block;
+    color: var(--AlphaAqua);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px var(--AlphaGlow1);
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.875rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--ProtonPurple);
+    border-radius: 8px;
+    color: var(--White);
+    font-size: 1rem;
+    font-family: Arial, sans-serif;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--VortexViolet);
+    box-shadow: 0 0 20px var(--VortexGlow2);
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .form-group textarea {
+    min-height: 150px;
+    resize: vertical;
+    font-family: Arial, sans-serif;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(45deg, var(--VortexViolet), var(--NuclearFuscia));
+    color: var(--White);
+    border: 2px solid var(--ParticlePink);
+    border-radius: 12px;
+    font-family: 'GothNerd', sans-serif;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px var(--VortexGlow2);
+    position: relative;
+    z-index: 1;
+  }
+
+  .submit-btn:hover {
+    background: linear-gradient(45deg, var(--NuclearFuscia), var(--AlphaAqua));
+    transform: translateY(-2px);
+    box-shadow: 0 0 40px var(--NuclearGlow3);
+  }
+
+  .submit-btn:active {
+    transform: translateY(0);
+  }
+
+  .required {
+    color: var(--NuclearFuscia);
+    margin-left: 0.25rem;
+  }
+
+  .star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.star-rating input {
+  display: none;
+}
+
+
+.star-rating .paw {
+  display: inline-block;   /* IMPORTANT */
+  width: 60px;
+  height: 60px;
+  background-image: url("/static/images/paw-empty.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.star-rating input:checked ~ .paw,
+.star-rating .paw:hover,
+.star-rating .paw:hover ~ .paw {
+  background-image: url("/static/images/paw-filled.png");
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 10px var(--NuclearGlow2));
+}
+
+  .info-box {
+    background: linear-gradient(135deg, 
+        rgba(0,0,0, 0.653), 
+        rgba(0,0,0, 0.568));
+    border: 2px solid var(--NuclearGlow2);
+    border-radius: 30px;
+    padding: 10px;
+    margin-bottom: 2.3rem;
+    margin-top:2rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    box-shadow: 0 5px 5px var(--NuclearGlow2);
+    z-index: 1;
+    text-align: center;
+}
+
+  .info-box p {
+    color: var(--White);
+    margin: 0.5rem 0;
+    font-family: Arial, sans-serif;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 768px) {
+    .form-title h1 {
+      font-size: 2rem;
+    }
+
+    .form-card {
+      padding: 1.5rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      font-size: 16px;
+    }
+
+    .star-rating label {
+      font-size: 2rem;
+    }
+  }
+
+
+.radio-group {
+  display: flex;
+  align-items: center; 
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.radio-group input[type="radio"] {
+  margin: 0;
+  transform: translateY(1px); 
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.radio-group label {
+    display: block;
+    color: var(--AlphaAqua);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px var(--AlphaGlow1);
+}
+
+
+    .form-group select {
+      width: 100%;
+      padding: 0.875rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid var(--ProtonPurple);
+      border-radius: 8px;
+      color: var(--White);
+      font-size: 1rem;
+      font-family: Arial, sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+
+      background-image: url("data:image/svg+xml,%3Csvg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.2rem;
+    }
+
+
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--VortexViolet);
+      box-shadow: 0 0 20px var(--VortexGlow2);
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+
+    .form-group .radio-group:last-child {
+      margin-bottom: 0;
+    }
+
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--ProtonPurple);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.checkbox-group input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, var(--AlphaAqua), var(--VortexViolet));
+  border-color: var(--AlphaAqua);
+  box-shadow: 0 0 12px var(--AlphaGlow2);
+}
+
+
+.checkbox-group input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  color: black;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+
+.checkbox-label {
+  color: var(--White);
+  font-family: Arial, sans-serif;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.checkbox-group:hover input[type="checkbox"] {
+  box-shadow: 0 0 10px var(--VortexGlow2);
+}
+
+@media (max-width: 768px) {
+  .checkbox-label {
+    font-size: 1rem;
+  }
+}
+
+
+</style>
+</head>
+
+<body>
+
+ <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      
+      <div class="left-dropdown"><!-- LEFT DROPDOWN MENU -->
+        <button class="menu-trigger" aria-label="Menu">
+          <img src="/static/images/Niels2.png" alt="Menu" class="home-icon">
+        </button>
+
+        <div class="left-menu">
+          <a href="https://mkb0020.onrender.com" class="menu-item">Home</a>
+          <a href="https://mkb0020.github.io/" class="menu-item">Javascript Projects</a>
+          <a href="https://mkb0020.github.io/Toolkit.html" class="menu-item">Schrödinger's Toolbox</a>
+          <a href="https://mkb0020.onrender.com/resume" class="menu-item">Resume</a>
+          <a href="https://ko-fi.com/mkb0020" class="menu-item">Feed the cats</a>
+          <a href="https://mkb0020.onrender.com/contact" class="menu-item">Contact</a> <!-- THIS WILL EVENTUALLY MOVE TO VERCEL-->
+          <a href="https://mkb0020.onrender.com/review" class="menu-item">Review CATastrophe 2</a> <!-- THIS WILL CHANGE TO VERCEL LINK-->
+          
+          <!-- TEMPORARILY COMMENTED THIS STUFF OUT BECAUSE I MAY MOVE IT BUT UNDECIDED-->
+          <!--<a href="https://mkb0020.onrender.com/admin_login" class="menu-item">Admin</a>--> 
+
+          <!--<div class="social-links">
+            <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
+              <img src="/assets/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+            </a>
+            <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
+              <img src="/assets/images/github-icon.png" alt="GitHub" class="social-icon">
+            </a>-->
+            <!--<a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
+              <img src="/assets/images/youtube-icon.png" alt="YouTube" class="social-icon">
+            </a>-->
+          <!--</div>-->
+        </div>
+      </div>
+
+     
+       <a href="https://mkb0020.github.io">
+            <div class="logo">♡ mkb0020</div>  <!-- CENTER LOGO -->
+        </a>
+ 
+      <div class="help-dropdown"> <!-- RIGHT HELP DROPDOWN -->
+        <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+          <div class="question-mark">?</div>
+        </button>
+        
+        <div class="dropdown-menu" id="dropdownMenu">
+          <button id="openMainHelp">About</button>
+          <a href="https://mkb0020.onrender.com/support" class="menu-item">Report an Issue</a> <!-- THIS WILL EVENTUALLY MOVE TO VERCEL-->
+        </div>
+      </div>
+    </div>
+  </nav>
+
+
+     <div id="helpModal" class="modal"> <!-- HELP MODAL -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title">ABOUT</h1>
+        <button class="modal-close" id="closeModal">X</button>
+      </div>
+      <div class="modal-body">
+            🎮 Thank you for playing the <h2>ary, CATastrophe 2!</h3>
+            <p>Your feedback is super valuable! As a human who doesn't play video games, I want to hear what gamers want in a game!</p>
+
+            <h3>On a high level, I want to know..</h3>
+            <ul>
+            <li><strong>What you loved:</strong> What made you smile or kept you playing?</li>
+            <li><strong>What needs work:</strong> Bugs, confusing mechanics, or balance issues</li>
+            <li><strong>Ideas:</strong> New features, improvements, or level suggestions</li>
+            </ul>
+
+            <h3>I'm specifically looking for feedback on:</h3>
+            <ul>
+            <li><strong>Game physics</strong> </li>
+            <li><strong>Game Flow</strong> </li>
+            <li><strong>Music</strong></li>
+            <li><strong>Narrative</strong></li>
+            <li><strong>Is the game engaging / did you want to finish it or were you over it by the first boss</strong> </li>
+            <li><strong>Is the game hard enough to be chalenging but not too hard to where it's not fun?</strong></li>
+
+            </ul>
+
+            <p class="mission-text">Thanks for helping me make a purrfect gaming experience! 🐾</p>
+      </div>
+    </div>
+    </div>
+
+
+<div class="form-container">
+  <div class="form-title">
+    <h1>🐱</h1>
+    <h1>CATastrophe 2 Feedback</h1>
+  </div>
+
+  <div class="form-card">
+
+
+  <form id="gameFeedbackForm">
+
+  <!-- ==================== INTRO / WELCOME ==================== -->
+  <div class="form-card">
+    <div class="form-group">
+          <p class="Niels" style="margin-bottom: 20px"><img src="/static/images/CowboyNiels.png" alt="Meow-dy"></p>
+
+      <p>Meow-dy partner! Thanks so much for playing CATastrophe 2! Your honest feedback helps us improve. No pressure to answer every question — you can even stay anonymous 😸</p>
+    </div>
+  </div>
+
+  <!-- ==================== 1. PLAYER CHOICE ==================== -->
+
+
+
+
+
+
+
+  <div class="form-card">
+    <h2>1. General Info</h2>
+
+      <div class="form-group">
+    <label>Your name (optional)</label>
+    <input
+      type="text"
+      name="name"
+      placeholder="Cat herder, quantum observer, etc."
+    />
+  </div>
+
+    <div class="form-group">
+      <label for="cat_name">Which cat did you pick?</label>
+      <select id="cat_name" name="cat_name">
+        <option value="">--Select your cat--</option>
+        <option value="Nona">NONA</option>
+        <option value="Gato">GATO</option>
+        <option value="Niels">NIELS</option>
+        <option value="Nova">NOVA</option>
+        <option value="Aubie">AUBIE</option>
+        <option value="Doug">DOUG</option>
+      </select>
+    </div>
+
+    <div class="radio-group">
+      <label>Did you complete the game?</label>
+      <input type="radio" name="game_completed" value="Yes" required> Yes
+      <input type="radio" name="game_completed" value="No"> No
+    </div>
+
+<div class="form-group">
+  <label>If No, why not? (Select all that apply)</label>
+
+  <div class="checkbox-group">
+    <input type="checkbox" name="not_completed_reasons" value="Too boring">
+    <span class="checkbox-label">Too boring</span>
+  </div>
+
+  <div class="checkbox-group">
+    <input type="checkbox" name="not_completed_reasons" value="Too hard">
+    <span class="checkbox-label">Too hard</span>
+  </div>
+
+  <div class="checkbox-group">
+    <input type="checkbox" name="not_completed_reasons" value="Didn’t have time">
+    <span class="checkbox-label">Didn’t have time</span>
+  </div>
+
+  <div class="checkbox-group">
+    <input type="checkbox" name="not_completed_reasons" value="Allergic to cats">
+    <span class="checkbox-label">Allergic to cats</span>
+  </div>
+</div>
+
+  </div>
+
+  <!-- ==================== 2. FEELS / EMOTIONAL EXPERIENCE ==================== -->
+  <div class="form-card">
+    <h2>2. Feels / Emotional Experience</h2>
+
+    <div class="radio-group">
+      <label>Did the game make you smile?</label>
+      <input type="radio" name="smile" value="Yes" required> Yes
+      <input type="radio" name="smile" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Did the puns make you chuckle?</label>
+      <input type="radio" name="puns_chuckle" value="Yes" required> Yes
+      <input type="radio" name="puns_chuckle" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Did you feel frustrated?</label>
+      <input type="radio" name="frustrated" value="Yes" required> Yes
+      <input type="radio" name="frustrated" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Was it annoying?</label>
+      <input type="radio" name="annoying" value="Yes" required> Yes
+      <input type="radio" name="annoying" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Was it confusing?</label>
+      <input type="radio" name="confusing" value="Yes" required> Yes
+      <input type="radio" name="confusing" value="No"> No
+    </div>
+  </div>
+
+  <!-- ==================== 3. INTELLIGIBILITY / MECHANICS ==================== -->
+  <div class="form-card">
+    <h2>3. Intelligibility / Mechanics</h2>
+
+    <div class="radio-group">
+      <label>Was it clear how to play the game?</label>
+      <input type="radio" name="play_clear" value="Yes"> Yes
+      <input type="radio" name="play_clear" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Was it clear how to beat a level?</label>
+      <input type="radio" name="beat_level_clear" value="Yes"> Yes
+      <input type="radio" name="beat_level_clear" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Was it clear how to beat a boss?</label>
+      <input type="radio" name="beat_boss_clear" value="Yes"> Yes
+      <input type="radio" name="beat_boss_clear" value="No"> No
+    </div>
+
+    <div class="form-group">
+      <label>Mechanics felt natural? (1 = weird, 5 = natural)</label>
+      <input type="range" name="mechanics_natural" min="1" max="5">
+    </div>
+  </div>
+
+  <!-- ==================== 4. OVERALL ENGAGEMENT ==================== -->
+  <div class="form-card">
+    <h2>4. Overall Engagement</h2>
+
+    <div class="form-group">
+      <label>Was it engaging / did you want to play through to the end?</label>
+      <input type="range" name="engagement_slider" min="1" max="5">
+    </div>
+
+    <div class="form-group">
+      <label>Was it challenging enough?</label>
+      <input type="range" name="challenge_slider" min="1" max="5">
+    </div>
+
+    <div class="radio-group">
+      <label>Reasonable for an average player to beat?</label>
+      <input type="radio" name="reasonable_to_beat" value="Yes"> Yes
+      <input type="radio" name="reasonable_to_beat" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Was the game interesting?</label>
+      <input type="radio" name="interesting" value="Yes"> Yes
+      <input type="radio" name="interesting" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Did the plot keep you curious?</label>
+      <input type="radio" name="plot_interest" value="Yes"> Yes
+      <input type="radio" name="plot_interest" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Did you connect with your cat character?</label>
+      <input type="radio" name="cat_connection" value="Yes"> Yes
+      <input type="radio" name="cat_connection" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Should there be more levels/bosses?</label>
+      <input type="radio" name="more_levels" value="Yes"> Yes
+      <input type="radio" name="more_levels" value="No"> No
+    </div>
+
+    <div class="radio-group">
+      <label>Would the ability to save progress improve the experience?</label>
+      <input type="radio" name="save_feature" value="Yes"> Yes
+      <input type="radio" name="save_feature" value="No"> No
+    </div>
+  </div>
+
+  <!-- ==================== 5. UI / VISUALS ==================== -->
+  <div class="form-card">
+    <h2>5. UI / Visuals</h2>
+
+    <div class="form-group">
+      <label>How did you like the colors? (1 = ugly/unreadable, 5 = beautiful & clear)</label>
+      <input type="range" name="color_slider" min="1" max="5">
+    </div>
+
+    <div class="form-group">
+      <label>Were animations smooth? (1 = annoying, 5 = smooth)</label>
+      <input type="range" name="animation_slider" min="1" max="5">
+    </div>
+
+    <div class="form-group">
+      <label>Were backgrounds distracting? (1 = distracting, 5 = perfect)</label>
+      <input type="range" name="background_slider" min="1" max="5">
+    </div>
+
+    <div class="form-group">
+      <label>Was HUD clear (HP, Time, Lives, Score)? (1 = confusing, 5 = obvious)</label>
+      <input type="range" name="hud_slider" min="1" max="5">
+    </div>
+
+    <div class="radio-group">
+      <label>Was it easy to understand boss battle moves?</label>
+      <input type="radio" name="boss_moves_clear" value="Yes"> Yes
+      <input type="radio" name="boss_moves_clear" value="No"> No
+    </div>
+
+    <div class="form-group">
+      <label>Favorite move?</label>
+      <select name="favorite_move">
+        <option value="">--Select--</option>
+        <option value="Scratch">Scratch</option>
+        <option value="Catnip Claw">Catnip Claw</option>
+        <option value="Zoomies">Zoomies</option>
+        <option value="Make Biscuits">Make Biscuits</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ==================== GAME UNIVERSE ==================== -->
+
+<div class="form-card">
+  <h2>6. Game Universe / Narrative</h2>
+  
+  <div class="form-group">
+    <label>Were you familiar with Schrödinger’s Box prior to playing?</label>
+      <select name="familiar_with_box">
+        <option value="">Select</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+        <option value="Both">Both</option>
+      </select>
+    </div>
+
+ <div class="form-group">
+  <label>If NO – Was the story fun or confusing?</label>
+  <select name="story_followed">
+    <option value="">Select</option>
+    <option value="Followed">Followed</option>
+    <option value="Was lost">Was lost</option>
+  </select>
+</div>
+
+<div class="form-group">
+  <label>Should quantum physics concepts be explained in-game?</label>
+  <select name="quantum_explanation_needed">
+    <option value="">Select</option>
+    <option value="Yes">Yes</option>
+    <option value="No">No</option>
+  </select>
+</div>
+
+<div class="form-group">
+  <label>If YES or BOTH – Was the quantum cat café concept interesting?</label>
+  <select name="quantum_fun">
+    <option value="">Select</option>
+    <option value="Yes">Yes</option>
+    <option value="No">No</option>
+  </select>
+</div>
+
+<div class="form-group">
+  <label>Did quantum physics jokes land?</label>
+  <select name="quantum_jokes">
+    <option value="">Select</option>
+    <option value="Yes">Yes</option>
+    <option value="No">No</option>
+  </select>
+</div>
+
+<div class="form-group">
+  <label>Was the story fun?</label>
+  <select name="story_fun">
+    <option value="">Select</option>
+    <option value="Yes">Yes</option>
+    <option value="No">No</option>
+  </select>
+</div>
+</div>
+
+<!-- ==================== PLATFORMER LEVELS ==================== -->
+
+
+  <div class="form-card">
+  <h2>7. Platformer Levels</h2>
+
+  <div class="form-group">
+    <label>Jump physics (select all that apply):</label>
+    <div class="checkbox-group">
+      <label><input type="checkbox" name="jump_physics[]" value="Just right"> Just right</label>
+      </div>
+
+      <div class="checkbox-group">
+      <label><input type="checkbox" name="jump_physics[]" value="Too floaty"> Too floaty</label>
+      </div>
+
+      <div class="checkbox-group">
+      <label><input type="checkbox" name="jump_physics[]" value="Too heavy"> Too heavy</label>
+      </div>
+
+      <div class="checkbox-group">
+      <label><input type="checkbox" name="jump_physics[]" value="Not high enough"> Not high enough</label>
+      </div>
+
+      <div class="checkbox-group">
+      <label><input type="checkbox" name="jump_physics[]" value="Not long enough"> Not long enough</label>
+      </div>
+
+      <div class="checkbox-group">
+      <label><input type="checkbox" name="jump_physics[]" value="Too high"> Too high</label>
+      </div>
+
+      <div class="checkbox-group">
+      <label><input type="checkbox" name="jump_physics[]" value="Too far"> Too far</label>
+      </div>
+
+    </div>
+
+  <div class="form-group">
+    <label>Horizontal speed:</label>
+    <select name="horizontal_speed">
+      <option value="">Select</option>
+      <option value="Too slow">Too slow</option>
+      <option value="Just right">Just right</option>
+      <option value="Too fast">Too fast</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Platform difficulty progression?</label>
+    <select name="platform_difficulty"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Platform sizes good?</label>
+    <select name="platform_sizes_good"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Platform spacing good?</label>
+    <select name="platform_spacing_good"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Platform height from ground good?</label>
+    <select name="platform_height_good"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Platform quantity:</label>
+    <select name="platform_quantity">
+      <option value="">Select</option>
+      <option value="Too few">Too few</option>
+      <option value="Just right">Just right</option>
+      <option value="Too many">Too many</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Level time:</label>
+    <select name="level_time">
+      <option value="">Select</option>
+      <option value="Too short">Too short</option>
+      <option value="Just right">Just right</option>
+      <option value="Too long">Too long</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Items clear (fish bones, milk, catnip)?</label>
+    <select name="items_clear"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Enemies fair?</label>
+    <select name="enemies_fair"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Enemy placement good?</label>
+    <select name="enemies_placement"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Enemy quantity:</label>
+    <select name="enemies_quantity">
+      <option value="">Select</option>
+      <option value="Too few">Too few</option>
+      <option value="Just right">Just right</option>
+      <option value="Too many">Too many</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>End of level obvious?</label>
+    <select name="level_end_clear"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Would longer levels be fun?</label>
+    <select name="longer_levels"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Would a faster character be fun?</label>
+    <select name="faster_character"><option value="">Select</option><option>Yes</option><option>No</option></select>
+  </div>
+
+  <div class="form-group">
+    <label>Anything frustrating?</label>
+    <textarea name="level_frustration"></textarea>
+  </div>
+</div>
+
+
+<!-- ==================== BOSS BATTLES ==================== -->
+
+<div class="form-card">
+  <h2>8. Boss Battles</h2>
+
+  <div class="form-group">
+    <label>Transition smooth?</label>
+    <select name="boss_transition">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Fair fights?</label>
+    <select name="boss_fair">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Difficulty progression?</label>
+    <select name="boss_progression">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Too easy?</label>
+    <select name="boss_too_easy">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Boss pacing:</label>
+    <select name="boss_pacing">
+      <option value="">Select</option>
+      <option value="Too fast">Too fast</option>
+      <option value="Just right">Just right</option>
+      <option value="Too slow">Too slow</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Battle easy to understand?</label>
+    <select name="boss_understandable">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>“FINISH HIM” fun?</label>
+    <select name="finish_fun">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Favorite finishing move:</label>
+    <select name="favorite_finish_move">
+      <option value="">Select</option>
+      <option>Cat Cross Bow</option>
+      <option>Brass Toe Beans</option>
+      <option>Purrcision Rifle</option>
+      <option>Meowlotov Cocktail</option>
+      <option>Feline Fission</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Sounds / animations line up?</label>
+    <select name="boss_sounds_anim">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Anything frustrating?</label>
+    <textarea name="boss_frustration"></textarea>
+  </div>
+</div>
+
+
+
+<!-- ==================== BUGS ==================== -->
+
+<div class="form-card">
+  <h2>9. Bugs / Technical Issues</h2>
+
+  <div class="form-group">
+    <label>Did anything not work?</label>
+    <select name="bugs_found">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>If yes, please describe:</label>
+    <textarea name="bug_descriptions"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Did the game freeze?</label>
+    <select name="game_freeze">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>If yes, when?</label>
+    <textarea name="freeze_when"></textarea>
+  </div>
+</div>
+
+
+<!-- ==================== VALUE ==================== -->
+
+<div class="form-card">
+  <h2>10. Value Perception</h2>
+
+  <div class="form-group">
+    <label>Would you pay for this game?</label>
+    <select name="would_pay">
+      <option value="">Select</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>If no, what would make it worth paying?</label>
+    <textarea name="pay_what_needed"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>If yes, how much?</label>
+    <select name="pay_amount">
+      <option value="">Select</option>
+      <option>$1</option>
+      <option>$2</option>
+      <option>$3</option>
+      <option>$5</option>
+      <option>$10+</option>
+    </select>
+  </div>
+</div>
+
+
+<!-- ==================== FINAL THOUGHTS ==================== -->
+
+<div class="form-card">
+  <h2>11. Final Thoughts</h2>
+
+  <div class="form-group">
+    <label>Anything else?</label>
+    <textarea name="final_thoughts"></textarea>
+  </div>
+</div>
+
+
+  <!-- ==================== SUBMIT BUTTON ==================== -->
+  <button type="submit" class="submit-btn">
+    🐾 SEND FEEDBACK RIGHT MEOW 🐾
+  </button>
+
+</form>
+
+    
+
+</div>
+
+  <div id="stars"></div> <!-- STAR BACKGROUND -->
+
+  <button class="floating-back-to-top" id="floatingBackToTop"> <!-- BACK TO TOP FOR MODALS-->
+    ↑ 
+  </button>
+
+</div>
+
+
+<div id="kofi-float">
+        <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+            <img src="/static/images/tipjar.png" alt="Support me on Ko-fi">
+            <div class="hearts">
+                <div class="heart" style="--delay: 0s; --drift: -20px;">❤️</div>
+                <div class="heart" style="--delay: 0.5s; --drift: 15px;">💖</div>
+                <div class="heart" style="--delay: 1s; --drift: -10px;">💕</div>
+                <div class="heart" style="--delay: 1.5s; --drift: 20px;">❤️</div>
+                <div class="heart" style="--delay: 2s; --drift: -15px;">💗</div>
+                <div class="heart" style="--delay: 2.5s; --drift: 10px;">💖</div>
+            </div>
+        </a>
+</div>
+
+<div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+        <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+            <img src="/static/images/top.png" alt="Scroll to top">
+ 
+        </a>
+    </div>
+
+  <script src="/static/js/KittyCore.js"></script>
+
+
+  <script>
+        const button = document.getElementById('kofi-float');
+        button.addEventListener('mouseenter', () => {
+            document.querySelectorAll('.heart').forEach(h => {
+                h.style.animation = 'none';
+                h.offsetHeight; 
+                h.style.animation = null;
+            });
+        });
+    </script>
+
+  <script>
+        const starsDiv = document.getElementById('stars');
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = star.style.height = Math.random() * 2 + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 4 + 's';
+            starsDiv.appendChild(star);
+        }
+  </script>
+
+<script>
+  // CHARACTER COUNTER
+  const textarea = document.getElementById('review');
+  const maxLength = 2000;
+
+  if (textarea) {
+    const counterDiv = document.createElement('div');
+    counterDiv.style.cssText = 'text-align: right; color: var(--MutedGray); font-size: 0.9rem; margin-top: 0.5rem; position: relative; z-index: 1;';
+    textarea.parentElement.appendChild(counterDiv);
+
+    const updateCounter = () => {
+      const remaining = maxLength - textarea.value.length;
+      counterDiv.textContent = `${remaining} characters remaining`;
+      
+      if (remaining < 100) {
+        counterDiv.style.color = 'var(--NuclearFuscia)';
+      } else {
+        counterDiv.style.color = 'var(--MutedGray)';
+      }
+    };
+
+    textarea.addEventListener('input', updateCounter);
+    updateCounter();
+  }
+
+  // FORM SUBMISSION STATE
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      const submitBtn = form.querySelector('.submit-btn');
+      submitBtn.textContent = '📤 Sending...';
+      submitBtn.disabled = true;
+    });
+  }
+
+  // STAR RATING ANIMATION
+  const stars = document.querySelectorAll('.star-rating label');
+  stars.forEach(star => {
+    star.addEventListener('mouseenter', () => {
+      star.style.transform = 'scale(1.2) rotate(10deg)';
+    });
+    star.addEventListener('mouseleave', () => {
+      star.style.transform = '';
+    });
+  });
+</script>
+
+</body>
+</html>
