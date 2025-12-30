@@ -11,5 +11,14 @@ app.register_blueprint(feedback_bp)
 def index():
     return send_from_directory('.', 'index.html')
 
+
+@app.route('/comments')
+def comments_page():
+    return send_from_directory('forms', 'comments.html')
+
+@app.route('/game-testing')
+def game_testing_page():
+    return send_from_directory('forms', 'GameTesting.html')
+
 if __name__ == '__main__':
     app.run()
