@@ -1,17 +1,20 @@
 import os
 import psycopg
-from flask import Flask, request, jsonify  
+from flask import Blueprint, request, jsonify  
 import json
 import requests  
 from dotenv import load_dotenv
 load_dotenv()
 
 DB_URL = os.environ.get("DATABASE_URL")  
-
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
-NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL")  
+NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL")
 
-def handler(request):
+# BLUEPRINT 
+feedback_bp = Blueprint('feedback', __name__)
+
+@feedback_bp.route('/api/feedback', methods=['POST'])
+def submit_feedback():
     try:
         data = request.get_json()
         if not data:

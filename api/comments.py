@@ -1,6 +1,6 @@
 import os
 import psycopg
-from flask import Flask, request, jsonify
+from flask import Blueprint, request, jsonify
 from dotenv import load_dotenv
 from datetime import datetime
 
@@ -8,7 +8,11 @@ load_dotenv()
 
 DB_URL = os.environ.get("DATABASE_URL")
 
-def handler(request):
+# BLUEPRINT 
+comments_bp = Blueprint('comments', __name__)
+
+@comments_bp.route('/api/comments', methods=['GET', 'POST'])
+def handle_comments():
     """
     Handles both GET (retrieve comments) and POST (submit comment) requests
     """
