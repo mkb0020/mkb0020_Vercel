@@ -50,12 +50,12 @@
 /* ============================ FONTS ============================ */
 @font-face {
   font-family: 'GothNerd'; 
-  src: url('../fonts/ScienceGothic.ttf') format('truetype'); 
+  src: url('/static/fonts/ScienceGothic.ttf') format('truetype'); 
 }
 
 @font-face {
   font-family: 'SpaceLetters'; 
-  src: url('../fonts/Orbitron-Bold.ttf') format('truetype'); 
+  src: url('/static/fonts/Orbitron-Bold.ttf') format('truetype'); 
 }
 
 /* ============================ ANIMATIONS ============================ */
