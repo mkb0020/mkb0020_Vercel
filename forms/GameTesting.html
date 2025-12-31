@@ -192,12 +192,10 @@ h2 {
 
   .form-group label {
     display: block;
-    color: var(--AlphaAqua);
+    color: var(--White);
     font-family: Arial, Helvetica, sans-serif;
     font-size: 1.3rem;
-    font-weight: bold;
     margin-bottom: 0.5rem;
-    text-shadow: 0 0 10px var(--AlphaGlow1);
   }
 
   .form-group input,
@@ -506,11 +504,11 @@ h2 {
      <div id="helpModal" class="modal"> <!-- HELP MODAL -->
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title">ABOUT</h1>
+        <h1 class="modal-title">THANK YOU!</h1>
         <button class="modal-close" id="closeModal">X</button>
       </div>
       <div class="modal-body">
-            🎮 Thank you for playing the <h2>ary, CATastrophe 2!</h3>
+            <h3>Thank you for playing CATastrophe 2!</h3>
             <p>Your feedback is super valuable! As a human who doesn't play video games, I want to hear what gamers want in a game!</p>
 
             <h3>On a high level, I want to know..</h3>
@@ -527,7 +525,7 @@ h2 {
             <li><strong>Music</strong></li>
             <li><strong>Narrative</strong></li>
             <li><strong>Is the game engaging / did you want to finish it or were you over it by the first boss</strong> </li>
-            <li><strong>Is the game hard enough to be chalenging but not too hard to where it's not fun?</strong></li>
+            <li><strong>Is the game hard enough to be challenging but not too hard to where it's not fun?</strong></li>
 
             </ul>
 
@@ -553,7 +551,7 @@ h2 {
     <div class="form-group">
           <p class="Niels" style="margin-bottom: 20px"><img src="/static/images/CowboyNiels.png" alt="Meow-dy"></p>
 
-      <p>Meow-dy partner! Thanks so much for playing CATastrophe 2! Your honest feedback helps us improve. No pressure to answer every question — you can even stay anonymous 😸</p>
+      <p>MEOW-dy partner! Thanks so much for playing CATastrophe 2! Your honest feedback helps us improve. No pressure to answer every question — you can even stay anonymous 😸</p>
     </div>
   </div>
 
@@ -583,10 +581,13 @@ h2 {
       </select>
     </div>
 
-    <div class="radio-group">
+    <div class="form-group">
       <label>Did you complete the game?</label>
-      <input type="radio" name="game_completed" value="Yes" required> Yes
-      <input type="radio" name="game_completed" value="No"> No
+        <select name="game_completed">
+          <option value="">--Select--</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
     </div>
 
 <div class="form-group">
@@ -615,152 +616,196 @@ h2 {
 
   </div>
 
-  <!-- ==================== 2. FEELS / EMOTIONAL EXPERIENCE ==================== -->
-  <div class="form-card">
-    <h2>2. Feels / Emotional Experience</h2>
+<!-- ==================== 2. FEELS / EMOTIONAL EXPERIENCE ==================== -->
+<div class="form-card">
+  <h2>2. Feels / Emotional Experience</h2>
 
-    <div class="radio-group">
-      <label>Did the game make you smile?</label>
-      <input type="radio" name="smile" value="Yes" required> Yes
-      <input type="radio" name="smile" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Did the puns make you chuckle?</label>
-      <input type="radio" name="puns_chuckle" value="Yes" required> Yes
-      <input type="radio" name="puns_chuckle" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Did you feel frustrated?</label>
-      <input type="radio" name="frustrated" value="Yes" required> Yes
-      <input type="radio" name="frustrated" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Was it annoying?</label>
-      <input type="radio" name="annoying" value="Yes" required> Yes
-      <input type="radio" name="annoying" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Was it confusing?</label>
-      <input type="radio" name="confusing" value="Yes" required> Yes
-      <input type="radio" name="confusing" value="No"> No
-    </div>
+  <div class="form-group">
+    <label>Did the game spark joy?</label>
+    <select name="smile">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
   </div>
 
-  <!-- ==================== 3. INTELLIGIBILITY / MECHANICS ==================== -->
-  <div class="form-card">
-    <h2>3. Intelligibility / Mechanics</h2>
-
-    <div class="radio-group">
-      <label>Was it clear how to play the game?</label>
-      <input type="radio" name="play_clear" value="Yes"> Yes
-      <input type="radio" name="play_clear" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Was it clear how to beat a level?</label>
-      <input type="radio" name="beat_level_clear" value="Yes"> Yes
-      <input type="radio" name="beat_level_clear" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Was it clear how to beat a boss?</label>
-      <input type="radio" name="beat_boss_clear" value="Yes"> Yes
-      <input type="radio" name="beat_boss_clear" value="No"> No
-    </div>
-
-    <div class="form-group">
-      <label>Mechanics felt natural? (1 = weird, 5 = natural)</label>
-      <input type="range" name="mechanics_slider" min="1" max="5">
-    </div>
+  <div class="form-group">
+    <label>Did it make you LOL?</label>
+    <select name="puns_chuckle">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
   </div>
 
-  <!-- ==================== 4. OVERALL ENGAGEMENT ==================== -->
-  <div class="form-card">
-    <h2>4. Overall Engagement</h2>
-
-    <div class="form-group">
-      <label>Was it engaging / did you want to play through to the end?</label>
-      <input type="range" name="engagement_slider" min="1" max="5">
-    </div>
-
-    <div class="form-group">
-      <label>Was it challenging enough?</label>
-      <input type="range" name="challenge_slider" min="1" max="5">
-    </div>
-
-    <div class="radio-group">
-      <label>Reasonable for an average player to beat?</label>
-      <input type="radio" name="reasonable_to_beat" value="Yes"> Yes
-      <input type="radio" name="reasonable_to_beat" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Was the game interesting?</label>
-      <input type="radio" name="interesting" value="Yes"> Yes
-      <input type="radio" name="interesting" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Did the plot keep you curious?</label>
-      <input type="radio" name="plot_interest" value="Yes"> Yes
-      <input type="radio" name="plot_interest" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Did you connect with your cat character?</label>
-      <input type="radio" name="cat_connection" value="Yes"> Yes
-      <input type="radio" name="cat_connection" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Should there be more levels/bosses?</label>
-      <input type="radio" name="more_levels" value="Yes"> Yes
-      <input type="radio" name="more_levels" value="No"> No
-    </div>
-
-    <div class="radio-group">
-      <label>Would the ability to save progress improve the experience?</label>
-      <input type="radio" name="save_feature" value="Yes"> Yes
-      <input type="radio" name="save_feature" value="No"> No
-    </div>
+  <div class="form-group">
+    <label>Was it frustrating / anoying / confusing?</label>
+    <select name="frustrated">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
   </div>
 
+  <!--<div class="form-group">
+    <label>Was it annoying?</label>
+    <select name="annoying">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Was it confusing?</label>
+    <select name="confusing">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>-->
+</div>
+
+<!-- ==================== 3. INTELLIGIBILITY / MECHANICS ==================== -->
+<div class="form-card">
+  <h2>3. Intelligibility / Mechanics</h2>
+
+  <div class="form-group">
+    <label>Was it clear how to play the game?</label>
+    <select name="play_clear">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+
+ <!-- <div class="form-group">
+    <label>Was it clear how to beat a level?</label>
+    <select name="beat_level_clear">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Was it clear how to beat a boss?</label>
+    <select name="beat_boss_clear">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>-->
+
+  <div class="form-group">
+    <label>Did the physics/mechanics felt natural? (left = weird / right = natural)</label>
+    <input type="range" name="mechanics_slider" min="1" max="5">
+  </div>
+</div>
+
+<!-- ==================== 4. OVERALL ENGAGEMENT ==================== -->
+<div class="form-card">
+  <h2>4. Overall Engagement</h2>
+
+  <div class="form-group">
+    <label>Was it engaging / did you want to play through to the end? (left = boring / right = engaging)</label>
+    <input type="range" name="engagement_slider" min="1" max="5">
+  </div>
+
+  <div class="form-group">
+    <label>Was it challenging enough? (left = Too Easy / right = Good Challenge)</label>
+    <input type="range" name="challenge_slider" min="1" max="5">
+  </div>
+
+  <div class="form-group">
+    <label>Reasonable for an average player to beat?</label>
+    <select name="reasonable_to_beat">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+
+ <!-- <div class="form-group">
+    <label>Was the game interesting?</label>
+    <select name="interesting">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Did you enjoy the plot?</label>
+    <select name="plot_interest">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>-->
+
+  <div class="form-group">
+    <label>Did you bond with your cat?</label>
+    <select name="cat_connection">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Should there be more levels/bosses?</label>
+    <select name="more_levels">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Would the ability to save progress improve the experience?</label>
+    <select name="save_feature">
+      <option value="">--Select--</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+</div>
   <!-- ==================== 5. UI / VISUALS ==================== -->
   <div class="form-card">
     <h2>5. UI / Visuals</h2>
 
     <div class="form-group">
-      <label>How did you like the colors? (1 = ugly/unreadable, 5 = beautiful & clear)</label>
+      <label>How did you like the colors? (left = ugly / right = beautiful & clear)</label>
       <input type="range" name="color_slider" min="1" max="5">
     </div>
 
-    <div class="form-group">
-      <label>Were animations smooth? (1 = annoying, 5 = smooth)</label>
+   <div class="form-group">
+      <label>Were animations smooth? (left = annoying / right = smooth)</label>
       <input type="range" name="animation_slider" min="1" max="5">
     </div>
 
     <div class="form-group">
-      <label>Were backgrounds distracting? (1 = distracting, 5 = perfect)</label>
+      <label>Were backgrounds distracting? (left = distracting / right = nope)</label>
       <input type="range" name="background_slider" min="1" max="5">
     </div>
 
-    <div class="form-group">
+    <!--<div class="form-group">
       <label>Was HUD clear (HP, Time, Lives, Score)? (1 = confusing, 5 = obvious)</label>
       <input type="range" name="hud_slider" min="1" max="5">
     </div>
 
-    <div class="radio-group">
+    <div class="form-group">
       <label>Was it easy to understand boss battle moves?</label>
-      <input type="radio" name="boss_moves_clear" value="Yes"> Yes
-      <input type="radio" name="boss_moves_clear" value="No"> No
-    </div>
+        <select name="boss_moves_clear">
+        <option value="">--Select--</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+        </select>
+    </div>-->
 
     <div class="form-group">
-      <label>Favorite move?</label>
+      <label>Favorite boss battle move?</label>
       <select name="favorite_move">
         <option value="">--Select--</option>
         <option value="Scratch">Scratch</option>
@@ -805,7 +850,7 @@ h2 {
 </div>
 
 <div class="form-group">
-  <label>If YES or BOTH – Was the quantum cat café concept interesting?</label>
+  <label>If YES or BOTH – Was the quantum cat café concept fun?</label>
   <select name="quantum_fun">
     <option value="">Select</option>
     <option value="Yes">Yes</option>
@@ -814,7 +859,7 @@ h2 {
 </div>
 
 <div class="form-group">
-  <label>Did quantum physics jokes land?</label>
+  <label>Did quantum physics jokes land (and not land at the same time)?</label>
   <select name="quantum_jokes">
     <option value="">Select</option>
     <option value="Yes">Yes</option>
@@ -822,14 +867,14 @@ h2 {
   </select>
 </div>
 
-<div class="form-group">
+<!--<div class="form-group">
   <label>Was the story fun?</label>
   <select name="story_fun">
     <option value="">Select</option>
     <option value="Yes">Yes</option>
     <option value="No">No</option>
   </select>
-</div>
+</div>-->
 </div>
 
 <!-- ==================== PLATFORMER LEVELS ==================== -->
@@ -881,22 +926,22 @@ h2 {
   </div>
 
   <div class="form-group">
-    <label>Platform difficulty progression?</label>
+    <label>Did the platformer levels progress in difficulty as the game went on?</label>
     <select name="platform_difficulty"><option value="">Select</option><option>Yes</option><option>No</option></select>
   </div>
 
   <div class="form-group">
-    <label>Platform sizes good?</label>
+    <label>Were the platform sizes good?</label>
     <select name="platform_sizes_good"><option value="">Select</option><option>Yes</option><option>No</option></select>
   </div>
 
   <div class="form-group">
-    <label>Platform spacing good?</label>
+    <label>Was the spacing between platforms good?</label>
     <select name="platform_spacing_good"><option value="">Select</option><option>Yes</option><option>No</option></select>
   </div>
 
   <div class="form-group">
-    <label>Platform height from ground good?</label>
+    <label>Were the platform heights from the ground good?</label>
     <select name="platform_height_good"><option value="">Select</option><option>Yes</option><option>No</option></select>
   </div>
 
@@ -920,18 +965,18 @@ h2 {
     </select>
   </div>
 
-  <div class="form-group">
+ <!-- <div class="form-group">
     <label>Items clear (fish bones, milk, catnip)?</label>
     <select name="items_clear"><option value="">Select</option><option>Yes</option><option>No</option></select>
-  </div>
+  </div>-->
 
   <div class="form-group">
-    <label>Enemies fair?</label>
+    <label>Were the enemies in the platform levels fair?</label>
     <select name="enemies_fair"><option value="">Select</option><option>Yes</option><option>No</option></select>
   </div>
 
   <div class="form-group">
-    <label>Enemy placement good?</label>
+    <label>Was the placement of enemies good?</label>
     <select name="enemies_placement"><option value="">Select</option><option>Yes</option><option>No</option></select>
   </div>
 
@@ -946,17 +991,17 @@ h2 {
   </div>
 
   <div class="form-group">
-    <label>End of level obvious?</label>
+    <label>Was the end of each level obvious?</label>
     <select name="level_end_clear"><option value="">Select</option><option>Yes</option><option>No</option></select>
   </div>
 
   <div class="form-group">
-    <label>Would longer levels be fun?</label>
+    <label>Would longer levels be better?</label>
     <select name="longer_levels"><option value="">Select</option><option>Yes</option><option>No</option></select>
   </div>
 
   <div class="form-group">
-    <label>Would a faster character be fun?</label>
+    <label>Would a faster character be better?</label>
     <select name="faster_character"><option value="">Select</option><option>Yes</option><option>No</option></select>
   </div>
 
@@ -973,7 +1018,7 @@ h2 {
   <h2>8. Boss Battles</h2>
 
   <div class="form-group">
-    <label>Transition smooth?</label>
+    <label>Were the transitions from level to boss battle smooth?</label>
     <select name="boss_transition">
       <option value="">Select</option>
       <option>Yes</option>
@@ -982,7 +1027,7 @@ h2 {
   </div>
 
   <div class="form-group">
-    <label>Fair fights?</label>
+    <label>Were the fights fair?</label>
     <select name="boss_fair">
       <option value="">Select</option>
       <option>Yes</option>
@@ -991,7 +1036,7 @@ h2 {
   </div>
 
   <div class="form-group">
-    <label>Difficulty progression?</label>
+    <label>Did the battles increase in difficulty as the game progressed?</label>
     <select name="boss_progression">
       <option value="">Select</option>
       <option>Yes</option>
@@ -1000,7 +1045,7 @@ h2 {
   </div>
 
   <div class="form-group">
-    <label>Too easy?</label>
+    <label>Were the boss battles too easy?</label>
     <select name="boss_too_easy">
       <option value="">Select</option>
       <option>Yes</option>
@@ -1009,7 +1054,7 @@ h2 {
   </div>
 
   <div class="form-group">
-    <label>Boss pacing:</label>
+    <label>How was the pacing of the boss battles?</label>
     <select name="boss_pacing">
       <option value="">Select</option>
       <option value="Too fast">Too fast</option>
@@ -1018,17 +1063,17 @@ h2 {
     </select>
   </div>
 
-  <div class="form-group">
+  <!--<div class="form-group">
     <label>Battle easy to understand?</label>
     <select name="boss_understandable">
       <option value="">Select</option>
       <option>Yes</option>
       <option>No</option>
     </select>
-  </div>
+  </div>-->
 
   <div class="form-group">
-    <label>“FINISH HIM” fun?</label>
+    <label>Did you like the “FINISH HIM” moves?</label>
     <select name="finish_fun">
       <option value="">Select</option>
       <option>Yes</option>
@@ -1049,7 +1094,7 @@ h2 {
   </div>
 
   <div class="form-group">
-    <label>Sounds / animations line up?</label>
+    <label>Did the sounds and animations in battles line up correctly?</label>
     <select name="boss_sounds_anim">
       <option value="">Select</option>
       <option>Yes</option>
