@@ -31,5 +31,9 @@ def support_page():
 def tester_signup_page():
     return send_from_directory('forms', 'testerSignup.html')
 
+@app.route('/dashboard')
+def dashboard_page():
+    return send_from_directory('forms', 'dashboard.html')
+
 if __name__ == '__main__':
     app.run()

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CATastrophe2</title>
+    <link rel="stylesheet" href="/static/css/KittyStyle.css">
+    <style>
+        .dashboard-container {
+            margin-top: 80px;
+            padding: 20px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--ProtonPurple), var(--BosonBlue));
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid var(--VortexViolet);
+            box-shadow: 0 0 50px var(--VortexGlow3);
+            margin-bottom: 30px;
+        }
+
+        .dashboard-title {
+            font-family: 'SpaceLetters', sans-serif;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, var(--ParticlePink), var(--NuclearFuscia), var(--AlphaAqua));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px var(--ParticleGlow3);
+        }
+
+        .dashboard-subtitle {
+            color: var(--EntangledEucalyptus);
+            font-size: 1.1em;
+            font-family: Arial, sans-serif;
+        }
+
+        .module-section {
+            background: linear-gradient(135deg, var(--BosonBlue), var(--ProtonPurple));
+            border: 3px solid var(--VortexViolet);
+            border-radius: 15px;
+            box-shadow: 0 0 30px var(--VortexGlow2);
+            margin-bottom: 30px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .module-section:hover {
+            box-shadow: 0 0 50px var(--NuclearGlow3);
+            transform: translateY(-2px);
+        }
+
+        .module-header {
+            background: linear-gradient(135deg, var(--VortexViolet), var(--NuclearFuscia));
+            color: var(--White);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--ParticlePink);
+        }
+
+        .module-title {
+            font-family: 'GothNerd', sans-serif;
+            font-size: 1.8em;
+            color: var(--White);
+            text-shadow: 0 0 20px var(--ParticleGlow3);
+        }
+
+        .module-description {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+            font-family: Arial, sans-serif;
+        }
+
+        .record-count {
+            background: var(--PlasmaGlow2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-family: 'GothNerd', sans-serif;
+            border: 2px solid var(--PlasmaPurple);
+        }
+
+        .module-content {
+            padding: 30px;
+            background: var(--BosonShadow2);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--AlphaAqua);
+            font-size: 1.1em;
+            font-family: 'GothNerd', sans-serif;
+        }
+
+        .error {
+            background: var(--RadiationRed);
+            border: 2px solid var(--NuclearFuscia);
+            color: var(--ParticlePink);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+            font-family: Arial, sans-serif;
+        }
+
+        thead {
+            background: var(--ProtonPurple);
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--AlphaAqua);
+            border-bottom: 2px solid var(--VortexViolet);
+            white-space: nowrap;
+            font-family: 'GothNerd', sans-serif;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--PlasmaGlow2);
+            vertical-align: top;
+            color: var(--EntangledEucalyptus);
+        }
+
+        tr:hover {
+            background: var(--PlasmaGlow1);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--CoolGray);
+            font-style: italic;
+            font-family: Arial, sans-serif;
+        }
+
+        .timestamp {
+            color: var(--AlphaAqua);
+            font-size: 0.85em;
+        }
+
+        .bool-true {
+            color: var(--RadioactiveGreen);
+            font-weight: 600;
+        }
+
+        .bool-false {
+            color: var(--NuclearFuscia);
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            background: var(--ProtonPurple);
+            border: 2px solid var(--AlphaAqua);
+            color: var(--AlphaAqua);
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            font-family: 'GothNerd', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: var(--AlphaAqua);
+            color: var(--BosonBlue);
+            box-shadow: 0 0 20px var(--AlphaGlow3);
+            transform: scale(1.05);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 10px;
+                margin-top: 60px;
+            }
+
+            .dashboard-title {
+                font-size: 1.8em;
+            }
+
+            .module-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- STARS BACKGROUND -->
+    <div id="stars"></div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="left-dropdown">
+                <button class="menu-trigger" aria-label="Menu">
+                    <img src="/static/images/Niels2.png" alt="Menu" class="home-icon">
+                </button>
+                <div class="left-menu">
+                    <a href="https://mkb0020.vercel.app/" class="menu-item">Vercel Landing Page</a>
+                    <a href="https://mkb0020.github.io/" class="menu-item">GitHub Landing Page</a>
+                </div>
+            </div>
+
+            <a href="https://mkb0020.github.io">
+                <div class="logo">♡ mkb0020</div>
+            </a>
+
+            <div class="help-dropdown">
+                <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+                    <div class="question-mark">?</div>
+                </button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="https://github.com/mkb0020?tab=repositories" class="menu-item">GitHub</a>
+                    <a href="https://vercel.com/mks-projects-13cdb220/mkb0020" class="menu-item">Vercel</a>
+                    <a href="https://console.neon.tech/app/projects/winter-glade-22569816/branches/br-frosty-feather-a42rpn94/tables" class="menu-item">Neon</a>
+                    <a href="https://itch.io/dashboard" class="menu-item">itch.io</a>
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- DASHBOARD CONTENT -->
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1 class="dashboard-title">Dashboard</h1>
+        </header>
+
+        <div id="dashboard-modules">
+
+
+        </div>
+    </div>
+
+
+
+    <!-- BACK TO TOP -->
+    <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+        <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+            <img src="/static/images/top.png" alt="Scroll to top">
+        </a>
+    </div>
+
+    <script src="/static/js/KittyCore.js"></script>
+
+    <script>
+        // STARS BACKGROUND
+        const starsDiv = document.getElementById('stars');
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = star.style.height = Math.random() * 2 + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 4 + 's';
+            starsDiv.appendChild(star);
+        }
+
+        const DASHBOARD_CONFIG = [
+            {
+                id: 'game_feedback',
+                title: 'Game Tester Feedback',
+                enabled: true,
+                api_endpoint: '/api/feedback',
+                description: 'Detailed feedback from game testers',
+                highlight_columns: ['name', 'cat_name', 'game_completed', 'would_pay']
+            },
+            {
+                id: 'support_tickets',
+                title: 'Support Tickets',
+                enabled: true,
+                api_endpoint: '/api/support',
+                description: 'User-reported issues and bugs',
+                highlight_columns: ['name', 'email', 'page', 'issue_description']
+            },
+            {
+                id: 'tester_signups',
+                title: 'Tester Signups',
+                enabled: true,
+                api_endpoint: '/api/tester-signup',
+                description: 'Users who signed up to be game testers',
+                highlight_columns: ['name', 'email', 'signed_up_at']
+            }
+        ];
+
+        function formatValue(value, key) {
+            if (value === null || value === undefined) {
+                return '<span style="color: var(--MutedGray);">—</span>';
+            }
+            
+            if (typeof value === 'boolean') {
+                return value 
+                    ? '<span class="bool-true">✓ Yes</span>' 
+                    : '<span class="bool-false">✗ No</span>';
+            }
+            
+            if (key.includes('at') || key.includes('timestamp')) {
+                const date = new Date(value);
+                return `<span class="timestamp">${date.toLocaleString()}</span>`;
+            }
+            
+            if (typeof value === 'string' && value.length > 100) {
+                return value.substring(0, 100) + '...';
+            }
+            
+            return value;
+        }
+
+        async function loadModuleData(module) {
+            const moduleElement = document.getElementById(module.id);
+            const contentElement = moduleElement.querySelector('.module-content');
+            const countElement = moduleElement.querySelector('.record-count');
+
+            try {
+                contentElement.innerHTML = '<div class="loading">Loading data...</div>';
+                
+                const response = await fetch(module.api_endpoint);
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load data');
+                }
+
+                const data = result.data || [];
+                countElement.textContent = `${data.length} records`;
+
+                if (data.length === 0) {
+                    contentElement.innerHTML = '<div class="no-data">No data yet</div>';
+                    return;
+                }
+
+                const columns = Object.keys(data[0]);
+
+                let tableHTML = '<div class="table-wrapper"><table><thead><tr>';
+                columns.forEach(col => {
+                    tableHTML += `<th>${col.replace(/_/g, ' ').toUpperCase()}</th>`;
+                });
+                tableHTML += '</tr></thead><tbody>';
+
+                data.forEach(row => {
+                    tableHTML += '<tr>';
+                    columns.forEach(col => {
+                        tableHTML += `<td>${formatValue(row[col], col)}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+
+                tableHTML += '</tbody></table></div>';
+                contentElement.innerHTML = tableHTML;
+
+            } catch (error) {
+                contentElement.innerHTML = `<div class="error">Error loading data: ${error.message}</div>`;
+            }
+        }
+
+        function createModuleHTML(module) {
+            return `
+                <div class="module-section" id="${module.id}">
+                    <div class="module-header">
+                        <div>
+                            <div class="module-title">${module.title}</div>
+                            <div class="module-description">${module.description}</div>
+                        </div>
+                        <div class="controls">
+                            <span class="record-count">Loading...</span>
+                            <button class="refresh-btn" onclick="loadModuleData(DASHBOARD_CONFIG.find(m => m.id === '${module.id}'))">
+                                ↻ Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="module-content">
+                        <div class="loading">Initializing...</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initDashboard() {
+            const container = document.getElementById('dashboard-modules');
+            const enabledModules = DASHBOARD_CONFIG.filter(m => m.enabled);
+
+            enabledModules.forEach(module => {
+                container.innerHTML += createModuleHTML(module);
+            });
+
+            enabledModules.forEach(module => {
+                loadModuleData(module);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
