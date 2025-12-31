@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="/static/css/KittyStyle.css">
+  <title>Become a CATastrophe 2 Tester!</title>
+  <meta name="description" content="Sign up to test CATastrophe 2 and help make it purr-fect!" />
+
+<style>
+    .page-content {
+      margin-top: 30px;
+      padding: 2rem 1rem;
+      min-height: calc(100vh - 80px);
+      position: relative;
+      z-index: 10;
+    }
+
+    a {
+        color: #00FFFF;
+    }
+
+    .signup-container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .hero-section h1 {
+      font-family: 'Orbitron', 'Courier New', monospace;
+      font-size: 3rem;
+      background: linear-gradient(45deg, var(--NuclearFuscia), #00FFFF, var(--NuclearFuscia));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      animation: neonPulse 2s ease-in-out infinite alternate;
+    }
+
+    .hero-section p {
+      color: var(--MutedGray);
+      font-size: 1.3rem;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .cat-image {
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    .cat-image img {
+      max-width: 200px;
+      border-radius: 50%;
+      border: 3px solid var(--VortexViolet);
+      box-shadow: 0 0 30px var(--VortexGlow2);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .signup-card {
+      background: linear-gradient(135deg, 
+          rgba(55, 2, 90, 0.587), 
+          rgba(41, 0, 92, 0.562));
+      backdrop-filter: blur(10px);
+      border: 2px solid var(--VortexViolet);
+      border-radius: 18px;
+      padding: 30px;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s ease;
+      box-shadow: 0 8px 32px var(--VortexGlow2), inset 0 1px 0 var(--PlasmaGlow2);
+      z-index: 1;
+    }
+
+    .signup-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, 
+          rgba(131, 12, 222, 0.15) 0%, 
+          transparent 70%);
+      opacity: 0;
+      transition: opacity 0.6s;
+      pointer-events: none;
+    }
+
+    .signup-card:hover {
+      border-color: #A55AFF;
+      box-shadow: 
+          0 20px 50px rgba(131,12,222, 0.3),
+          0 0 40px rgba(165,90,255, 0.4);
+    }
+
+    .signup-card:hover::before {
+      opacity: 1;
+    }
+
+    .info-box {
+      background: rgba(0, 255, 255, 0.1);
+      border: 2px solid var(--AlphaAqua);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 20px var(--AlphaGlow2);
+    }
+
+    .info-box h3 {
+      color: var(--AlphaAqua);
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 10px var(--AlphaGlow1);
+    }
+
+    .info-box p, .info-box ul {
+      color: var(--White);
+      margin: 0.5rem 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .info-box ul {
+      padding-left: 1.5rem;
+    }
+
+    .info-box li {
+      margin: 0.5rem 0;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .form-group label {
+      display: block;
+      color: var(--AlphaAqua);
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 10px var(--AlphaGlow1);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.875rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid var(--ProtonPurple);
+      border-radius: 8px;
+      color: var(--White);
+      font-size: 1rem;
+      font-family: Arial, sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--VortexViolet);
+      box-shadow: 0 0 20px var(--VortexGlow2);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1.2rem;
+      background: linear-gradient(45deg, var(--VortexViolet), var(--NuclearFuscia));
+      color: var(--White);
+      border: 2px solid var(--ParticlePink);
+      border-radius: 12px;
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.3rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px var(--VortexGlow2);
+      position: relative;
+      z-index: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.15rem;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      background: linear-gradient(45deg, var(--NuclearFuscia), var(--AlphaAqua));
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 0 40px var(--NuclearGlow3);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .required {
+      color: var(--NuclearFuscia);
+      margin-left: 0.25rem;
+    }
+
+    .success-message {
+      background: rgba(0, 255, 255, 0.1);
+      border: 2px solid var(--AlphaAqua);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--White);
+      font-family: Arial, sans-serif;
+      text-align: center;
+      box-shadow: 0 0 20px var(--AlphaGlow2);
+      position: relative;
+      z-index: 1;
+    }
+
+    .success-message h3 {
+      color: var(--AlphaAqua);
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px var(--AlphaGlow1);
+    }
+
+    .success-message p {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      margin: 0.5rem 0;
+    }
+
+    .success-message .game-link {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(45deg, var(--VortexViolet), var(--NuclearFuscia));
+      color: var(--White);
+      text-decoration: none;
+      border-radius: 8px;
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      border: 2px solid var(--ParticlePink);
+    }
+
+    .success-message .game-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px var(--NuclearGlow3);
+    }
+
+    .error-message {
+      background: rgba(115, 1, 50, 0.3);
+      border: 2px solid var(--RadiationRed);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      color: var(--White);
+      font-family: Arial, sans-serif;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 768px) {
+      .hero-section h1 {
+        font-size: 2rem;
+      }
+
+      .signup-card {
+        padding: 1.5rem;
+      }
+
+      .form-group input {
+        font-size: 16px;
+      }
+    }
+</style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      
+      <div class="left-dropdown">
+        <button class="menu-trigger" aria-label="Menu">
+          <img src="/static/images/Niels2.png" alt="Menu" class="home-icon">
+        </button>
+
+        <div class="left-menu">
+          <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+          <a href="https://mkb0020.github.io/" class="menu-item">Javascript Projects</a>
+          <a href="https://mkb0020.github.io/Toolkit.html" class="menu-item">Schrödinger's Toolbox</a>
+          <a href="https://mkb0020.onrender.com/resume" class="menu-item">Resume</a>
+          <a href="https://ko-fi.com/mkb0020" class="menu-item">Feed the cats</a>
+          <!--<a href="https://mkb0020.onrender.com/contact" class="menu-item">Contact</a>-->
+          <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+          <a href="https://mkb0020.vercel.app/game-testing" class="menu-item">CATastrophe 2 Feedback</a>
+        </div>
+      </div>
+
+      <a href="https://mkb0020.github.io">
+        <div class="logo">♡ mkb0020</div>
+      </a>
+ 
+      <div class="help-dropdown">
+        <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+          <div class="question-mark">?</div>
+        </button>
+        
+        <div class="dropdown-menu" id="dropdownMenu">
+          <button id="openMainHelp">About</button>
+          <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title">WHAT YOU'RE SIGNING UP FOR...</h1>
+        <button class="modal-close" id="closeModal">X</button>
+      </div>
+      <div class="modal-body">
+        <h3>YOU'RE LITERALLY SIGNING UP TO MAKE HISTORY!</h3>
+        <p>Just kidding.  CATastrophe2 is 1/2 a coding experiement and 1/2 a psychology experiment.</p>
+
+        <h3>What do I mean by that?</h3>
+        <p>The last time I was "serious" about playing video games was back in the N64 / Gameboy Color days and I just started coding for-real, for-real about six months ago...  Creating this game started out as a simple coding exercise that I thought was going to be a weekend project...</p>
+        <p>But it's developed into an entire universe as well as a personal quest to find out what makes a good game?  Is it the fancy graphics and huge teams of experienced professionals?  Or can it be accomplished by one beginner game dev who doesn't even play games but runs on sheer determination?  </p>
+        <p>Note: I'm not trying to design the next Red Dead Redemption or anything that complex, here.  My goal is to create a short, engaging game that can be beaten in less than a day... Similar to the pacing of StarFox 64.</p>
+        <p>And I need YOU to help me do that!</p>
+        <p>So thanks for signing up to test.  Once the test version of the game is live, I'll send over the link for the game as well as my feedback survey!</p>
+        <p class="mission-text">Thanks again for helping make CATastrophe2 purr-fect! 🐾</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="signup-container">
+    <div class="hero-section">
+      <h1>TEST MY GAME!!!</h1>
+      <p>Help test CATastrophe2 and make gaming history! 🐱</p>
+      <p><a href="https://mkb0020.github.io/trailer.html">Click here to watch the trailer!</a></p>
+    </div>
+
+
+
+    <div class="signup-card">
+
+
+      <div id="feedbackMessage"></div>
+
+      <form id="signupForm">
+        <div class="form-group">
+          <label for="name">Your Name <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            placeholder="Enter your name"
+            required
+            maxlength="100"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address <span class="required">*</span></label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            placeholder="your.email@example.com"
+            required
+            maxlength="100"
+          />
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          🐾 SIGN UP RIGHT MEOW 🐾
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="stars"></div>
+
+  <button class="floating-back-to-top" id="floatingBackToTop">
+    ↑ 
+  </button>
+
+  <div id="kofi-float">
+    <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+      <img src="/static/images/tipjar.png" alt="Support me on Ko-fi">
+      <div class="hearts">
+        <div class="heart" style="--delay: 0s; --drift: -20px;">❤️</div>
+        <div class="heart" style="--delay: 0.5s; --drift: 15px;">💖</div>
+        <div class="heart" style="--delay: 1s; --drift: -10px;">💕</div>
+        <div class="heart" style="--delay: 1.5s; --drift: 20px;">❤️</div>
+        <div class="heart" style="--delay: 2s; --drift: -15px;">💗</div>
+        <div class="heart" style="--delay: 2.5s; --drift: 10px;">💖</div>
+      </div>
+    </a>
+  </div>
+
+  <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+    <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+      <img src="/static/images/top.png" alt="Scroll to top">
+    </a>
+  </div>
+
+  <script src="/static/js/KittyCore.js"></script>
+
+  <script>
+    const button = document.getElementById('kofi-float');
+    button.addEventListener('mouseenter', () => {
+      document.querySelectorAll('.heart').forEach(h => {
+        h.style.animation = 'none';
+        h.offsetHeight; 
+        h.style.animation = null;
+      });
+    });
+
+    const starsDiv = document.getElementById('stars');
+    for (let i = 0; i < 200; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.width = star.style.height = Math.random() * 2 + 'px';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 4 + 's';
+      starsDiv.appendChild(star);
+    }
+
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      const feedbackDiv = document.getElementById('feedbackMessage');
+      
+      submitBtn.textContent = '🚀 Signing up...';
+      submitBtn.disabled = true;
+      feedbackDiv.innerHTML = '';
+      
+      const formData = {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim()
+      };
+      
+      try {
+        const response = await fetch('/api/tester-signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          feedbackDiv.innerHTML = `
+            <div class="success-message">
+              <h3>🎉 Welcome to the Team!</h3>
+              <p>Thanks for signing up to be a tester! </p>
+              <p> Once the test version is ready to be tested, I'll send an email with all the deets!</p>
+            </div>
+          `;
+          
+          document.getElementById('signupForm').style.display = 'none';
+          
+          feedbackDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          feedbackDiv.innerHTML = `<div class="error-message">❌ ${data.error || 'Failed to sign up'}</div>`;
+          submitBtn.textContent = '🐾 SIGN ME UP! 🐾';
+          submitBtn.disabled = false;
+        }
+      } catch (error) {
+        console.error('Error signing up:', error);
+        feedbackDiv.innerHTML = '<div class="error-message">❌ Network error. Please try again.</div>';
+        submitBtn.textContent = '🐾 SIGN ME UP! 🐾';
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
