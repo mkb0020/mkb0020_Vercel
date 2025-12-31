@@ -8,6 +8,25 @@
   <meta name="description" content="GAME TEST" />
 
 <style>
+
+.alert-card {
+    background: linear-gradient(135deg, 
+        rgba(195, 1, 85, 0.25), 
+        rgba(160, 0, 70, 0.25));
+    backdrop-filter: blur(10px);
+  border: 3px dashed rgb(249, 2, 109);
+    border-radius: 11px;
+    padding: 30px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+  box-shadow: 0 0 40px rgba(249, 2, 109, 0.5);
+    z-index: 1;
+    justify-content: center;
+}
+
+
 .flash-message {
   position: fixed;
   top: 80px;
@@ -55,12 +74,36 @@
       align-items: center;
     }
 
+a{
+color: #00FFFF;
+
+}
+
 h2 {
     color: var(--ParticlePink);
     font-family: 'GothNerd', sans-serif;
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
     text-shadow: 0 0 10px var(--NuclearGlow2);
+
+}
+
+h5 {
+    color: var(--ParticlePink);
+    font-family: 'GothNerd', sans-serif;
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+
+
+}
+
+h6 {
+    color: var(--White);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
 
 }
 
@@ -462,7 +505,6 @@ h2 {
 
 <body>
 
- <!-- NAVBAR -->
   <nav class="navbar">
     <div class="nav-container">
       
@@ -476,18 +518,40 @@ h2 {
           <a href="https://mkb0020.github.io/" class="menu-item">Javascript Projects</a>
           <a href="https://mkb0020.github.io/Toolkit.html" class="menu-item">Schrödinger's Toolbox</a>
           <a href="https://mkb0020.onrender.com/resume" class="menu-item">Resume</a>
-          <a href="https://ko-fi.com/mkb0020" class="menu-item">Feed the cats</a>
           <!--<a href="https://mkb0020.onrender.com/contact" class="menu-item">Contact</a>-->
           <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
           <a href="https://mkb0020.vercel.app/game-testing" class="menu-item">CATastrophe 2 Feedback</a>
+
+          <div class="social-links">
+            <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
+              <img src="/static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+            </a>
+          
+            <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
+              <img src="/static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+            </a>
+
+            <a href="https://mkb0020.github.io/MKLambda.html" target="_blank" aria-label="YouTube">
+              <img src="/static/images/music-icon.png" alt="YouTube" class="social-icon">
+            </a>
+
+            <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
+              <img src="/static/images/github-icon.png" alt="GitHub" class="social-icon">
+            </a>
+
+            <a href="https://mkb0020.itch.io" target="_blank" aria-label="YouTube">
+              <img src="/static/images/itchio-icon.png" alt="YouTube" class="social-icon">
+            </a>
+          </div>
         </div>
       </div>
 
-      <a href="https://mkb0020.github.io">
-        <div class="logo">♡ mkb0020</div>
-      </a>
+     
+       <a href="https://mkb0020.github.io">
+            <div class="logo">♡ mkb0020</div>  <!-- CENTER LOGO -->
+        </a>
  
-      <div class="help-dropdown">
+      <div class="help-dropdown"> <!-- RIGHT HELP DROPDOWN -->
         <button class="help-icon" id="helpBtn" aria-label="Help Menu">
           <div class="question-mark">?</div>
         </button>
@@ -536,9 +600,22 @@ h2 {
 
 
 <div class="form-container">
+
+
+  <div class="alert-card">
+    <div class="alert-group">
+
+      <h5> ⚠️ CATastrophe2 is still in production! ⚠️</h5>
+          <h6><a href="https://mkb0020.vercel.app/tester-signup">Want to become a tester?  Click here to sign up!</a></h6>
+          <h6><a href="https://mkb0020.github.io/trailer.html">Click here to watch the trailer!</a></h6>
+
+    </div>
+  </div>
+
   <div class="form-title">
     <h1>🐱</h1>
     <h1>CATastrophe 2 Feedback</h1>
+
   </div>
 
   <div class="form-card">

@@ -197,6 +197,167 @@
             align-items: center;
         }
 
+        /* Status dropdown styling */
+        .status-dropdown {
+            padding: 6px 12px;
+            background: var(--ProtonPurple);
+            border: 2px solid var(--VortexViolet);
+            border-radius: 8px;
+            color: var(--White);
+            font-family: 'GothNerd', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .status-dropdown:hover {
+            border-color: var(--AlphaAqua);
+            box-shadow: 0 0 10px var(--VortexGlow2);
+        }
+
+        .status-dropdown:focus {
+            outline: none;
+            box-shadow: 0 0 15px var(--AlphaGlow3);
+        }
+
+        .status-pending {
+            background: var(--ProtonPurple);
+            color: var(--ParticlePink);
+        }
+
+        .status-in_progress {
+            background: var(--VortexViolet);
+            color: var(--AlphaAqua);
+        }
+
+        .status-completed {
+            background: var(--RadioactiveGreen);
+            color: var(--BosonBlue);
+        }
+
+        /* View button styling */
+        .view-btn {
+            padding: 6px 16px;
+            background: var(--VortexViolet);
+            border: 2px solid var(--AlphaAqua);
+            border-radius: 8px;
+            color: var(--AlphaAqua);
+            font-family: 'GothNerd', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .view-btn:hover {
+            background: var(--AlphaAqua);
+            color: var(--BosonBlue);
+            box-shadow: 0 0 15px var(--AlphaGlow3);
+            transform: scale(1.05);
+        }
+
+        /* Issue modal styling */
+        .issue-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .issue-modal.active {
+            display: flex;
+        }
+
+        .issue-modal-content {
+            background: linear-gradient(135deg, var(--BosonBlue), var(--ProtonPurple));
+            border: 3px solid var(--VortexViolet);
+            border-radius: 15px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 50px var(--VortexGlow3);
+        }
+
+        .issue-modal-header {
+            background: linear-gradient(135deg, var(--VortexViolet), var(--NuclearFuscia));
+            padding: 20px 30px;
+            border-bottom: 2px solid var(--ParticlePink);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .issue-modal-title {
+            font-family: 'GothNerd', sans-serif;
+            font-size: 1.5rem;
+            color: var(--White);
+            margin: 0;
+        }
+
+        .issue-modal-close {
+            background: var(--RadiationRed);
+            color: var(--ParticlePink);
+            border: 2px solid var(--ParticlePink);
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .issue-modal-close:hover {
+            background: var(--ParticlePink);
+            color: var(--BosonBlue);
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 20px var(--ParticleGlow3);
+        }
+
+        .issue-modal-body {
+            padding: 30px;
+            color: var(--White);
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .issue-meta {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--BosonShadow2);
+            border-radius: 10px;
+            border-left: 4px solid var(--AlphaAqua);
+        }
+
+        .issue-meta p {
+            margin: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .issue-meta strong {
+            color: var(--AlphaAqua);
+        }
+
+        .issue-description {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--ProtonPurple);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
         @media (max-width: 768px) {
             .dashboard-container {
                 padding: 10px;
@@ -266,8 +427,7 @@
         </header>
 
         <div id="dashboard-modules">
-
-
+            <!-- Modules will be dynamically loaded here -->
         </div>
     </div>
 
@@ -283,7 +443,6 @@
     <script src="/static/js/KittyCore.js"></script>
 
     <script>
-        // STARS BACKGROUND
         const starsDiv = document.getElementById('stars');
         for (let i = 0; i < 200; i++) {
             const star = document.createElement('div');

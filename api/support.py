@@ -13,18 +13,20 @@ NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL")
 
 support_bp = Blueprint('support', __name__)
 
-@support_bp.route('/api/support', methods=['GET', 'POST'])
+@support_bp.route('/api/support', methods=['GET', 'POST', 'PATCH'])
 def handle_support():
     """
-    Handles both GET (retrieve tickets) and POST (submit ticket) requests
+    Handles GET (retrieve tickets), POST (submit ticket), and PATCH (update status) requests
     """
     
     if request.method == 'GET':
         try:
             with psycopg.connect(DB_URL) as conn:
                 with conn.cursor() as cur:
+                    # Only show tickets that aren't completed
                     cur.execute("""
                         SELECT * FROM support_tickets 
+                        WHERE status != 'completed'
                         ORDER BY created_at DESC
                     """)
                     
@@ -42,6 +44,45 @@ def handle_support():
                         tickets.append(row_dict)
                     
                     return jsonify({"success": True, "data": tickets})
+        
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
+    
+    elif request.method == 'PATCH':
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"success": False, "error": "No data received"}), 400
+            
+            ticket_id = data.get("id")
+            new_status = data.get("status")
+            
+            if not ticket_id or not new_status:
+                return jsonify({"success": False, "error": "ID and status are required"}), 400
+            
+            if new_status not in ['pending', 'in_progress', 'completed']:
+                return jsonify({"success": False, "error": "Invalid status"}), 400
+            
+            with psycopg.connect(DB_URL, autocommit=True) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        UPDATE support_tickets 
+                        SET status = %s 
+                        WHERE id = %s
+                        RETURNING id
+                        """,
+                        (new_status, ticket_id)
+                    )
+                    
+                    result = cur.fetchone()
+                    if not result:
+                        return jsonify({"success": False, "error": "Ticket not found"}), 404
+            
+            return jsonify({
+                "success": True,
+                "message": f"Ticket #{ticket_id} status updated to {new_status}"
+            })
         
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
