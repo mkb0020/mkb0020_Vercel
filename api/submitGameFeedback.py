@@ -24,7 +24,7 @@ def handle_feedback():
                 with conn.cursor() as cur:
                     cur.execute("""
                         SELECT * FROM tester_feedback 
-                        ORDER BY created_at DESC
+                        ORDER BY submitted_at DESC
                     """)
                     
                     columns = [desc[0] for desc in cur.description]
