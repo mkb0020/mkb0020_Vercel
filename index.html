@@ -4,12 +4,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link rel="stylesheet" href="/static/css/KittyStyle.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
   <title>HOME</title>
   <meta name="description" content="GAME TEST" />
 
 <style>
-
+  body {
+    padding-bottom: 120px;
+  }
 
  .hero-modal {
         display: none;
@@ -132,16 +134,17 @@
     }
   }
 
+
   .summary-card {
-    background: linear-gradient(135deg, rgba(23, 0, 50, 0.8), rgba(0, 0, 30, 0.9));
+    background: linear-gradient(135deg, rgba(23, 0, 50, 0.6), rgba(0, 0, 30, 0.6));
     backdrop-filter: blur(20px);
     border: 10px solid #830CDE; 
     border-radius: 24px;
     padding: 2rem;
-    margin: 0rem auto;
+    margin: 40px auto 120px auto;
     max-width: 520px; 
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 0 40px #830CDE, 0 0 80px rgba(131, 12, 222, 0.6);
+    box-shadow: 0 0 40px #830CDE, 0 0 80px rgba(131, 12, 222, 0);
     position: relative;
     overflow: hidden;
   }
@@ -203,7 +206,7 @@
     top: -20px;
     left: -20px;
     background: rgba(0, 0, 0, 0.6);
-    border: 2px solid var(--NuclearFuscia);
+    border: 2px solid var(--HiggsHotPink);
     border-radius: 50px;
     padding: 4px 9px;
     color: #FFC7FF;
@@ -222,7 +225,7 @@
     top: -20px;
     right: -20px;
     background: rgba(0, 0, 0, 0.6);
-    border: 2px solid var(--NuclearFuscia);
+    border: 2px solid var(--HiggsHotPink);
     border-radius: 50px;
     padding: 2px 6px;
     color: #FFC7FF;
@@ -286,14 +289,14 @@
   .attack-info h3 {
     margin: 0 0 4px 0;
     font-size: 1.5rem;
-    color: var(--AlphaAqua);
+    color: var(--AquaAura);
     font-family: 'GothNerd';
   }
 
 
   .attack-card:hover {
     transform: scale(1.03) translateY(-4px);
-    box-shadow: 0 0 40px var(--NuclearFuscia);
+    box-shadow: 0 0 40px var(--HiggsHotPink);
   }
 
   .attack-card::before {
@@ -311,9 +314,9 @@
 
   .pokemon-bottom-divider {
     height: 3px;
-    background: var(--NuclearFuscia);
+    background: var(--CoolGray);
     margin: 0.5rem 0;
-    box-shadow: 0 0 5px var(--NuclearFuscia);
+    box-shadow: 0 0 5px var(--AquaAura);
   }
 
   .pokemon-bottom-stats {
@@ -336,6 +339,24 @@
     margin-bottom: 4px;
   }
 
+    /* ─── FOOTER ─── */
+    footer {
+      padding: 1rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: var(--glass4);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+    }
+    footer p {
+      font-size: 0.7rem;
+      color: #c4b5fd;
+      font-family: 'SpaceLetters';
+      letter-spacing: 0.1em;
+    }
+    footer a { color: var(--AlphaAqua); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
   @media (max-width: 768px) {
     .summary-card {
       max-width: 380px;
@@ -351,61 +372,71 @@
 </head>
 <body>
 
+<div class="background-gradient"></div>
+<div class="waves">
+  <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/> <!-- DARK PURPLE-ISH BLUE-->
+  </svg>
+  <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+  </svg>
+<svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+  <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/> <!-- COOL-TONED PURPLE -->
+</svg>
+<svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+  <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>  <!-- DARK PURPLE-ISH BLUE-->
+</svg>
+  <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/> <!--LIGHT HOT PINK -->
+  </svg>
+<svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+  <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+</svg>
+</div>
+<div class="dreamy-overlay"> </div>
 
   <nav class="navbar">
     <div class="nav-container">
-      
       <div class="left-dropdown">
         <button class="menu-trigger" aria-label="Menu">
-          <img src="/static/images/Niels2.png" alt="Menu" class="home-icon">
+          <img src="static/images/Niels2.png" alt="Menu" class="home-icon">
         </button>
-
         <div class="left-menu">
           <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
-          <a href="https://mkb0020.github.io/" class="menu-item">Javascript Projects</a>
-          <a href="https://mkb0020.github.io/Toolkit.html" class="menu-item">Schrödinger's Toolbox</a>
-          <a href="https://mkb0020.onrender.com/resume" class="menu-item">Resume</a>
-          <!--<a href="https://mkb0020.onrender.com/contact" class="menu-item">Contact</a>-->
+          <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+          <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
           <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
-          <a href="https://mkb0020.vercel.app/game-testing" class="menu-item">CATastrophe 2 Feedback</a>
-
           <div class="social-links">
             <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
-              <img src="/static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+              <img src="static/images/youtube-icon.png" alt="YouTube" class="social-icon">
             </a>
-          
             <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
-              <img src="/static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+              <img src="static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
             </a>
-
-            <a href="https://mkb0020.github.io/MKLambda.html" target="_blank" aria-label="YouTube">
-              <img src="/static/images/music-icon.png" alt="YouTube" class="social-icon">
+            <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
+              <img src="static/images/music-icon.png" alt="Soundcloud" class="social-icon">
             </a>
-
             <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
-              <img src="/static/images/github-icon.png" alt="GitHub" class="social-icon">
+              <img src="static/images/github-icon.png" alt="GitHub" class="social-icon">
             </a>
-
-            <a href="https://mkb0020.itch.io" target="_blank" aria-label="YouTube">
-              <img src="/static/images/itchio-icon.png" alt="YouTube" class="social-icon">
+            <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
+              <img src="static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
             </a>
           </div>
         </div>
       </div>
 
-     
-       <a href="https://mkb0020.github.io">
-            <div class="logo">♡ mkb0020</div>  <!-- CENTER LOGO -->
-        </a>
- 
-      <div class="help-dropdown"> <!-- RIGHT HELP DROPDOWN -->
+      <a href="https://mkb0020.github.io">
+        <div class="logo">♡ mkb0020</div>
+      </a>
+
+      <div class="help-dropdown">
         <button class="help-icon" id="helpBtn" aria-label="Help Menu">
           <div class="question-mark">?</div>
         </button>
-        
         <div class="dropdown-menu" id="dropdownMenu">
           <button id="openMainHelp">About</button>
-          <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+         <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
         </div>
       </div>
     </div>
@@ -429,67 +460,66 @@
     </div>
 
 
-<div class="summary-card">
-  <div class="pokemon-art-container">
-    <div class="pokemon-name">
-      MK - Full stack developer
+  <div class="summary-card">
+    <div class="pokemon-art-container">
+      <div class="pokemon-name">
+        MK - Full stack developer
+      </div>
+
+      <div class="pokemon-hp">
+        200 HP <img src="static/images/hp-icon.png" alt="HP">
+      </div>
+
+      <div class="pokemon-art-frame">
+        <img src="/static/images/headshot1.JPEG" alt="MK Barriault - Fire Type" class="pokemon-art">
+      </div>
     </div>
 
-    <div class="pokemon-hp">
-       200 HP <img src="static/images/hp-icon.png" alt="HP">
+    <div class="pokemon-stats-box">
+      Click below to view details
     </div>
 
-    <div class="pokemon-art-frame">
-      <img src="/static/images/headshot1.JPEG" alt="MK Barriault - Fire Type" class="pokemon-art">
+        <div class="attack-card" data-modal="AboutSite">
+        <div class="attack-energy">
+          <img src="static/images/attack-icon.png" alt="Fire">
+          <img src="static/images/attack-icon.png" alt="Fire">
+        </div>
+        <div class="attack-info">
+          <h3>About This Site</h3>
+        </div>
+      </div>
+    
+    <div class="pokemon-attacks">
+      <div class="attack-card" data-modal="AboutMe">
+        <div class="attack-energy">
+          <img src="static/images/attack2-icon.png" alt="Fire"> 
+          <img src="static/images/attack2-icon.png" alt="Fire">
+        </div>
+        <div class="attack-info">
+          <h3>About Me</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="pokemon-bottom-divider"></div>
+
+    <div class="pokemon-bottom-stats">
+      <div class="bottom-stat">
+        <img src="static/images/type-icon.png" alt="Weakness: Water">
+      </div>
+      <div class="bottom-stat">
+        <img src="static/images/type-icon.png" alt="Resistance: Ground">
+      </div>
+      <div class="bottom-stat">
+        <div style="display: flex; gap: 6px;">
+          <img src="static/images/type-icon.png" alt="">
+          <img src="static/images/type-icon.png" alt="">
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="pokemon-stats-box">
-    Click below to view details
-  </div>
-
-      <div class="attack-card" data-modal="AboutSite">
-      <div class="attack-energy">
-        <img src="static/images/attack-icon.png" alt="Fire">
-        <img src="static/images/attack-icon.png" alt="Fire">
-      </div>
-      <div class="attack-info">
-        <h3>About This Site</h3>
-      </div>
-    </div>
-  
-  <div class="pokemon-attacks">
-    <div class="attack-card" data-modal="AboutMe">
-      <div class="attack-energy">
-        <img src="static/images/attack2-icon.png" alt="Fire"> 
-        <img src="static/images/attack2-icon.png" alt="Fire">
-      </div>
-      <div class="attack-info">
-        <h3>About Me</h3>
-      </div>
-    </div>
-  </div>
-
-  <div class="pokemon-bottom-divider"></div>
-
-  <div class="pokemon-bottom-stats">
-    <div class="bottom-stat">
-      <img src="static/images/type-icon.png" alt="Weakness: Water">
-    </div>
-    <div class="bottom-stat">
-      <img src="static/images/type-icon.png" alt="Resistance: Ground">
-    </div>
-    <div class="bottom-stat">
-      <div style="display: flex; gap: 6px;">
-        <img src="static/images/type-icon.png" alt="">
-        <img src="static/images/type-icon.png" alt="">
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
+<footer><p>&copy; 2026 mkb0020. All Rights Reserved.</p> </footer>
 
 
 
@@ -543,7 +573,7 @@
 
 <!-- MODALS -->
 <div id="aboutModal" class="hero-modal">
-  <div class="hero-modal-content">
+  <div class="hero-modal-content modal-content">
     <div class="hero-modal-header">
       <h2 class="hero-modal-title" id="modalTitle"></h2>
       <button class="hero-modal-close" id="closeaboutModal">×</button>
@@ -561,42 +591,67 @@
     AboutSite: {
       title: "ABOUT THIS SITE",
       content: `
-            <p>This site is both my portfolio <em>and</em> part of my portfolio. Using <strong>Python, Flask, 
-              JavaScript, HTML, and CSS</strong>, I built it to showcase my work across coding, 
-              art, and design — blending the technical with the creative.
-            </p>
-            <h3>Features:</h3>
-            <ul>
-                        <li><strong>Coding Projects:</strong>
-                        Projects inspired by real-life scenarios, practical tools, ineractive dashboards, games, neat things to look at, and anything else my brain cooks up!</li>
+        <p>
+          This isn’t just a portfolio — it’s a playground.
+        </p>
 
-                        <li><strong>Resume & Experience:</strong>
-                        Deep dive into my background and skills</li>
+        <p>
+          Built with <strong>Python, Flask, JavaScript, HTML, and CSS</strong>, this site is both a hub for my work and a living project itself — constantly evolving as I explore new ideas across <strong>code, game development, and digital art</strong>.
+        </p>
 
-                        <li><strong>Contact Forms:</strong>
-                        Send me a message, submit a support ticket for problem pages, and review CATastrophe2 (coming soon!)!</li>
+        <h3>What You'll Find:</h3>
+        <ul>
+          <li><strong>Interactive Projects:</strong>
+          Games, experiments, and systems you can actually click into and experience — many of which live and grow over on my itch.io.</li>
 
+          <li><strong>Creative Coding:</strong>
+          Audio/visual pieces, simulations, and weird little ideas that sit somewhere between art and engineering.</li>
 
-                    <p><strong>It's a living example of how I combine design, data, and automation to create thoughtful, functional experiences.</strong></p> 
-            
+          <li><strong>Tools & Experiments:</strong>
+          Practical builds, automations, and concepts inspired by real-world problems and curiosity-driven rabbit holes.</li>
+        </ul>
+
+        <p>
+          <strong>This site is designed to be explored, not just read.</strong>  
+          Every piece here reflects how I like to build: blending structure with creativity, and logic with play.
+        </p>
       `
-    },
-    
+      },
     AboutMe: {
-        title: "HELLO WORLD",
-        content: `
-              <p style="text-align: center; font-size: 2.0rem"> 🍑
-                </p>            
-        <h3>   
-                    I'm MK — a coder, artist, and perpetual creator based in Atlanta, GA </h3>
-              <ul>
-                <li>I <strong>thrive</strong> on building things — whether it's a web app, a piece of jewelry, or automation that makes life a little easier. I'm passionate about <strong>coding, process improvement, spreadsheets</strong> (yes, really!), and exploring how <strong>AI</strong> can integrate with the human experience.</li>  
-                <li>I'm always learning new skills and diving into new challenges, whether that's mastering a framework, experimenting with a fresh creative idea, or going down an internet rabbit-hole about random topics that pique my interest. </li>
-                <li> When I need to give my brain a break, I can often be found doing yoga or hula hooping up and down Atlanta's Betline!</li>
-                  </ul>
+      title: "HELLO WORLD",
+      content: `
+        <p style="text-align: center; font-size: 2.0rem"> 🍑 </p>            
+
+        <h3>
+          I'm MK — developer, curious cat, and perpetual creator
+        </h3>
+
+        <ul>
+          <li>
+            I <strong>love creating things</strong> — especially at the intersection of 
+            <strong>code, visuals, and sound</strong>. Lately, that’s meant diving deeper into 
+            <strong>game development</strong> and <strong>audio/visual experimentation</strong>.
+          </li>
+
+          <li>
+            My background includes automation, systems thinking, and a surprising amount of 
+            spreadsheet wizardry — which means I naturally gravitate toward building things that are 
+            both <strong>creative and functional</strong>.
+          </li>
+
+          <li>
+            I’m constantly exploring new ideas — whether that’s a new framework, a strange visual concept, 
+            or a late-night “what if I built this?” moment.
+          </li>
+
+          <li>
+            When I’m not building, I’m usually recharging with something active or creative — 
+            yoga, hula hooping, or wandering around with music and ideas.
+          </li>
+        </ul>
       `
     }
-  };
+      };
 
   // MODAL FUNCTIONALITY
   const modal = document.getElementById('aboutModal');

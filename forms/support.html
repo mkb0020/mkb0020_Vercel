@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link rel="stylesheet" href="/static/css/KittyStyle.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
   <title>Support - Report Issues</title>
   <meta name="description" content="Technical support and issue reporting" />
 
@@ -30,7 +30,7 @@
     .hero-section h1 {
       font-family: 'Orbitron', 'Courier New', monospace;
       font-size: 3rem;
-      background: linear-gradient(45deg, var(--NuclearFuscia), #00FFFF, var(--NuclearFuscia));
+      background: linear-gradient(45deg, var(--BohrsBabyBlue), var(--ParticlePink));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -47,17 +47,18 @@
 
     .support-card {
       background: linear-gradient(135deg, 
-          rgba(55, 2, 90, 0.587), 
-          rgba(41, 0, 92, 0.562));
-      backdrop-filter: blur(10px);
-      border: 2px solid var(--VortexViolet);
+          rgba(63, 3, 104, 0.3), 
+          rgba(52, 0, 116, 0.3));
+      backdrop-filter: blur(50px);
       border-radius: 18px;
       padding: 30px;
       margin-bottom: 1.5rem;
       position: relative;
       overflow: hidden;
       transition: all 0.4s ease;
-      box-shadow: 0 8px 32px var(--VortexGlow2), inset 0 1px 0 var(--PlasmaGlow2);
+      box-shadow: 
+        0 20px 50px -15px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
       z-index: 1;
     }
 
@@ -77,10 +78,10 @@
     }
 
     .support-card:hover {
-      border-color: #A55AFF;
+      border-color: #a45aff5c;
       box-shadow: 
-          0 20px 50px rgba(131,12,222, 0.3),
-          0 0 40px rgba(165,90,255, 0.4);
+          0 20px 50px rgba(131,12,222, 0.1),
+          0 0 40px rgba(165,90,255, 0.2);
     }
 
     .support-card:hover::before {
@@ -94,22 +95,23 @@
     }
 
     .alert-box {
-      background: rgba(115, 1, 50, 0.3);
-      border: 2px solid var(--RadiationRed);
-      border-radius: 12px;
+      background: rgba(255, 0, 0, 0.08);
+      border: 1px solid rgba(255, 0, 0, 0.1);
+      border-radius: 15px;
       padding: 1.5rem;
       margin-bottom: 2rem;
       position: relative;
       z-index: 1;
-      box-shadow: 0 0 20px rgba(115, 1, 50, 0.4);
+      box-shadow: 
+        0 20px 50px -15px rgba(0, 0, 0, 0.219),
+        inset 0 1px 0 rgba(255, 255, 255, 0.048);
     }
 
     .alert-box h3 {
-      color: var(--NuclearFuscia);
+      color: var(--ParticlePink);
       font-family: 'GothNerd', sans-serif;
       font-size: 1.3rem;
       margin-bottom: 0.5rem;
-      text-shadow: 0 0 10px var(--NuclearGlow2);
     }
 
     .alert-box p {
@@ -132,11 +134,10 @@
 
     .form-group label {
       display: block;
-      color: var(--AlphaAqua);
+      color: var(--AquaAura);
       font-family: 'GothNerd', sans-serif;
       font-size: 1.1rem;
       margin-bottom: 0.5rem;
-      text-shadow: 0 0 10px var(--AlphaGlow1);
       text-transform: uppercase;
       letter-spacing: 0.1rem;
     }
@@ -146,8 +147,8 @@
     .form-group textarea {
       width: 100%;
       padding: 0.875rem;
-      background: rgba(0, 0, 0, 0.4);
-      border: 2px solid var(--ProtonPurple);
+      background: rgba(20, 0, 33, 0.2);
+      border: 1px solid var(--ProtonPurple);
       border-radius: 8px;
       color: var(--White);
       font-size: 1rem;
@@ -159,9 +160,9 @@
     .form-group select:focus,
     .form-group textarea:focus {
       outline: none;
-      border-color: var(--VortexViolet);
-      box-shadow: 0 0 20px var(--VortexGlow2);
-      background: rgba(0, 0, 0, 0.6);
+      border-color: var(--CoolGray);
+      box-shadow: 0 0 8px var(--AquaAura);
+      background: rgba(35, 4, 58, 0.386);
     }
 
     .form-group textarea {
@@ -177,26 +178,33 @@
     .submit-btn {
       width: 100%;
       padding: 1.2rem;
-      background: linear-gradient(45deg, var(--RadiationRed), var(--NuclearFuscia));
-      color: var(--White);
-      border: 2px solid var(--ParticlePink);
-      border-radius: 12px;
+      background: var(--glass);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: none;
+      color: var(--CoolGray);
+      border-radius: 18px;
       font-family: 'GothNerd', sans-serif;
       font-size: 1.3rem;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 0 20px rgba(115, 1, 50, 0.5);
+      box-shadow: 
+        0 20px 50px -15px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
       position: relative;
       z-index: 1;
       text-transform: uppercase;
       letter-spacing: 0.15rem;
+      overflow-X: hidden;
+      overflow-y: hidden;
     }
 
     .submit-btn:hover:not(:disabled) {
-      background: linear-gradient(45deg, var(--NuclearFuscia), var(--RadiationRed));
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 0 40px var(--NuclearGlow3);
+      background: var(--glass);
+      color: #FFFFFF;
+      border-color: rgba(103, 254, 189, 0.3);
+      animation: holoGlow 5s ease-in-out infinite;
     }
 
     .submit-btn:active {
@@ -204,18 +212,48 @@
     }
 
     .submit-btn:disabled {
-      opacity: 0.6;
+      opacity: 0.2;
       cursor: not-allowed;
     }
 
+    .submit-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -75%;
+      width: 40%;
+      height: 250%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(103, 254, 189, 0.3),  
+        rgba(0, 255, 255, 0.3),
+        transparent
+      );
+      transform: skewX(-25deg);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .submit-btn:hover::before {
+      opacity: 1;
+      animation: glowSweep 0.8s;
+    }
+
+    @keyframes glowSweep {
+      0%   { transform: skewX(-25deg) translateX(-180%); }
+      100% { transform: skewX(-25deg) translateX(500%); }
+    }
+
     .required {
-      color: var(--NuclearFuscia);
+      color: var(--HiggsHotPink);
       margin-left: 0.25rem;
     }
 
     .char-counter {
       text-align: right;
-      color: var(--MutedGray);
+      color: var(--CoolGray);
       font-size: 0.9rem;
       margin-top: 0.5rem;
       position: relative;
@@ -223,7 +261,7 @@
     }
 
     .char-counter.warning {
-      color: var(--NuclearFuscia);
+      color: var(--HiggsHotPink);
     }
 
     .success-message {
@@ -281,61 +319,74 @@
 </head>
 
 <body>
+  <div class="background-gradient"></div>
+
+  <div class="waves">
+    <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/> <!-- DARK PURPLE-ISH BLUE-->
+    </svg>
+    <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+    </svg>
+  <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/> <!-- COOL-TONED PURPLE -->
+  </svg>
+  <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>  <!-- DARK PURPLE-ISH BLUE-->
+  </svg>
+    <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/> <!--LIGHT HOT PINK -->
+    </svg>
+  <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+  </svg>
+  </div>
+
+  <div class="dreamy-overlay"> </div>
+
 
   <nav class="navbar">
     <div class="nav-container">
-      
       <div class="left-dropdown">
         <button class="menu-trigger" aria-label="Menu">
-          <img src="/static/images/Niels2.png" alt="Menu" class="home-icon">
+          <img src="static/images/Niels2.png" alt="Menu" class="home-icon">
         </button>
-
         <div class="left-menu">
           <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
-          <a href="https://mkb0020.github.io/" class="menu-item">Javascript Projects</a>
-          <a href="https://mkb0020.github.io/Toolkit.html" class="menu-item">Schrödinger's Toolbox</a>
-          <a href="https://mkb0020.onrender.com/resume" class="menu-item">Resume</a>
-          <!--<a href="https://mkb0020.onrender.com/contact" class="menu-item">Contact</a>-->
+          <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+          <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
           <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
-          <a href="https://mkb0020.vercel.app/game-testing" class="menu-item">CATastrophe 2 Feedback</a>
-
           <div class="social-links">
             <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
-              <img src="/static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+              <img src="static/images/youtube-icon.png" alt="YouTube" class="social-icon">
             </a>
-          
             <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
-              <img src="/static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+              <img src="static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
             </a>
-
-            <a href="https://mkb0020.github.io/MKLambda.html" target="_blank" aria-label="YouTube">
-              <img src="/static/images/music-icon.png" alt="YouTube" class="social-icon">
+            <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
+              <img src="static/images/music-icon.png" alt="Soundcloud" class="social-icon">
             </a>
-
             <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
-              <img src="/static/images/github-icon.png" alt="GitHub" class="social-icon">
+              <img src="static/images/github-icon.png" alt="GitHub" class="social-icon">
             </a>
-
-            <a href="https://mkb0020.itch.io" target="_blank" aria-label="YouTube">
-              <img src="/static/images/itchio-icon.png" alt="YouTube" class="social-icon">
+            <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
+              <img src="static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
             </a>
           </div>
         </div>
       </div>
 
-     
-       <a href="https://mkb0020.github.io">
-            <div class="logo">♡ mkb0020</div>  <!-- CENTER LOGO -->
-        </a>
- 
-      <div class="help-dropdown"> <!-- RIGHT HELP DROPDOWN -->
+      <a href="https://mkb0020.github.io">
+        <div class="logo">♡ mkb0020</div>
+      </a>
+
+      <div class="help-dropdown">
         <button class="help-icon" id="helpBtn" aria-label="Help Menu">
           <div class="question-mark">?</div>
         </button>
-        
         <div class="dropdown-menu" id="dropdownMenu">
           <button id="openMainHelp">About</button>
-          <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+         <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
         </div>
       </div>
     </div>
