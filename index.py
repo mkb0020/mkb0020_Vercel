@@ -3,6 +3,7 @@ from api.comments import comments_bp
 from api.submitGameFeedback import feedback_bp
 from api.support import support_bp
 from api.testerSignup import tester_signup_bp
+from api.wormholeFeedback import wormhole_feedback_bp
 
 app = Flask(__name__, static_folder='static', template_folder='forms')
 
@@ -10,6 +11,8 @@ app.register_blueprint(comments_bp)
 app.register_blueprint(feedback_bp)
 app.register_blueprint(support_bp)
 app.register_blueprint(tester_signup_bp)
+app.register_blueprint(wormhole_feedback_bp)
+
 
 @app.route('/')
 def index():
@@ -34,6 +37,10 @@ def tester_signup_page():
 @app.route('/dashboard')
 def dashboard_page():
     return send_from_directory('forms', 'dashboard.html')
+
+@app.route('/wormhole-feedback')
+def wormhole_feedback_page():
+    return send_from_directory('forms', 'wormholeFeedback.html')
 
 if __name__ == '__main__':
     app.run()

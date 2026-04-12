@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <title>Wormhole Playtester Feedback</title>
+  <meta name="description" content="Playtester feedback form for Wormholes All The Way Down" />
+
+<style>
+    .page-content {
+      margin-top: 30px;
+      padding: 2rem 1rem;
+      min-height: calc(100vh - 80px);
+      position: relative;
+      z-index: 10;
+    }
+
+    .support-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .hero-section h1 {
+      font-family: 'Orbitron', 'Courier New', monospace;
+      font-size: 2.6rem;
+      background: linear-gradient(45deg, var(--AquaAura), var(--AlphaAqua), var(--RadioactiveGreen));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      animation: neonPulse 2s ease-in-out infinite alternate;
+    }
+
+    .hero-section p {
+      color: var(--MutedGray);
+      font-size: 1.2rem;
+      font-family: Arial, sans-serif;
+    }
+
+    .support-card {
+      background: linear-gradient(135deg, 
+          rgba(64, 3, 104, 0.388), 
+          rgba(52, 0, 116, 0.555));
+      backdrop-filter: blur(50px);
+      border-radius: 18px;
+      padding: 30px;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s ease;
+      box-shadow: 
+        0 20px 50px -15px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      z-index: 1;
+    }
+
+    .support-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, 
+          rgba(131, 12, 222, 0.15) 0%, 
+          transparent 70%);
+      opacity: 0;
+      transition: opacity 0.6s;
+      pointer-events: none;
+    }
+
+    .support-card:hover {
+      border-color: #a45aff5c;
+      box-shadow: 
+          0 20px 50px rgba(131,12,222, 0.1),
+          0 0 40px rgba(165,90,255, 0.2);
+    }
+
+    .support-card:hover::before {
+      opacity: 1;
+      animation: hologramPulse 3s infinite;
+    }
+
+    @keyframes hologramPulse {
+      0%, 100% { transform: translate(20%, 20%) rotate(0deg); }
+      50% { transform: translate(30%, 30%) rotate(5deg); }
+    }
+
+    .alert-box {
+      background: rgba(0, 200, 255, 0.07);
+      border: 1px solid rgba(0, 200, 255, 0.15);
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+      box-shadow: 
+        0 20px 50px -15px rgba(0, 0, 0, 0.219),
+        inset 0 1px 0 rgba(0, 200, 255, 0.1);
+    }
+
+    .alert-box h3 {
+      color: var(--AlphaAqua);
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .alert-box p {
+      color: var(--White);
+      margin: 0.5rem 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .form-group label {
+      display: block;
+      color: var(--AquaAura);
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.875rem;
+      background: rgba(20, 0, 33, 0.2);
+      border: 1px solid var(--ProtonPurple);
+      border-radius: 8px;
+      color: var(--White);
+      font-size: 1rem;
+      font-family: Arial, sans-serif;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--CoolGray);
+      box-shadow: 0 0 8px var(--AquaAura);
+      background: rgba(35, 4, 58, 0.386);
+    }
+
+    .form-group textarea {
+      min-height: 140px;
+      resize: vertical;
+      font-family: Arial, sans-serif;
+    }
+
+    .form-group select {
+      cursor: pointer;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.4rem;
+    }
+
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--BohrsBabyBlue);
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+      text-transform: none;
+      letter-spacing: 0;
+      cursor: pointer;
+      background: rgba(20, 0, 40, 0.4);
+      border: 1px solid var(--ProtonPurple);
+      border-radius: 8px;
+      padding: 0.5rem 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .radio-group label:hover {
+      border-color: var(--AquaAura);
+      background: rgba(40, 4, 70, 0.5);
+    }
+
+    .radio-group input[type="radio"] {
+      width: auto;
+      padding: 0;
+      border: none;
+      background: none;
+      accent-color: var(--AquaAura);
+    }
+
+    .radio-group input[type="radio"]:focus {
+      box-shadow: none;
+    }
+
+    .file-upload-area {
+      border: 2px dashed var(--ProtonPurple);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(20, 0, 33, 0.2);
+      position: relative;
+    }
+
+    .file-upload-area:hover,
+    .file-upload-area.drag-over {
+      border-color: var(--AquaAura);
+      background: rgba(35, 4, 58, 0.386);
+      box-shadow: 0 0 12px var(--AquaAura);
+    }
+
+    .file-upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: none;
+      background: none;
+    }
+
+    .file-upload-area input[type="file"]:focus {
+      box-shadow: none;
+    }
+
+    .file-upload-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .file-upload-text {
+      color: var(--MutedGray);
+      font-family: Arial, sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .file-upload-text strong {
+      color: var(--AquaAura);
+    }
+
+    .file-selected-name {
+      margin-top: 0.6rem;
+      color: var(--AlphaAqua);
+      font-family: Arial, sans-serif;
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    .conditional-field {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .conditional-field.visible {
+      display: block;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1.2rem;
+      background: var(--glass);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: none;
+      color: var(--CoolGray);
+      border-radius: 18px;
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.3rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 
+        0 20px 50px -15px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      z-index: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.15rem;
+      overflow-x: hidden;
+      overflow-y: hidden;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      background: var(--glass);
+      color: #ffffff;
+      border-color: rgba(103, 254, 189, 0.3);
+      animation: holoGlow 5s ease-in-out infinite;
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.2;
+      cursor: not-allowed;
+    }
+
+    .submit-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -75%;
+      width: 40%;
+      height: 250%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(103, 254, 189, 0.3),  
+        rgba(0, 255, 255, 0.3),
+        transparent
+      );
+      transform: skewX(-25deg);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .submit-btn:hover::before {
+      opacity: 1;
+      animation: glowSweep 0.8s;
+    }
+
+    @keyframes glowSweep {
+      0%   { transform: skewX(-25deg) translateX(-180%); }
+      100% { transform: skewX(-25deg) translateX(500%); }
+    }
+
+    .required {
+      color: var(--ParticlePink);
+    }
+
+    .success-message {
+      background: rgba(0, 255, 150, 0.08);
+      border: 1px solid rgba(0, 255, 150, 0.2);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--White);
+      font-family: Arial, sans-serif;
+    }
+
+    .success-message h3 {
+      color: #00ffaa;
+      font-family: 'GothNerd', sans-serif;
+      margin-bottom: 0.5rem;
+    }
+
+    .error-message {
+      background: rgba(255, 0, 60, 0.1);
+      border: 1px solid rgba(255, 0, 60, 0.2);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--ParticlePink);
+      font-family: Arial, sans-serif;
+    }
+
+    .section-divider {
+      border: none;
+      border-top: 1px solid rgba(131, 12, 222, 0.25);
+      margin: 2rem 0;
+    }
+
+    .section-heading {
+      font-family: 'GothNerd', sans-serif;
+      color: var(--BohrsBabyBlue);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15rem;
+      margin-bottom: 1.2rem;
+      opacity: 0.7;
+    }
+</style>
+
+</head>
+<body>
+
+  <div class="background-gradient"></div>
+
+  <div class="waves">
+    <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/> <!-- DARK PURPLE-ISH BLUE-->
+    </svg>
+    <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+    </svg>
+  <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/> <!-- COOL-TONED PURPLE -->
+  </svg>
+  <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>  <!-- DARK PURPLE-ISH BLUE-->
+  </svg>
+    <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/> <!--LIGHT HOT PINK -->
+    </svg>
+  <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+  </svg>
+  </div>
+
+  <div class="dreamy-overlay"> </div>
+
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="left-dropdown">
+        <button class="menu-trigger" aria-label="Menu">
+          <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
+        </button>
+        <div class="left-menu">
+          <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+          <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+          <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+          <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+          <div class="social-links">
+            <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
+              <img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+            </a>
+            <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
+              <img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+            </a>
+            <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
+              <img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon">
+            </a>
+            <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
+              <img src="../static/images/github-icon.png" alt="GitHub" class="social-icon">
+            </a>
+            <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
+              <img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <a href="https://mkb0020.github.io">
+        <div class="logo">♡ mkb0020</div>
+      </a>
+
+      <div class="help-dropdown">
+        <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+          <div class="question-mark">?</div>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <button id="openMainHelp">About</button>
+         <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="support-container">
+    <div class="hero-section">
+      <h1>WORMHOLES ALL THE WAY DOWN FEEDBACK</h1>
+    </div>
+
+    <div class="support-card">
+      <div class="alert-box">
+        <p>Thanks for testing! If you recorded a session, upload the JSON file at the bottom.</p>
+      </div>
+
+      <div id="feedbackMessage"></div>
+
+      <form id="wormholeForm" enctype="multipart/form-data">
+
+        <p class="section-heading">// TESTER INFO</p>
+
+        <div class="form-group">
+          <label for="name">Your Name <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            placeholder="Enter your name"
+            required
+            maxlength="100"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="device">What device did you use? <span class="required">*</span></label>
+          <select id="device" name="device" required>
+            <option value="" disabled selected>-- Select Device --</option>
+            <option value="PC / Desktop">PC / Desktop</option>
+            <option value="Mac">Mac</option>
+            <option value="Mobile - iPhone">Mobile – iPhone</option>
+            <option value="Mobile - Android">Mobile – Android</option>
+            <option value="Mobile - Other">Mobile – Other</option>
+            <option value="Tablet">Tablet</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group conditional-field" id="phoneModelGroup">
+          <label for="phone_model">Which phone / model?</label>
+          <input 
+            type="text" 
+            id="phone_model" 
+            name="phone_model" 
+            placeholder="e.g. iPhone 15, Samsung Galaxy S24..."
+            maxlength="100"
+          />
+        </div>
+
+        <hr class="section-divider">
+        <p class="section-heading">// GAMEPLAY</p>
+
+        <div class="form-group">
+          <label>Are the controls intuitive? <span class="required">*</span></label>
+          <div class="radio-group">
+            <label><input type="radio" name="controls_intuitive" value="Yes" required> ✅ Yes, felt natural</label>
+            <label><input type="radio" name="controls_intuitive" value="Mostly"> 🤔 Mostly</label>
+            <label><input type="radio" name="controls_intuitive" value="Took some getting used to"> 🔄 Took some getting used to</label>
+            <label><input type="radio" name="controls_intuitive" value="No, felt confusing"> ❌ No, felt confusing</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Did you beat it? <span class="required">*</span></label>
+          <div class="radio-group">
+            <label><input type="radio" name="did_beat" value="Yes" required> 🏆 Yes!</label>
+            <label><input type="radio" name="did_beat" value="Almost"> 😤 Almost...</label>
+            <label><input type="radio" name="did_beat" value="No"> 💀 No</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>How's the difficulty? <span class="required">*</span></label>
+          <div class="radio-group">
+            <label><input type="radio" name="difficulty" value="Too easy" required> 😴 Too easy</label>
+            <label><input type="radio" name="difficulty" value="Good balance"> ⚖️ Good balance</label>
+            <label><input type="radio" name="difficulty" value="Challenging but beatable"> 🔥 Challenging but beatable</label>
+            <label><input type="radio" name="difficulty" value="Too hard"> 💢 Too hard</label>
+          </div>
+        </div>
+
+        <hr class="section-divider">
+        <p class="section-heading">// PERFORMANCE</p>
+
+        <div class="form-group">
+          <label>Did you notice any lagging? <span class="required">*</span></label>
+          <div class="radio-group">
+            <label><input type="radio" name="lagging" value="No" required> 🚀 Ran smooth</label>
+            <label><input type="radio" name="lagging" value="Minor"> 🐌 Minor lag</label>
+            <label><input type="radio" name="lagging" value="Yes, noticeable"> ⚠️ Yes, noticeable</label>
+            <label><input type="radio" name="lagging" value="Yes, severe"> 🔴 Yes, severe</label>
+          </div>
+        </div>
+
+        <div class="form-group conditional-field" id="laggingDetailsGroup">
+          <label for="lagging_details">Where / when did you notice the lag?</label>
+          <textarea 
+            id="lagging_details" 
+            name="lagging_details" 
+            placeholder="e.g. During the boss phase, after picking up power-ups, at the start of wave 3..."
+            maxlength="500"
+          ></textarea>
+        </div>
+
+        <hr class="section-divider">
+        <p class="section-heading">// OTHER NOTES</p>
+
+        <div class="form-group">
+          <label for="notes">Any other feedback or observations?</label>
+          <textarea 
+            id="notes" 
+            name="notes" 
+            placeholder="Bugs, vibes, favorite moments, things that felt off, suggestions — anything goes!"
+            maxlength="2000"
+          ></textarea>
+          <div class="char-counter" id="charCounter">2000 characters remaining</div>
+        </div>
+
+        <div class="form-group">
+          <label>Session Recording (optional)</label>
+          <div class="file-upload-area" id="uploadArea">
+            <input 
+              type="file" 
+              id="session_file" 
+              name="session_file" 
+              accept=".json"
+            />
+            <div class="file-upload-icon">📦</div>
+            <div class="file-upload-text">
+              <strong>Click to upload</strong> or drag & drop your session JSON<br>
+              <span style="font-size:0.85rem; opacity:0.7;">.json files only</span>
+            </div>
+            <div class="file-selected-name" id="fileSelectedName"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          BEAM ME UP
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+  <div id="stars"></div>
+
+  <button class="floating-back-to-top" id="floatingBackToTop">↑</button>
+
+  <div id="kofi-float">
+    <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+      <img src="/../static/images/tipjar.png" alt="Support me on Ko-fi">
+      <div class="hearts">
+        <div class="heart" style="--delay: 0s; --drift: -20px;">❤️</div>
+        <div class="heart" style="--delay: 0.5s; --drift: 15px;">💖</div>
+        <div class="heart" style="--delay: 1s; --drift: -10px;">💕</div>
+        <div class="heart" style="--delay: 1.5s; --drift: 20px;">❤️</div>
+        <div class="heart" style="--delay: 2s; --drift: -15px;">💗</div>
+        <div class="heart" style="--delay: 2.5s; --drift: 10px;">💖</div>
+      </div>
+    </a>
+  </div>
+
+  <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+    <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+      <img src="/static/images/top.png" alt="Scroll to top">
+    </a>
+  </div>
+
+ 
+  <script src="/static/js/KittyCore.js"></script>
+
+  <script>
+    // Stars background
+    const starsDiv = document.getElementById('stars');
+    for (let i = 0; i < 200; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.width = star.style.height = Math.random() * 2 + 'px';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 4 + 's';
+      starsDiv.appendChild(star);
+    }
+
+    // Ko-fi hearts
+    const kofiBtn = document.getElementById('kofi-float');
+    kofiBtn.addEventListener('mouseenter', () => {
+      document.querySelectorAll('.heart').forEach(h => {
+        h.style.animation = 'none';
+        h.offsetHeight;
+        h.style.animation = null;
+      });
+    });
+
+    // Show phone model field when mobile is selected
+    const deviceSelect = document.getElementById('device');
+    const phoneModelGroup = document.getElementById('phoneModelGroup');
+    deviceSelect.addEventListener('change', () => {
+      const isMobile = deviceSelect.value.startsWith('Mobile');
+      phoneModelGroup.classList.toggle('visible', isMobile);
+    });
+
+    // Show lagging details when lag is reported
+    const laggingRadios = document.querySelectorAll('input[name="lagging"]');
+    const laggingDetailsGroup = document.getElementById('laggingDetailsGroup');
+    laggingRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        const hasLag = radio.value !== 'No';
+        laggingDetailsGroup.classList.toggle('visible', hasLag);
+      });
+    });
+
+    // Drag and drop styling on upload area
+    const uploadArea = document.getElementById('uploadArea');
+    uploadArea.addEventListener('dragover', e => {
+      e.preventDefault();
+      uploadArea.classList.add('drag-over');
+    });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        document.getElementById('session_file').files = e.dataTransfer.files;
+        document.getElementById('fileSelectedName').textContent = `📎 ${file.name}`;
+      }
+    });
+
+    // Show filename on file select
+    document.getElementById('session_file').addEventListener('change', function() {
+      const name = this.files[0]?.name || '';
+      document.getElementById('fileSelectedName').textContent = name ? `📎 ${name}` : '';
+    });
+
+    // Character counter for notes
+    const notesTextarea = document.getElementById('notes');
+    const charCounter = document.getElementById('charCounter');
+    notesTextarea.addEventListener('input', () => {
+      const remaining = 2000 - notesTextarea.value.length;
+      charCounter.textContent = `${remaining} characters remaining`;
+      charCounter.classList.toggle('warning', remaining < 100);
+    });
+
+    // Form submission
+    document.getElementById('wormholeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      const feedbackDiv = document.getElementById('feedbackMessage');
+
+      submitBtn.textContent = '🌀 Transmitting...';
+      submitBtn.disabled = true;
+      feedbackDiv.innerHTML = '';
+
+      // Use FormData to handle the file upload
+      const formData = new FormData(document.getElementById('wormholeForm'));
+
+      try {
+        const response = await fetch('/api/wormhole-feedback', {
+          method: 'POST',
+          body: formData
+          // Do NOT set Content-Type manually — the browser sets it with the boundary
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          feedbackDiv.innerHTML = `
+            <div class="success-message">
+              <h3>✅ Feedback received!</h3>
+              <p>Thank you for playtesting! Your report #${data.feedback_id} has been logged.</p>
+              <p>Seriously, this helps a lot 💜</p>
+            </div>
+          `;
+          document.getElementById('wormholeForm').reset();
+          charCounter.textContent = '2000 characters remaining';
+          charCounter.classList.remove('warning');
+          document.getElementById('fileSelectedName').textContent = '';
+          phoneModelGroup.classList.remove('visible');
+          laggingDetailsGroup.classList.remove('visible');
+          feedbackDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          feedbackDiv.innerHTML = `<div class="error-message">❌ ${data.error || 'Failed to submit feedback'}</div>`;
+        }
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+        feedbackDiv.innerHTML = '<div class="error-message">❌ Network error. Please try again.</div>';
+      } finally {
+        submitBtn.textContent = '🌀 BEAM UP FEEDBACK';
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
