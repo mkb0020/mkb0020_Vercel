@@ -30,11 +30,10 @@
     .page-title h1 {
       font-family: 'Orbitron', 'Courier New', monospace;
       font-size: 3rem;
-      background: linear-gradient(45deg, var(--NuclearFuscia), #00FFFF, var(--NuclearFuscia));
+      background: linear-gradient(45deg, var(--NuclearFuscia), #00FFFF, var(--AquaAura));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      text-shadow: 0 0 15px var(--NuclearGlow3);
       margin-bottom: 1rem;
       animation: neonPulse 2s ease-in-out infinite alternate;
     }
@@ -47,8 +46,8 @@
 
     .comment-form-card {
       background: linear-gradient(135deg, 
-          rgba(63, 3, 104, 0.3), 
-          rgba(52, 0, 116, 0.3));
+          rgba(63, 3, 104, 0.4), 
+          rgba(52, 0, 116, 0.4));
       backdrop-filter: blur(50px);
       border-radius: 18px;
       padding: 30px;
@@ -213,7 +212,6 @@
       font-size: 2rem;
       margin-bottom: 1.5rem;
       text-align: center;
-      text-shadow: 0 0 10px var(--NuclearGlow2);
     }
 
     .comment-card {
@@ -365,7 +363,7 @@
     <div class="nav-container">
       <div class="left-dropdown">
         <button class="menu-trigger" aria-label="Menu">
-          <img src="static/images/Niels2.png" alt="Menu" class="home-icon">
+          <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
         </button>
         <div class="left-menu">
           <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
@@ -374,19 +372,19 @@
           <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
           <div class="social-links">
             <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
-              <img src="static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+              <img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon">
             </a>
             <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
-              <img src="static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+              <img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
             </a>
             <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
-              <img src="static/images/music-icon.png" alt="Soundcloud" class="social-icon">
+              <img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon">
             </a>
             <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
-              <img src="static/images/github-icon.png" alt="GitHub" class="social-icon">
+              <img src="../static/images/github-icon.png" alt="GitHub" class="social-icon">
             </a>
             <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
-              <img src="static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
+              <img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
             </a>
           </div>
         </div>
@@ -426,9 +424,7 @@
     </div>
 
     <div class="comment-form-card">
-      <h2 style="color: var(--ParticlePink); font-family: 'GothNerd', sans-serif; font-size: 1.5rem; margin-bottom: 1.5rem; text-shadow: 0 0 10px var(--NuclearGlow2);">
-        Leave your mark!
-      </h2>
+
 
       <div id="feedbackMessage"></div>
 
@@ -478,7 +474,7 @@
 
   <div id="kofi-float">
     <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
-      <img src="/static/images/tipjar.png" alt="Support me on Ko-fi">
+      <img src="/../static/images/tipjar.png" alt="Support me on Ko-fi">
       <div class="hearts">
         <div class="heart" style="--delay: 0s; --drift: -20px;">❤️</div>
         <div class="heart" style="--delay: 0.5s; --drift: 15px;">💖</div>
