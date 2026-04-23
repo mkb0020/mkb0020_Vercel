@@ -47,5 +47,9 @@ def dashboard_page():
 def wormhole_feedback_page():
     return send_from_directory('forms', 'wormholeFeedback.html')
 
+@app.route('/leaderboard')
+def leaderboard_page():
+    return send_from_directory('forms', 'leaderboard.html')
+
 if __name__ == '__main__':
     app.run()
