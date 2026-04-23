@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <title>Wormholes All The Way Down | Leaderboard</title>
+  <meta name="description" content="Game leaderboard — top scores across all modes" />
+  <style>
+    .leaderboard-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .hero-section h1 {
+      font-family: 'Orbitron', 'Courier New', monospace;
+      font-size: 2rem;
+      background: linear-gradient(45deg, var(--OptimalOrange), var(--HiggsHotPink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 15px var(--NuclearGlow3);
+      margin-bottom: 0rem;
+      animation: neonPulse 2s ease-in-out infinite alternate;
+    }
+
+    .hero-section h2 {
+      font-family: 'Orbitron', 'Courier New', monospace;
+      font-size: 2.5rem;
+      background: linear-gradient(45deg, var(--OptimalOrange), var(--HiggsHotPink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 15px var(--NuclearGlow3);
+      margin-bottom: 0.5rem;
+      animation: neonPulse 2s ease-in-out infinite alternate;
+    }
+
+    .hero-section p {
+      color: var(--MutedGray);
+      font-size: 1.1rem;
+    }
+
+    .leaderboard-card {
+      background: linear-gradient(135deg, 
+          rgba(64, 3, 104, 0.388), 
+          rgba(52, 0, 116, 0.555));
+      backdrop-filter: blur(50px);
+      border-radius: 28px;
+      padding: 1.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(165, 90, 255, 0.3);
+      padding-bottom: 1.2rem;
+    }
+
+    .mode-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      position: relative;
+      overflow: hidden;
+      background: rgba(10, 0, 20, 0.6);
+      border: 1px solid var(--ProtonPurple);
+      color: var(--CoolGray);
+      font-family: 'GothNerd', sans-serif;
+      font-size: 0.9rem;
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(4px);
+      letter-spacing: 0.5px;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .mode-btn::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 50%; height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
+        transition: 0.7s;
+        }
+
+    .mode-btn:hover::before { left: 100%; }
+
+    .mode-btn:hover {
+        background: rgba(70, 70, 99, 0.6);
+        border-color: #00ffff;
+        color: #00ffff;
+        }
+
+    .mode-btn.active {
+      background: var(--ProtonPurple);
+      border-color: var(--CoolGray);
+      color: white;
+      box-shadow: 0 0 10px var(--AlphaGlow1);
+      text-shadow: 0 0 2px white;
+    }
+
+    .mode-btn:hover:not(.active) {
+      border-color: var(--AlphaAqua);
+      color: var(--AlphaAqua);
+    }
+
+    .limit-selector {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.3rem 1rem;
+      border-radius: 60px;
+    }
+
+    .limit-selector label {
+      font-family: 'GothNerd', sans-serif;
+      color: var(--AquaAura);
+      font-size: 0.9rem;
+    }
+
+    #limitSelect {
+      background: rgba(20, 0, 33, 0.7);
+      border: 1px solid var(--ProtonPurple);
+      color: white;
+      padding: 0.4rem 0.8rem;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .refresh-btn {
+      position: relative;
+      overflow: hidden;
+      background: var(--glass2);
+      border: 1px solid var(--AlphaAqua);
+      color: var(--AlphaAqua);
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      font-family: 'GothNerd', sans-serif;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+
+    .refresh-btn::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 50%; height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
+        transition: 0.7s;
+        }
+
+    .refresh-btn:hover::before { left: 100%; }
+
+    .refresh-btn:hover {
+        background: rgba(70, 70, 99, 0.6);
+        border-color: #00ffff;
+        color: #00ffff;
+        }
+
+    .leaderboard-table-wrapper {
+      overflow-x: auto;
+      border-radius: 20px;
+    }
+
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Courier New', monospace;
+    }
+
+    .leaderboard-table th {
+      text-align: left;
+      padding: 1rem 0.8rem;
+      background: rgba(0, 0, 0, 0.5);
+      color: var(--AlphaAqua);
+      font-family: 'GothNerd', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      border-bottom: 2px solid var(--ProtonPurple);
+    }
+
+    .leaderboard-table td {
+      padding: 0.9rem 0.8rem;
+      border-bottom: 1px solid rgba(165, 90, 255, 0.2);
+      color: #e2e2e2;
+      font-weight: 500;
+    }
+
+    .leaderboard-table tr:hover td {
+      background: rgba(165, 90, 255, 0.1);
+    }
+
+    .rank-cell {
+      font-weight: bold;
+      color: var(--HiggsHotPink);
+      text-shadow: 0 0 2px rgba(255, 105, 180, 0.5);
+    }
+
+    .score-cell {
+      font-family: 'Orbitron', monospace;
+      font-weight: bold;
+      color: #c4ffb2;
+    }
+
+    .wave-badge {
+      background: rgba(0, 255, 255, 0.15);
+      border-radius: 30px;
+      padding: 0.2rem 0.7rem;
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 3rem;
+      color: var(--MutedGray);
+      font-size: 1.2rem;
+    }
+
+    .loader {
+      display: flex;
+      justify-content: center;
+      padding: 3rem;
+    }
+
+    .loader .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(165, 90, 255, 0.3);
+      border-top: 4px solid var(--AlphaAqua);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-alert {
+      background: rgba(255, 30, 90, 0.2);
+      border-left: 5px solid var(--RadiationRed);
+      padding: 1rem;
+      border-radius: 14px;
+      margin: 1rem 0;
+      color: #ffb3c6;
+    }
+
+    .last-updated {
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--CoolGray);
+      margin-top: 1rem;
+      font-family: monospace;
+    }
+
+    @media (max-width: 700px) {
+      .leaderboard-card {
+        padding: 1rem;
+      }
+      .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .mode-group {
+        justify-content: center;
+      }
+      .leaderboard-table th, .leaderboard-table td {
+        padding: 0.6rem 0.4rem;
+        font-size: 0.8rem;
+      }
+      .hero-section h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-gradient"></div>
+
+  <div class="waves">
+    <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+    </svg>
+    <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+    </svg>
+    <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/>
+    </svg>
+    <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+    </svg>
+    <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/>
+    </svg>
+    <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+    </svg>
+  </div>
+
+  <div class="dreamy-overlay"></div>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="left-dropdown">
+        <button class="menu-trigger" aria-label="Menu">
+          <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
+        </button>
+        <div class="left-menu">
+          <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+          <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+          <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+          <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+          <div class="social-links">
+            <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
+              <img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+            </a>
+            <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
+              <img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+            </a>
+            <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
+              <img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon">
+            </a>
+            <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
+              <img src="../static/images/github-icon.png" alt="GitHub" class="social-icon">
+            </a>
+            <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
+              <img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <a href="https://mkb0020.github.io">
+        <div class="logo">♡ mkb0020</div>
+      </a>
+
+      <div class="help-dropdown">
+        <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+          <div class="question-mark">?</div>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <!--<button id="openMainHelp">About </button>-->
+          <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title">🏆 LEADERBOARD INFO</h1>
+        <button class="modal-close" id="closeModal">X</button>
+      </div>
+      <div class="modal-body">
+        <h3>Real-time scores from Neon Database</h3>
+        <p>This page displays the top scores recorded in <strong>Acoustic Kitty / CATastrophe2</strong> and related game modes.</p>
+        <ul>
+          <li><strong>Game Modes:</strong> Gameplay (standard), Survival, BossBattle.</li>
+          <li><strong>Scoring:</strong> Higher is better — scores capped at 9,999,999.</li>
+          <li><strong>Wave Reached:</strong> Highest wave / level achieved (null means N/A).</li>
+          <li><strong>Data source:</strong> GET /api/leaderboard endpoint, backed by PostgreSQL (Neon).</li>
+        </ul>
+        <p>Use the controls above to filter by mode and limit. The leaderboard auto-refreshes on mode change.</p>
+        <p style="margin-top: 12px;"><em>✨ If you see any issues, use the "Report an Issue" link.</em></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="leaderboard-container">
+    <div class="hero-section">
+      <h1>WORMHOLES ALL THE WAY DOWN </h1><br><h2>⚡ HIGH SCORES ⚡</h2>
+    </div>
+
+    <div class="leaderboard-card">
+      <div class="controls-bar">
+        <div class="mode-group" id="modeGroup">
+          <button data-mode="gameplay" class="mode-btn active">🎮 REGULAR GAMEPLAY</button>
+          <button data-mode="survival" class="mode-btn">🧬 SURVIVAL MODE</button>
+          <!--<button data-mode="bossBattle" class="mode-btn">👾 BOSS BATTLE</button>-->
+        </div>
+        <div class="limit-selector">
+          <label>📊 SHOW</label>
+          <select id="limitSelect">
+            <option value="10">10 entries</option>
+            <option value="25">25 entries</option>
+            <option value="50">50 entries</option>
+            <option value="100">100 entries</option>
+          </select>
+        </div>
+        <button class="refresh-btn" id="refreshBtn">⟳ REFRESH</button>
+      </div>
+
+      <div id="leaderboardContent">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+      <div class="last-updated" id="lastUpdated">fetching latest scores...</div>
+    </div>
+  </div>
+
+  <div id="stars"></div>
+
+  <button class="floating-back-to-top" id="floatingBackToTop">↑</button>
+  <div id="kofi-float">
+    <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+      <img src="/static/images/tipjar.png" alt="Support me on Ko-fi">
+      <div class="hearts">
+        <div class="heart" style="--delay: 0s; --drift: -20px;">❤️</div>
+        <div class="heart" style="--delay: 0.5s; --drift: 15px;">💖</div>
+        <div class="heart" style="--delay: 1s; --drift: -10px;">💕</div>
+        <div class="heart" style="--delay: 1.5s; --drift: 20px;">❤️</div>
+        <div class="heart" style="--delay: 2s; --drift: -15px;">💗</div>
+        <div class="heart" style="--delay: 2.5s; --drift: 10px;">💖</div>
+      </div>
+    </a>
+  </div>
+  <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+    <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+      <img src="/static/images/top.png" alt="Scroll to top">
+    </a>
+  </div>
+
+  <script src="/static/js/KittyCore.js"></script>
+  <script>
+    // ---------- LEADERBOARD FETCH & RENDER ----------
+    let currentMode = 'gameplay';
+    let currentLimit = 10;
+
+    // DOM elements
+    const leaderboardContainer = document.getElementById('leaderboardContent');
+    const lastUpdatedSpan = document.getElementById('lastUpdated');
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const limitSelect = document.getElementById('limitSelect');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    function formatScore(score) {
+      if (score === undefined || score === null) return '0';
+      return Number(score).toLocaleString();
+    }
+
+    function formatWave(wave) {
+      if (wave === null || wave === undefined) return '—';
+      return `🌊 ${wave}`;
+    }
+
+    function renderLeaderboard(scoresArray) {
+      if (!scoresArray || scoresArray.length === 0) {
+        leaderboardContainer.innerHTML = `<div class="empty-message">🌀 No scores recorded for this mode yet.<br>Be the first to set a record!</div>`;
+        return;
+      }
+
+      const table = document.createElement('table');
+      table.className = 'leaderboard-table';
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th># RANK</th>
+          <th>PILOT</th>
+          <th>🏆 SCORE</th>
+          <th>WAVE</th>
+          <th>📅 DATE</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      
+      scoresArray.forEach((entry, idx) => {
+        const rank = idx + 1;
+        const row = document.createElement('tr');
+        const rankCell = document.createElement('td');
+        rankCell.className = 'rank-cell';
+        rankCell.textContent = `#${rank}`;
+        
+        const nameCell = document.createElement('td');
+        nameCell.textContent = entry.name || 'ANONYMOUS';
+        nameCell.style.fontWeight = 'bold';
+        
+        const scoreCell = document.createElement('td');
+        scoreCell.className = 'score-cell';
+        scoreCell.textContent = formatScore(entry.score);
+        
+        const waveCell = document.createElement('td');
+        waveCell.innerHTML = `<span class="wave-badge">${formatWave(entry.wave)}</span>`;
+        
+        const dateCell = document.createElement('td');
+        dateCell.textContent = entry.date || 'unknown';
+        dateCell.style.fontSize = '0.85rem';
+        dateCell.style.opacity = '0.9';
+        
+        row.appendChild(rankCell);
+        row.appendChild(nameCell);
+        row.appendChild(scoreCell);
+        row.appendChild(waveCell);
+        row.appendChild(dateCell);
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      
+      leaderboardContainer.innerHTML = '';
+      leaderboardContainer.appendChild(table);
+    }
+
+    function showLoading() {
+      leaderboardContainer.innerHTML = `<div class="loader"><div class="spinner"></div></div>`;
+    }
+
+    function showError(message) {
+      leaderboardContainer.innerHTML = `<div class="error-alert">⚠️ ${message}<br>🔌 Check API endpoint or network. Verify backend is running.</div>`;
+    }
+
+    async function fetchLeaderboard() {
+      showLoading();
+      const url = `/api/leaderboard?mode=${encodeURIComponent(currentMode)}&limit=${currentLimit}`;
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!response.ok) {
+          let errorMsg = `HTTP ${response.status}`;
+          try {
+            const errData = await response.json();
+            errorMsg = errData.error || errorMsg;
+          } catch(e) {}
+          throw new Error(`Server error: ${errorMsg}`);
+        }
+        
+        const data = await response.json();
+        if (!data.ok) {
+          throw new Error(data.error || 'Unknown API error');
+        }
+        
+        const scores = data.scores || [];
+        renderLeaderboard(scores);
+        
+        const now = new Date();
+        lastUpdatedSpan.innerHTML = `🕒 last updated: ${now.toLocaleTimeString()} · mode: ${currentMode.toUpperCase()} · top ${scores.length} entries`;
+        if (scores.length === 0) {
+          lastUpdatedSpan.innerHTML += ` (no scores found)`;
+        }
+      } catch (err) {
+        console.error('[Leaderboard] fetch error:', err);
+        showError(`Could not load leaderboard: ${err.message}. Make sure the API is reachable.`);
+        lastUpdatedSpan.innerHTML = `❌ update failed at ${new Date().toLocaleTimeString()}`;
+      }
+    }
+
+    function setActiveModeButton(mode) {
+      modeButtons.forEach(btn => {
+        const btnMode = btn.getAttribute('data-mode');
+        if (btnMode === mode) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    function initModeSwitching() {
+      modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const mode = btn.getAttribute('data-mode');
+          if (mode === currentMode) return;
+          currentMode = mode;
+          setActiveModeButton(currentMode);
+          fetchLeaderboard();
+        });
+      });
+    }
+
+    function initLimitSelect() {
+      limitSelect.addEventListener('change', (e) => {
+        let newLimit = parseInt(e.target.value, 10);
+        if (isNaN(newLimit)) newLimit = 10;
+        currentLimit = Math.min(100, Math.max(1, newLimit));
+        fetchLeaderboard();
+      });
+    }
+
+    function initRefresh() {
+      refreshBtn.addEventListener('click', () => {
+        fetchLeaderboard();
+      });
+    }
+
+    function initHelpModal() {
+      const helpBtn = document.getElementById('helpBtn');
+      const dropdownMenu = document.getElementById('dropdownMenu');
+      const openMainHelpBtn = document.getElementById('openMainHelp');
+      const modal = document.getElementById('helpModal');
+      const closeModalBtn = document.getElementById('closeModal');
+      
+      if (helpBtn && dropdownMenu) {
+        helpBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dropdownMenu.classList.toggle('show');
+        });
+        document.addEventListener('click', (e) => {
+          if (!helpBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.remove('show');
+          }
+        });
+      }
+      if (openMainHelpBtn && modal) {
+        openMainHelpBtn.addEventListener('click', () => {
+          dropdownMenu.classList.remove('show');
+          modal.style.display = 'flex';
+        });
+      }
+      if (closeModalBtn && modal) {
+        closeModalBtn.addEventListener('click', () => {
+          modal.style.display = 'none';
+        });
+        window.addEventListener('click', (e) => {
+          if (e.target === modal) modal.style.display = 'none';
+        });
+      }
+    }
+
+    function initFloatingButtons() {
+      const floatBack = document.getElementById('floatingBackToTop');
+      if (floatBack) {
+        floatBack.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+      const heartsAnim = document.querySelector('#kofi-float');
+      if (heartsAnim) {
+        heartsAnim.addEventListener('mouseenter', () => {
+          document.querySelectorAll('.heart').forEach(h => {
+            h.style.animation = 'none';
+            h.offsetHeight;
+            h.style.animation = null;
+          });
+        });
+      }
+      const starsDiv = document.getElementById('stars');
+      if (starsDiv && starsDiv.children.length === 0) {
+        for (let i = 0; i < 180; i++) {
+          const star = document.createElement('div');
+          star.className = 'star';
+          star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
+          star.style.left = Math.random() * 100 + '%';
+          star.style.top = Math.random() * 100 + '%';
+          star.style.animationDelay = Math.random() * 4 + 's';
+          starsDiv.appendChild(star);
+        }
+      }
+    }
+
+    function syncLimitFromSelect() {
+      const val = parseInt(limitSelect.value, 10);
+      if (!isNaN(val)) currentLimit = Math.min(100, Math.max(1, val));
+      else currentLimit = 10;
+    }
+
+    function init() {
+      syncLimitFromSelect();
+      initModeSwitching();
+      initLimitSelect();
+      initRefresh();
+      initHelpModal();
+      initFloatingButtons();
+      fetchLeaderboard().catch(e => console.warn(e));
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+  <style>
+    .dropdown-menu.show {
+      display: flex !important;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 45px;
+      background: rgba(10, 5, 20, 0.95);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      flex-direction: column;
+      padding: 0.6rem 0;
+      border: 1px solid rgba(165, 90, 255, 0.5);
+      z-index: 200;
+    }
+    .dropdown-menu button, .dropdown-menu a {
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      text-align: left;
+      font-family: 'GothNerd', sans-serif;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .dropdown-menu button:hover, .dropdown-menu a:hover {
+      background: rgba(165, 90, 255, 0.3);
+      color: var(--AlphaAqua);
+    }
+    .help-icon {
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      max-width: 550px;
+      width: 90%;
+      background: #0a0218dd;
+      border-radius: 32px;
+      border: 1px solid var(--ProtonPurple);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 1rem 1.5rem;
+      background: #1e0a2e;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--HiggsHotPink);
+    }
+    .modal-title {
+      font-size: 1.5rem;
+      margin: 0;
+      background: linear-gradient(135deg, #ff9f4a, #ff66cc);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.6rem;
+      cursor: pointer;
+    }
+    .modal-body {
+      padding: 1.5rem;
+      color: #ddd;
+    }
+    .modal-body ul {
+      padding-left: 1.2rem;
+    }
+    .modal-body li {
+      margin: 0.5rem 0;
+    }
+  </style>
+</body>
+</html>
