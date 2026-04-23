@@ -5,10 +5,12 @@ from api.submitGameFeedback import feedback_bp
 from api.support import support_bp
 from api.testerSignup import tester_signup_bp
 from api.wormholeFeedback import wormhole_feedback_bp
-from api.leaderboard import leaderboard_bp   # ← NEW
-from api.scores import scores_bp              # ← NEW
+from api.leaderboard import leaderboard_bp   
+from api.scores import scores_bp
+from flask_cors import CORS            
 
 app = Flask(__name__, static_folder='static', template_folder='forms')
+CORS(app)
 
 app.register_blueprint(comments_bp)
 app.register_blueprint(feedback_bp)
