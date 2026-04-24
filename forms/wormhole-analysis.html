@@ -430,6 +430,22 @@
       <canvas id="scatterChart" style="margin-top: 1rem;"></canvas>
     </div>
 
+    <div class="card"> <!-- DAMAGE SPIKES + SPECIAL ATTACKS -->
+      <h3>💥 Damage Spikes &amp; Special Attacks</h3>
+      <select id="sessionSelect" style="width:100%; margin-bottom:1rem;">
+        <option value="">Loading sessions…</option>
+      </select>
+      <canvas id="damageSpikeChart"></canvas>
+      <p id="damageSpikeEmpty" style="color:#aaa; text-align:center; display:none;">
+        No HP data for this session.
+      </p>
+    </div>
+
+    <div class="card"> <!-- AVERAGE ENEMY HEALTH v KILL RATIO -->
+      <h3>⚔️ Average Enemy Health vs Kill Ratio</h3>
+      <canvas id="healthKillChart"></canvas>
+    </div>
+
     <div class="card"> <!-- WAVE ANALYSIS -->
       <div class="header-grid">
         <div class="header-col"><h3>📈 Wave Config Analysis</h3></div>
@@ -1068,6 +1084,216 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
     loadDashboard();
   </script>
+
+<script>
+  // ═══════════════════════════════════════════════════════
+  //  DAMAGE SPIKES CHART
+  // ═══════════════════════════════════════════════════════
+
+  let damageSpikeChart;
+
+  const ATTACK_CONFIG = {
+    fractal_cascade_attack: { label: 'Fractal Cascade', color: '#ff00cc', y: 12 },
+    slime_attack:           { label: 'Slime Attack',     color: '#00ff99', y:  7 },
+    ocular_prism_attack:    { label: 'Ocular Prism',     color: '#ffaa00', y:  2 }
+  };
+
+  async function populateSessionDropdown() {
+    const res    = await fetch('/api/wormhole/sessions');
+    const result = await res.json();
+    if (!result.success) return;
+
+    const select = document.getElementById('sessionSelect');
+    select.innerHTML = result.sessions.map(s => {
+      const beaten = s.gameBeaten ? '🏆' : '💀';
+      return `<option value="${s.key}">
+        ${beaten} ${s.label}  —  Wave ${s.waveCleared ?? '?'} cleared
+      </option>`;
+    }).join('');
+
+    // Auto-load the first (most recent) session
+    if (result.sessions.length) loadDamageSpikes(result.sessions[0].key);
+  }
+
+  async function loadDamageSpikes(sessionKey) {
+    const res    = await fetch(`/api/wormhole/damage-spikes?session=${encodeURIComponent(sessionKey)}`);
+    const result = await res.json();
+    if (!result.success) { console.error(result.error); return; }
+
+    const empty = document.getElementById('damageSpikeEmpty');
+
+    if (!result.hp.length) {
+      if (damageSpikeChart) damageSpikeChart.destroy();
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    // HP line dataset
+    const datasets = [{
+      type:            'line',
+      label:           'HP',
+      data:            result.hp,
+      borderColor:     '#ffffff',
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      fill:            true,
+      tension:         0.3,
+      pointRadius:     2,
+      pointHoverRadius: 5,
+      order:           1,               // draw behind attack dots
+      yAxisID:         'y'
+    }];
+
+    // One scatter dataset per attack type — pinned at fixed y (rug plot)
+    for (const [type, cfg] of Object.entries(ATTACK_CONFIG)) {
+      const times = result.attacks[type] || [];
+      if (!times.length) continue;
+
+      datasets.push({
+        type:            'scatter',
+        label:           cfg.label,
+        data:            times.map(x => ({ x, y: cfg.y })),
+        backgroundColor: cfg.color,
+        borderColor:     cfg.color,
+        pointRadius:     7,
+        pointStyle:      'triangle',
+        pointHoverRadius: 10,
+        order:           0,
+        yAxisID:         'y'
+      });
+    }
+
+    const maxX = Math.ceil(Math.max(...result.hp.map(p => p.x)) / 10) * 10 || 100;
+
+    const ctx = document.getElementById('damageSpikeChart').getContext('2d');
+    if (damageSpikeChart) damageSpikeChart.destroy();
+
+    damageSpikeChart = new Chart(ctx, {
+      // Mixed types handled per-dataset above
+      type: 'scatter',
+      data: { datasets },
+      options: {
+        responsive: true,
+        interaction: { mode: 'nearest', intersect: false },
+        plugins: {
+          legend: { labels: { color: 'white' } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                if (ctx.dataset.label === 'HP') {
+                  return `HP: ${ctx.raw.y}  (${ctx.raw.x.toFixed(1)}s)`;
+                }
+                return `${ctx.dataset.label} at ${ctx.raw.x.toFixed(1)}s`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            min: 0,
+            max: maxX,
+            title: { display: true, text: 'Elapsed (seconds)', color: '#ccc' },
+            ticks: { color: 'white' },
+            grid:  { color: 'rgba(255,255,255,0.08)' }
+          },
+          y: {
+            min: 0,
+            max: 100,
+            title: { display: true, text: 'HP', color: '#ccc' },
+            ticks: { color: 'white' },
+            grid:  { color: 'rgba(255,255,255,0.08)' }
+          }
+        }
+      }
+    });
+  }
+
+  document.getElementById('sessionSelect').addEventListener('change', (e) => {
+    if (e.target.value) loadDamageSpikes(e.target.value);
+  });
+
+
+  // ═══════════════════════════════════════════════════════
+  //  HEALTH vs KILL RATIO SCATTER
+  // ═══════════════════════════════════════════════════════
+
+  let healthKillChart;
+
+  async function loadHealthKillRatio() {
+    const res    = await fetch('/api/wormhole/health-kill-ratio');
+    const result = await res.json();
+    if (!result.success) { console.error(result.error); return; }
+
+    const ctx = document.getElementById('healthKillChart').getContext('2d');
+    if (healthKillChart) healthKillChart.destroy();
+
+    const xMax = result.data.length
+      ? Math.ceil(Math.max(...result.data.map(p => p.x)) * 1.1)
+      : 20;
+
+    healthKillChart = new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label:           'Sessions',
+          data:            result.data,
+          backgroundColor: 'rgba(255, 0, 204, 0.55)',
+          borderColor:     '#ff00cc',
+          pointRadius:     6,
+          pointHoverRadius: 9
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: 'white' } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) =>
+                `Avg HP: ${ctx.raw.x}  |  Kill ratio: ${(ctx.raw.y * 100).toFixed(1)}%`
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            min: 0,
+            max: xMax,
+            title: { display: true, text: 'Avg Enemy Health', color: '#ccc' },
+            ticks: { color: 'white' },
+            grid:  { color: 'rgba(255,255,255,0.08)' }
+          },
+          y: {
+            min: 0,
+            max: 1,
+            title: { display: true, text: 'Kill Ratio (kills / spawns)', color: '#ccc' },
+            ticks: {
+              color: 'white',
+              callback: v => (v * 100).toFixed(0) + '%'
+            },
+            grid: { color: 'rgba(255,255,255,0.08)' }
+          }
+        }
+      }
+    });
+  }
+
+
+  // ── Wire into dashboard ───────────────────────────────
+  async function loadDashboard() {
+    await loadSummary();
+    await loadInsights();
+    await loadChart();
+    await renderActiveTab();
+    await loadScatter('spawn_interval');
+    await loadWaveAnalysis();
+    await populateSessionDropdown();   // also triggers first session load
+    await loadHealthKillRatio();
+  }
+
+  loadDashboard();
+</script>
 
 </body>
 </html>

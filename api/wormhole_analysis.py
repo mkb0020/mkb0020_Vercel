@@ -498,6 +498,154 @@ def get_wave_analysis():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
+@wormhole_analysis_bp.route('/api/wormhole/sessions', methods=['GET'])
+def get_sessions():
+    """Returns all sessions for the dropdown, newest first."""
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT
+                        to_char("generatedAt" AT TIME ZONE 'UTC',
+                                 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS iso,
+                        to_char("generatedAt" AT TIME ZONE 'UTC',
+                                 'YYYY-MM-DD HH24:MI:SS')           AS label,
+                        "waveCleared",
+                        "gameBeaten"
+                    FROM wormhole_session_summary
+                    ORDER BY "generatedAt" DESC
+                """)
+                rows = cur.fetchall()
+
+        sessions = [
+            {
+                "key":        row[0],
+                "label":      row[1],
+                "waveCleared": row[2],
+                "gameBeaten":  row[3]
+            }
+            for row in rows
+        ]
+        return jsonify({"success": True, "sessions": sessions})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@wormhole_analysis_bp.route('/api/wormhole/damage-spikes', methods=['GET'])
+def get_damage_spikes():
+    """HP timeline + special attack timestamps for one session."""
+    session_key = request.args.get("session")
+    if not session_key:
+        return jsonify({"success": False, "error": "Missing session param"}), 400
+
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+
+                # Anchor timestamp for elapsed-seconds calculation
+                cur.execute("""
+                    SELECT "generatedAt"
+                    FROM wormhole_session_summary
+                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                """, (session_key,))
+                row = cur.fetchone()
+                if not row:
+                    return jsonify({"success": False, "error": "Session not found"}), 404
+                generated_at = row[0]
+
+                # HP events
+                cur.execute("""
+                    SELECT
+                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed,
+                        "hp"
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                      AND "hp" IS NOT NULL
+                    ORDER BY "time" ASC
+                """, (generated_at, session_key))
+                hp_rows = cur.fetchall()
+
+                # Special attack events — grab type + elapsed time
+                cur.execute("""
+                    SELECT
+                        "type",
+                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                      AND "type" IN (
+                            'fractal_cascade_attack',
+                            'slime_attack',
+                            'ocular_prism_attack'
+                          )
+                    ORDER BY "time" ASC
+                """, (generated_at, session_key))
+                attack_rows = cur.fetchall()
+
+        hp_data = [
+            {"x": round(float(r[0]), 2), "y": int(r[1])}
+            for r in hp_rows if r[0] is not None
+        ]
+
+        # Bucket attacks by type — each becomes its own dataset on the frontend
+        attacks = {"fractal_cascade_attack": [], "slime_attack": [], "ocular_prism_attack": []}
+        for event_type, elapsed in attack_rows:
+            if elapsed is not None and event_type in attacks:
+                attacks[event_type].append(round(float(elapsed), 2))
+
+        return jsonify({
+            "success":  True,
+            "session":  session_key,
+            "hp":       hp_data,
+            "attacks":  attacks
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@wormhole_analysis_bp.route('/api/wormhole/health-kill-ratio', methods=['GET'])
+def get_health_kill_ratio():
+    """Scatter: avg enemy health vs kill ratio (kills / spawns) per session."""
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT
+                        (
+                            "ENEMIES_TYPES_BASIC_HEALTH"    +
+                            "ENEMIES_TYPES_FAST_HEALTH"     +
+                            "ENEMIES_TYPES_TANK_HEALTH"     +
+                            "ENEMIES_TYPES_ZIGZAG_HEALTH"   +
+                            "ENEMIES_TYPES_FLIMFLAM_HEALTH"
+                        ) / 5.0                              AS avg_health,
+                        CASE
+                            WHEN "enemySpawns" > 0
+                            THEN ROUND("enemyKills"::numeric / "enemySpawns", 4)
+                            ELSE NULL
+                        END                                  AS kill_ratio
+                    FROM wormhole_session_summary
+                    WHERE "ENEMIES_TYPES_BASIC_HEALTH"    IS NOT NULL
+                      AND "ENEMIES_TYPES_FAST_HEALTH"     IS NOT NULL
+                      AND "ENEMIES_TYPES_TANK_HEALTH"     IS NOT NULL
+                      AND "ENEMIES_TYPES_ZIGZAG_HEALTH"   IS NOT NULL
+                      AND "ENEMIES_TYPES_FLIMFLAM_HEALTH" IS NOT NULL
+                      AND "enemySpawns" > 0
+                    ORDER BY avg_health
+                """)
+                rows = cur.fetchall()
+
+        data = [
+            {"x": float(r[0]), "y": float(r[1])}
+            for r in rows if r[0] is not None and r[1] is not None
+        ]
+        return jsonify({"success": True, "data": data})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @wormhole_analysis_bp.route('/api/wormhole/insights', methods=['GET'])
 def get_insights():
     try:
