@@ -184,10 +184,10 @@ def get_hp_timeline():
             with conn.cursor() as cur:
 
                 cur.execute("""
-                    SELECT "generatedAt"
-                    FROM wormhole_session_summary
-                    WHERE "generatedAt" IS NOT NULL
-                    ORDER BY "generatedAt" DESC
+                    SELECT "session"
+                    FROM wormhole_events
+                    WHERE "session" IS NOT NULL
+                    ORDER BY "session" DESC
                     LIMIT %s
                 """, (limit,))
 
