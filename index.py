@@ -5,7 +5,8 @@ from api.submitGameFeedback import feedback_bp
 from api.support import support_bp
 from api.testerSignup import tester_signup_bp
 from api.wormholeFeedback import wormhole_feedback_bp
-from api.leaderboard import leaderboard_bp   
+from api.leaderboard import leaderboard_bp  
+from api.wormhole_analysis import wormhole_analysis_bp 
 from api.scores import scores_bp
 from flask_cors import CORS            
 
@@ -18,7 +19,8 @@ app.register_blueprint(support_bp)
 app.register_blueprint(tester_signup_bp)
 app.register_blueprint(wormhole_feedback_bp)
 app.register_blueprint(leaderboard_bp)        
-app.register_blueprint(scores_bp)             
+app.register_blueprint(scores_bp)      
+app.register_blueprint(wormhole_analysis_bp)       
 
 
 @app.route('/')
@@ -52,6 +54,10 @@ def wormhole_feedback_page():
 @app.route('/leaderboard')
 def leaderboard_page():
     return send_from_directory('forms', 'leaderboard.html')
+
+@app.route('/wormhole-analysis')
+def wormhole_analysis_page():
+    return send_from_directory('forms', 'wormhole-analysis.html')
 
 if __name__ == '__main__':
     app.run()

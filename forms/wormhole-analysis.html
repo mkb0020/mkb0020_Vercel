@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wormhole Analytics</title>
+
+  <link rel="stylesheet" href="/static/css/styles.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 2.8rem;
+      font-family: 'Orbitron', monospace;
+      margin-bottom: 2rem;
+      background: linear-gradient(45deg, #ff00cc, #00ffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .card {
+      background: rgba(30, 0, 60, 0.5);
+      border: 1px solid #7a00ff;
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 25px rgba(140, 0, 255, 0.3);
+    }
+
+    .upload-box {
+      border: 2px dashed #00ffff;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .upload-box:hover {
+      background: rgba(0,255,255,0.08);
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat h2 {
+      margin: 0;
+      color: #00ffff;
+    }
+
+    #insights p {
+      margin: 0.5rem 0;
+    }
+  </style>
+</head>
+
+<body>
+
+
+
+    <div class="background-gradient"></div>
+
+  <div class="waves">
+    <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/> <!-- DARK PURPLE-ISH BLUE-->
+    </svg>
+    <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+    </svg>
+  <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/> <!-- COOL-TONED PURPLE -->
+  </svg>
+  <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>  <!-- DARK PURPLE-ISH BLUE-->
+  </svg>
+    <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+      <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/> <!--LIGHT HOT PINK -->
+    </svg>
+  <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+    <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+  </svg>
+  </div>
+
+  <div class="dreamy-overlay"> </div>
+
+
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="left-dropdown">
+        <button class="menu-trigger" aria-label="Menu">
+          <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
+        </button>
+        <div class="left-menu">
+          <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+          <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+          <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+          <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+          <div class="social-links">
+            <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
+              <img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+            </a>
+            <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
+              <img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+            </a>
+            <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
+              <img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon">
+            </a>
+            <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
+              <img src="../static/images/github-icon.png" alt="GitHub" class="social-icon">
+            </a>
+            <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
+              <img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <a href="https://mkb0020.github.io">
+        <div class="logo">♡ mkb0020</div>
+      </a>
+
+      <div class="help-dropdown">
+        <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+          <div class="question-mark">?</div>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <!--<button id="openMainHelp">About </button>-->
+          <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title">WORMHOLE ANALYSIS</h1>
+        <button class="modal-close" id="closeModal">X</button>
+      </div>
+      <div class="modal-body">
+        <h3>PLACEHOLDER!</h3>
+      </div>
+    </div>
+  </div>
+
+<div class="container">
+
+  <h1 class="title">🌌 Wormhole Analytics</h1>
+
+
+
+  <div class="card stats">
+    <div class="stat">
+      <h2 id="totalSessions">-</h2>
+      <p>Sessions</p>
+    </div>
+    <div class="stat">
+      <h2 id="avgWave">-</h2>
+      <p>Avg Wave</p>
+    </div>
+    <div class="stat">
+      <h2 id="winRate">-</h2>
+      <p>Win Rate</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <canvas id="waveChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>🧠 AI Insights</h3>
+    <div id="insights"></div>
+  </div>
+
+  <div class="card">
+    <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+      <p>📂 Click or Drop JSON Files Here</p>
+      <input type="file" id="fileInput" multiple accept=".json" style="display:none" />
+    </div>
+    <p id="uploadStatus"></p>
+  </div>
+
+</div>
+
+<div id="stars"></div>
+
+  <button class="floating-back-to-top" id="floatingBackToTop">
+    ↑ 
+  </button>
+
+  <div id="kofi-float">
+    <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+      <img src="/static/images/tipjar.png" alt="Support me on Ko-fi">
+      <div class="hearts">
+        <div class="heart" style="--delay: 0s; --drift: -20px;">❤️</div>
+        <div class="heart" style="--delay: 0.5s; --drift: 15px;">💖</div>
+        <div class="heart" style="--delay: 1s; --drift: -10px;">💕</div>
+        <div class="heart" style="--delay: 1.5s; --drift: 20px;">❤️</div>
+        <div class="heart" style="--delay: 2s; --drift: -15px;">💗</div>
+        <div class="heart" style="--delay: 2.5s; --drift: 10px;">💖</div>
+      </div>
+    </a>
+  </div>
+
+  <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+    <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+      <img src="/static/images/top.png" alt="Scroll to top">
+    </a>
+  </div>
+
+  <script src="/static/js/KittyCore.js"></script>
+
+
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const uploadStatus = document.getElementById('uploadStatus');
+
+  fileInput.addEventListener('change', () => uploadFiles(fileInput.files));
+
+  async function uploadFiles(files) {
+    let successCount = 0;
+
+    for (const file of files) {
+      try {
+        const text = await file.text();
+        const json = JSON.parse(text);
+
+        const res = await fetch('/api/wormhole/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(json)
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          successCount++;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    uploadStatus.textContent = `✅ Uploaded ${successCount} sessions`;
+    loadDashboard();
+  }
+
+
+async function loadSummary() {
+  const res = await fetch('/api/wormhole/summary');
+
+  const text = await res.text();
+  console.log("RAW RESPONSE:", text);
+
+  if (!res.ok) {
+    console.error("Summary API failed");
+    return;
+  }
+
+  const data = JSON.parse(text);
+
+  document.getElementById('totalSessions').textContent = data.data.total_sessions;
+  document.getElementById('avgWave').textContent = data.data.avg_wave.toFixed(2);
+  document.getElementById('winRate').textContent =
+    (data.data.win_rate * 100).toFixed(1) + '%';
+}
+
+  async function loadInsights() {
+    const res = await fetch('/api/wormhole/insights');
+    const data = await res.json();
+
+    const container = document.getElementById('insights');
+    container.innerHTML = data.insights
+      .map(i => `<p>✨ ${i}</p>`)
+      .join('');
+  }
+
+  let chart;
+
+  async function loadChart() {
+    const res = await fetch('/api/wormhole/summary');
+    const data = await res.json();
+
+    const avgWave = data.data.avg_wave;
+
+    const ctx = document.getElementById('waveChart').getContext('2d');
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Avg Wave'],
+        datasets: [{
+          label: 'Wave Progression',
+          data: [avgWave]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: { color: 'white' }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: 'white' }
+          },
+          y: {
+            ticks: { color: 'white' }
+          }
+        }
+      }
+    });
+  }
+
+  async function loadDashboard() {
+    await loadSummary();
+    await loadInsights();
+    await loadChart();
+  }
+
+  loadDashboard();
+</script>
+
+</body>
+</html>
