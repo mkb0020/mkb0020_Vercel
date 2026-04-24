@@ -544,7 +544,6 @@ def get_damage_spikes():
         with psycopg.connect(DB_URL) as conn:
             with conn.cursor() as cur:
 
-                # Anchor timestamp for elapsed-seconds calculation
                 cur.execute("""
                     SELECT "generatedAt"
                     FROM wormhole_session_summary
@@ -556,7 +555,6 @@ def get_damage_spikes():
                     return jsonify({"success": False, "error": "Session not found"}), 404
                 generated_at = row[0]
 
-                # HP events
                 cur.execute("""
                     SELECT
                         EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed,
@@ -568,7 +566,6 @@ def get_damage_spikes():
                 """, (generated_at, session_key))
                 hp_rows = cur.fetchall()
 
-                # Special attack events — grab type + elapsed time
                 cur.execute("""
                     SELECT
                         "type",
@@ -589,7 +586,6 @@ def get_damage_spikes():
             for r in hp_rows if r[0] is not None
         ]
 
-        # Bucket attacks by type — each becomes its own dataset on the frontend
         attacks = {"fractal_cascade_attack": [], "slime_attack": [], "ocular_prism_attack": []}
         for event_type, elapsed in attack_rows:
             if elapsed is not None and event_type in attacks:

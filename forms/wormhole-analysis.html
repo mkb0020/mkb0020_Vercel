@@ -150,6 +150,23 @@
     }
     #waveSelect option, #enemySelect option { background: #1a0030; }
 
+    #sessionSelect {
+          background: rgba(38, 0, 75, 0.8);
+          border: 1px solid #7b00ff65;
+          color: var(--MutedGray);
+          padding: 0.4rem 0.8rem;
+          border-radius: 8px;
+          font-size: 0.9rem;
+          cursor: pointer;
+          width: 80%;
+          position: relative;
+          justify-content: flex-end
+        }
+
+    #sessionSelect option {
+          background: #1a0030;
+        }
+
     .chart-label {
       color: var(--MutedGray);
       font-size: 0.82rem;
@@ -431,14 +448,16 @@
     </div>
 
     <div class="card"> <!-- DAMAGE SPIKES + SPECIAL ATTACKS -->
-      <h3>💥 Damage Spikes &amp; Special Attacks</h3>
-      <select id="sessionSelect" style="width:100%; margin-bottom:1rem;">
-        <option value="">Loading sessions…</option>
-      </select>
-      <canvas id="damageSpikeChart"></canvas>
-      <p id="damageSpikeEmpty" style="color:#aaa; text-align:center; display:none;">
-        No HP data for this session.
-      </p>
+      <div class="header-grid">
+        <div class="header-col"><h3>💥 Damage &amp; Special Attacks</h3></div>
+        <div class="header-col"><select id="sessionSelect" style="width:100%; margin-bottom:1rem;">
+          <option value="">Loading sessions…</option>
+        </select></div>
+      </div>
+        <canvas id="damageSpikeChart"></canvas>
+        <p id="damageSpikeEmpty" style="color:#aaa; text-align:center; display:none;">
+          No HP data for this session.
+        </p>
     </div>
 
     <div class="card"> <!-- AVERAGE ENEMY HEALTH v KILL RATIO -->
@@ -1086,10 +1105,6 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
   </script>
 
 <script>
-  // ═══════════════════════════════════════════════════════
-  //  DAMAGE SPIKES CHART
-  // ═══════════════════════════════════════════════════════
-
   let damageSpikeChart;
 
   const ATTACK_CONFIG = {
@@ -1111,7 +1126,6 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       </option>`;
     }).join('');
 
-    // Auto-load the first (most recent) session
     if (result.sessions.length) loadDamageSpikes(result.sessions[0].key);
   }
 
@@ -1129,7 +1143,6 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     }
     empty.style.display = 'none';
 
-    // HP line dataset
     const datasets = [{
       type:            'line',
       label:           'HP',
@@ -1140,11 +1153,10 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       tension:         0.3,
       pointRadius:     2,
       pointHoverRadius: 5,
-      order:           1,               // draw behind attack dots
+      order:           1,               
       yAxisID:         'y'
     }];
 
-    // One scatter dataset per attack type — pinned at fixed y (rug plot)
     for (const [type, cfg] of Object.entries(ATTACK_CONFIG)) {
       const times = result.attacks[type] || [];
       if (!times.length) continue;
@@ -1169,7 +1181,6 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     if (damageSpikeChart) damageSpikeChart.destroy();
 
     damageSpikeChart = new Chart(ctx, {
-      // Mixed types handled per-dataset above
       type: 'scatter',
       data: { datasets },
       options: {
@@ -1213,10 +1224,6 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     if (e.target.value) loadDamageSpikes(e.target.value);
   });
 
-
-  // ═══════════════════════════════════════════════════════
-  //  HEALTH vs KILL RATIO SCATTER
-  // ═══════════════════════════════════════════════════════
 
   let healthKillChart;
 
@@ -1280,7 +1287,6 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
   }
 
 
-  // ── Wire into dashboard ───────────────────────────────
   async function loadDashboard() {
     await loadSummary();
     await loadInsights();
@@ -1288,7 +1294,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     await renderActiveTab();
     await loadScatter('spawn_interval');
     await loadWaveAnalysis();
-    await populateSessionDropdown();   // also triggers first session load
+    await populateSessionDropdown();  
     await loadHealthKillRatio();
   }
 
