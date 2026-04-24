@@ -224,6 +224,36 @@ def get_hp_timeline():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@wormhole_analysis_bp.route('/api/wormhole/hp-average', methods=['GET'])
+def get_hp_average():
+    try:
+        bucket = int(request.args.get("bucket", 10)) 
+
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT
+                        FLOOR(
+                            EXTRACT(EPOCH FROM (e."time" - s."generatedAt")) / %s
+                        ) * %s AS bucket_start,
+                        AVG(e."hp") AS avg_hp
+                    FROM wormhole_events e
+                    JOIN wormhole_session_summary s
+                      ON e."session" = s."generatedAt"::text
+                    WHERE e."hp" IS NOT NULL
+                    GROUP BY bucket_start
+                    ORDER BY bucket_start ASC
+                """, (bucket, bucket))
+
+                rows = cur.fetchall()
+
+        data = [{"x": float(row[0]), "y": round(float(row[1]), 2)} for row in rows]
+
+        return jsonify({"success": True, "data": data})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 @wormhole_analysis_bp.route('/api/wormhole/insights', methods=['GET'])
 def get_insights():

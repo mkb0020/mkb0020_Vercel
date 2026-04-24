@@ -47,6 +47,59 @@
      color: var(--BohrsBabyBlue);
     }
 
+    .tab-bar {
+      position: relative;
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      justify-content: flex-end
+    }
+
+    .tab-btn {
+      position: relative;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #7b00ff75;
+      padding: 0.4rem 1.1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s, border-color 0.2s;
+      font-family: 'SpaceLetters';
+      color: var(--BohrsBabyBlue);
+      transition: border-color 0.2s, box-shadow 0.2s, color 0.2s, transform 0.15s;
+      box-shadow: 0 0 18px rgba(140, 60, 255, 0.15);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tab-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 50%; height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: 0.4s;
+    }
+
+    .tab-btn:hover::before,
+    .tab-btn:focus::before {
+      left: 100%;
+    }
+
+    .tab-btn:hover,
+    .tab-btn:focus {
+      border-color: rgba(0, 221, 255, 0.32);
+      box-shadow: 0 0 30px rgba(0, 200, 255, 0.1), 0 0 60px rgba(140, 60, 255, 0.15);
+      outline: none;
+    }
+
+    .tab-btn.active {
+      background: rgba(123, 0, 255, 0.192);
+      border-color: rgba(0, 255, 255, 0.45);
+      color: #bcf7f7;
+    }
+
     .upload-box {
       position: relative;
       overflow: hidden;
@@ -219,6 +272,14 @@
   </div>
 
 <div class="card">
+  <h3>HP Timeline</h3>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="avg">Average</button>
+    <button class="tab-btn" data-tab="recent1">Latest Session</button>
+    <button class="tab-btn" data-tab="recent5">Last 5 Sessions</button>
+  </div>
+
   <canvas id="hpTimelineChart"></canvas>
 </div>
 
@@ -376,87 +437,138 @@ async function loadSummary() {
   }
 
   let hpChart;
+  let activeTab = 'avg';
 
-  async function loadHpTimeline() {
-      const res = await fetch('/api/wormhole/hp-timeline');
-      const result = await res.json();
 
-      if (!result.success) {
-          console.error("HP timeline error:", result.error);
-          return;
-      }
+  function buildHpChart(datasets, maxX) {
+    const ctx = document.getElementById('hpTimelineChart').getContext('2d');
+    if (hpChart) hpChart.destroy();
 
-      const sessions = result.sessions;
-      if (!sessions.length) {
-          if (hpChart) hpChart.destroy();
-          return;
-      }
-
-      const datasets = sessions.map((sessionKey, idx) => {
-          const hue = (idx * 72) % 360;
-          const shortLabel = sessionKey.slice(0, 10); 
-          return {
-              label: `Session ${idx + 1} (${shortLabel})`,
-              data: result.data[sessionKey],           
-              borderColor: `hsl(${hue}, 70%, 60%)`,
-              backgroundColor: 'transparent',
-              tension: 0.3,
-              pointRadius: 3,
-              pointHoverRadius: 5,
-              fill: false,
-              showLine: true
-          };
-      });
-
-      const ctx = document.getElementById('hpTimelineChart').getContext('2d');
-      if (hpChart) hpChart.destroy();
-
-      hpChart = new Chart(ctx, {
-          type: 'line',
-          data: { datasets },
-          options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              plugins: {
-                  tooltip: {
-                      callbacks: {
-                          label: (context) => {
-                              const label = context.dataset.label || '';
-                              const hp = context.raw.y;
-                              const seconds = context.raw.x;
-                              return `${label}: HP = ${hp}  (${seconds.toFixed(1)}s)`;
-                          }
-                      }
-                  },
-                  legend: { labels: { color: 'white' } }
-              },
-              scales: {
-                  x: {
-                      type: 'linear',              
-                      title: {
-                          display: true,
-                          text: 'Time (seconds since session start)',
-                          color: '#ccc'
-                      },
-                      ticks: { color: 'white' },
-                      grid: { color: 'rgba(255,255,255,0.1)' }
-                  },
-                  y: {
-                      title: { display: true, text: 'HP', color: '#ccc' },
-                      ticks: { color: 'white' },
-                      grid: { color: 'rgba(255,255,255,0.1)' },
-                      beginAtZero: true
-                  }
+    hpChart = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const label = context.dataset.label || '';
+                const hp      = context.raw.y;
+                const seconds = context.raw.x;
+                return `${label}: HP = ${hp}  (${seconds.toFixed(1)}s)`;
               }
+            }
+          },
+          legend: { labels: { color: 'white' } }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            min: 0,
+            max: maxX,          
+            title: {
+              display: true,
+              text: 'Time (seconds since session start)',
+              color: '#ccc'
+            },
+            ticks: { color: 'white' },
+            grid:  { color: 'rgba(255,255,255,0.1)' }
+          },
+          y: {
+            min: 0,
+            max: 100,            
+            title: { display: true, text: 'HP', color: '#ccc' },
+            ticks: { color: 'white' },
+            grid:  { color: 'rgba(255,255,255,0.1)' }
           }
-      });
+        }
+      }
+    });
+  }
+
+  function getMaxX(datasets) {
+    let max = 0;
+    for (const ds of datasets) {
+      for (const pt of ds.data) {
+        if (pt.x > max) max = pt.x;
+      }
+    }
+    return Math.ceil(max / 10) * 10 || 100;
+  }
+
+
+  async function loadHpAverage() {
+    const res    = await fetch('/api/wormhole/hp-average?bucket=10');
+    const result = await res.json();
+
+    if (!result.success) { console.error(result.error); return; }
+
+    const datasets = [{
+      label: 'Avg HP (all sessions)',
+      data: result.data,
+      borderColor: '#00ffff',
+      backgroundColor: 'rgba(0,255,255,0.08)',
+      tension: 0.3,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      fill: true,
+      showLine: true
+    }];
+
+    buildHpChart(datasets, getMaxX(datasets));
+  }
+
+
+  async function loadHpTimeline(limit) {
+    const res    = await fetch(`/api/wormhole/hp-timeline?limit=${limit}`);
+    const result = await res.json();
+
+    if (!result.success) { console.error(result.error); return; }
+
+    const sessions = result.sessions;
+    if (!sessions.length) { if (hpChart) hpChart.destroy(); return; }
+
+    const datasets = sessions.map((sessionKey, idx) => {
+      const hue        = (idx * 72) % 360;
+      const shortLabel = sessionKey.slice(0, 10);
+      return {
+        label: `Session ${idx + 1} (${shortLabel})`,
+        data:  result.data[sessionKey],
+        borderColor:     `hsl(${hue}, 70%, 60%)`,
+        backgroundColor: 'transparent',
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        fill: false,
+        showLine: true
+      };
+    });
+
+    buildHpChart(datasets, getMaxX(datasets));
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTab = btn.dataset.tab;
+      await renderActiveTab();
+    });
+  });
+
+  async function renderActiveTab() {
+    if      (activeTab === 'avg')     await loadHpAverage();
+    else if (activeTab === 'recent1') await loadHpTimeline(1);
+    else if (activeTab === 'recent5') await loadHpTimeline(5);
   }
 
   async function loadDashboard() {
     await loadSummary();
     await loadInsights();
     await loadChart();
-    await loadHpTimeline(); 
+    await renderActiveTab();  
   }
 
   loadDashboard();
