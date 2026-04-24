@@ -177,56 +177,50 @@ def get_summary():
 
 @wormhole_analysis_bp.route('/api/wormhole/hp-timeline', methods=['GET'])
 def get_hp_timeline():
-    """Return HP over time for the 5 most recent sessions.
-       Uses 'time' column as session identifier."""
     try:
+        limit = int(request.args.get("limit", 5))
+
         with psycopg.connect(DB_URL) as conn:
             with conn.cursor() as cur:
+
                 cur.execute("""
-                    SELECT DISTINCT "time"
-                    FROM wormhole_events
-                    WHERE hp IS NOT NULL
-                    ORDER BY "time" DESC
-                    LIMIT 5
-                """)
-                sessions = cur.fetchall()
+                    SELECT "generatedAt"
+                    FROM wormhole_session_summary
+                    WHERE "generatedAt" IS NOT NULL
+                    ORDER BY "generatedAt" DESC
+                    LIMIT %s
+                """, (limit,))
+
+                sessions = [row[0].isoformat() for row in cur.fetchall()]
 
                 if not sessions:
-                    return jsonify({"success": True, "sessions": []})
+                    return jsonify({"success": True, "sessions": [], "data": {}})
 
-                result_sessions = []
+                cur.execute("""
+                    SELECT "session", "time", "hp"
+                    FROM wormhole_events
+                    WHERE "hp" = IS NOT NULL
+                    ORDER BY "time" ASC
+                """, (sessions,))
 
-                for (session_id,) in sessions:
-                    cur.execute("""
-                        SELECT event_time, hp
-                        FROM wormhole_events
-                        WHERE "time" = %s AND hp IS NOT NULL
-                        ORDER BY event_time ASC
-                    """, (session_id,))
-                    events = cur.fetchall()
+                rows = cur.fetchall()
 
-                    if not events:
-                        continue
+        result = {s: {"labels": [], "hp": []} for s in sessions}
 
-                    first_time = events[0][0]
-                    data_points = []
-                    for ev_time, hp in events:
-                        if isinstance(ev_time, datetime):
-                            rel_seconds = (ev_time - first_time).total_seconds()
-                        else:
-                            rel_seconds = ev_time - first_time
-                        data_points.append({"x": float(rel_seconds), "y": hp})
+        for session, time, hp in rows:
+            if session in result and time is not None:
+                result[session]["labels"].append(time.isoformat())
+                result[session]["hp"].append(hp)
 
-                    label = str(session_id)[:16] 
-                    result_sessions.append({
-                        "label": f"Session {label}",
-                        "data": data_points
-                    })
-
-                return jsonify({"success": True, "sessions": result_sessions})
+        return jsonify({
+            "success": True,
+            "sessions": sessions,
+            "data": result
+        })
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 @wormhole_analysis_bp.route('/api/wormhole/insights', methods=['GET'])
 def get_insights():
