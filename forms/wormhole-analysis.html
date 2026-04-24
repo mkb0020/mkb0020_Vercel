@@ -186,6 +186,12 @@
     </div>
   </div>
 
+<div class="card">
+  <h3>HP Timeline </h3>
+  <canvas id="hpChart"></canvas>
+</div>
+
+
   <div class="card">
     <canvas id="waveChart"></canvas>
   </div>
@@ -337,6 +343,57 @@ async function loadSummary() {
       }
     });
   }
+
+let hpChart;
+
+async function loadHpTimeline() {
+  const res = await fetch('/api/wormhole/hp-timeline?limit=5');
+  const json = await res.json();
+
+  if (!json.success) return;
+
+  const ctx = document.getElementById('hpChart').getContext('2d');
+
+  if (hpChart) hpChart.destroy();
+
+  const datasets = [];
+
+  Object.entries(json.data).forEach(([session, data], index) => {
+    datasets.push({
+      label: `Session ${session.slice(0, 10)}`,
+      data: data.hp,
+      borderWidth: 2,
+      fill: false
+    });
+  });
+
+  const firstSession = Object.values(json.data)[0];
+  const labels = firstSession ? firstSession.labels : [];
+
+  hpChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: { color: 'white' }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: 'white' }
+        },
+        y: {
+          ticks: { color: 'white' }
+        }
+      }
+    }
+  });
+}
 
   async function loadDashboard() {
     await loadSummary();

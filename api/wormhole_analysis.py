@@ -175,6 +175,52 @@ def get_summary():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@wormhole_analysis_bp.route('/api/wormhole/hp-timeline', methods=['GET'])
+def get_hp_timeline():
+    try:
+        limit = int(request.args.get("limit", 5))
+
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+
+                cur.execute("""
+                    SELECT "generatedAt"
+                    FROM wormhole_session_summary
+                    WHERE "generatedAt" IS NOT NULL
+                    ORDER BY "generatedAt" DESC
+                    LIMIT %s
+                """, (limit,))
+
+                sessions = [row[0].isoformat() for row in cur.fetchall()]
+
+                if not sessions:
+                    return jsonify({"success": True, "sessions": [], "data": {}})
+
+                cur.execute("""
+                    SELECT "session", "time", "hp"
+                    FROM wormhole_events
+                    WHERE "session" = ANY(%s)
+                    ORDER BY "time" ASC
+                """, (sessions,))
+
+                rows = cur.fetchall()
+
+        result = {s: {"labels": [], "hp": []} for s in sessions}
+
+        for session, time, hp in rows:
+            if session in result and time is not None:
+                result[session]["labels"].append(time.isoformat())
+                result[session]["hp"].append(hp)
+
+        return jsonify({
+            "success": True,
+            "sessions": sessions,
+            "data": result
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @wormhole_analysis_bp.route('/api/wormhole/insights', methods=['GET'])
 def get_insights():
     try:
