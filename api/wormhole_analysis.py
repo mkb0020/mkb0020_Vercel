@@ -180,12 +180,10 @@ def get_summary():
 def get_hp_timeline():
     try:
         limit = int(request.args.get("limit", 5))
-
         with psycopg.connect(DB_URL) as conn:
             with conn.cursor() as cur:
-
                 cur.execute("""
-                    SELECT "generatedAt"::text
+                    SELECT to_char("generatedAt" AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
                     FROM wormhole_session_summary
                     ORDER BY "generatedAt" DESC
                     LIMIT %s
@@ -202,9 +200,9 @@ def get_hp_timeline():
                         e."hp"
                     FROM wormhole_events e
                     JOIN wormhole_session_summary s
-                      ON e."session" = s."generatedAt"::text
+                    ON e."session"::timestamptz = s."generatedAt"   -- ✅ was ::text, now parses the ISO string
                     WHERE e."session" = ANY(%s)
-                      AND e."hp" IS NOT NULL
+                    AND e."hp" IS NOT NULL
                     ORDER BY e."session", e."time" ASC
                 """, (sessions,))
 
@@ -239,7 +237,7 @@ def get_hp_average():
                         AVG(e."hp") AS avg_hp
                     FROM wormhole_events e
                     JOIN wormhole_session_summary s
-                      ON e."session" = s."generatedAt"::text
+                    ON e."session"::timestamptz = s."generatedAt"   -- ✅ same fix
                     WHERE e."hp" IS NOT NULL
                     GROUP BY bucket_start
                     ORDER BY bucket_start ASC
