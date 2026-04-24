@@ -255,7 +255,6 @@ def get_scatter():
     stat = request.args.get("stat")
     if not stat:
         return jsonify({"success": False, "error": "Missing stat param"}), 400
-
     VALID_STATS = {
         "spawn_interval",
         "heal_amount",
@@ -271,9 +270,6 @@ def get_scatter():
     try:
         with psycopg.connect(DB_URL) as conn:
             with conn.cursor() as cur:
-
-                # ── Direct summary columns ────────────────────────────────────
-
                 if stat == "heal_amount":
                     cur.execute("""
                         SELECT "COSMIC_PRISM_HEAL_AMOUNT", "waveCleared"
@@ -315,8 +311,6 @@ def get_scatter():
                         ORDER BY "avgTimeToKill"
                     """)
                     rows = cur.fetchall()
-
-                # ── Event-interval stats (LAG window function) ─────────────────
 
                 else:
                     event_type_map = {
@@ -367,10 +361,129 @@ def get_scatter():
         ]
 
         return jsonify({"success": True, "stat": stat, "data": data})
-
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     
+
+@wormhole_analysis_bp.route('/api/wormhole/wave-analysis', methods=['GET'])
+def get_wave_analysis():
+    try:
+        wave   = request.args.get("wave")    
+        enemy  = request.args.get("enemy")   
+
+        if not wave or not enemy:
+            return jsonify({"success": False, "error": "Missing wave or enemy param"}), 400
+        if wave not in {"1","2","3","4","5"}:
+            return jsonify({"success": False, "error": "Invalid wave"}), 400
+
+        VALID_ENEMIES = {"BASIC", "FAST", "TANK", "ZIGZAG", "FLIMFLAM"}
+        if enemy not in VALID_ENEMIES:
+            return jsonify({"success": False, "error": "Invalid enemy"}), 400
+
+        types_col   = f"WAVE_CONFIGS_wave{wave}_types"
+        weights_col = f"WAVE_CONFIGS_wave{wave}_weights"
+        max_col     = f"WAVE_CONFIGS_wave{wave}_maxEnemies"
+
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    SELECT "{max_col}", COUNT(*)
+                    FROM wormhole_session_summary
+                    WHERE "{max_col}" IS NOT NULL
+                    GROUP BY "{max_col}"
+                    ORDER BY "{max_col}"
+                """)
+                max_enemies_dist = [
+                    {"maxEnemies": row[0], "count": row[1]}
+                    for row in cur.fetchall()
+                ]
+
+                cur.execute(f"""
+                    SELECT
+                        "{types_col}",
+                        "{weights_col}",
+                        "WAVE_CONFIGS_wave1_types",
+                        "WAVE_CONFIGS_wave2_types",
+                        "WAVE_CONFIGS_wave3_types",
+                        "WAVE_CONFIGS_wave4_types",
+                        "WAVE_CONFIGS_wave5_types",
+                        "waveCleared"
+                    FROM wormhole_session_summary
+                    WHERE "waveCleared" IS NOT NULL
+                """)
+                rows = cur.fetchall()
+
+        wave_num     = int(wave)
+        cleared_weights   = []  
+        uncleared_weights = []  
+        intro_wave_results = {1: [], 2: [], 3: [], 4: [], 5: []} 
+
+        for row in rows:
+            sel_types_str, sel_weights_str = row[0], row[1]
+            all_wave_types = [row[2], row[3], row[4], row[5], row[6]]
+            wave_cleared   = row[7]
+
+            if sel_types_str and sel_weights_str:
+                types   = [t.strip() for t in sel_types_str.split(",")]
+                weights = [w.strip() for w in sel_weights_str.split(",")]
+
+                if enemy in types:
+                    idx = types.index(enemy)
+                    try:
+                        weight = float(weights[idx])
+                        if wave_cleared >= wave_num:
+                            cleared_weights.append(weight)
+                        else:
+                            uncleared_weights.append(weight)
+                    except (ValueError, IndexError):
+                        pass
+
+            intro_wave = None
+            for w_idx, types_str in enumerate(all_wave_types, start=1):
+                if types_str:
+                    types = [t.strip() for t in types_str.split(",")]
+                    if enemy in types:
+                        intro_wave = w_idx
+                        break 
+
+            if intro_wave is not None:
+                intro_wave_results[intro_wave].append(wave_cleared)
+
+        def safe_avg(lst):
+            return round(sum(lst) / len(lst), 4) if lst else None
+
+        weight_comparison = {
+            "cleared": {
+                "avg_weight": safe_avg(cleared_weights),
+                "count":      len(cleared_weights)
+            },
+            "not_cleared": {
+                "avg_weight": safe_avg(uncleared_weights),
+                "count":      len(uncleared_weights)
+            }
+        }
+
+        intro_wave_summary = {
+            str(w): {
+                "avg_wave_cleared": safe_avg(vals),
+                "count":            len(vals)
+            }
+            for w, vals in intro_wave_results.items()
+            if vals  
+        }
+
+        return jsonify({
+            "success":           True,
+            "wave":              wave,
+            "enemy":             enemy,
+            "max_enemies_dist":  max_enemies_dist,
+            "weight_comparison": weight_comparison,
+            "intro_wave_summary": intro_wave_summary
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @wormhole_analysis_bp.route('/api/wormhole/insights', methods=['GET'])
 def get_insights():
     try:

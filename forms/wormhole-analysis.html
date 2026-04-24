@@ -107,7 +107,7 @@
       position: relative;
       display: flex;
       gap: 0.5rem;
-      margin-bottom: 1rem;
+      margin-bottom: 2rem;
       flex-wrap: wrap;
     }
 
@@ -130,6 +130,33 @@
 
     #scatterStatSelect option {
       background: #1a0030;
+    }
+
+    #waveSelect, #enemySelect {
+      background: rgba(38, 0, 75, 0.8);
+      border: 1px solid #7b00ff65;
+      color: var(--MutedGray);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      flex: 1;
+      min-width: 140px;
+      position: relative;
+      justify-content: flex-end
+    }
+    #waveSelect option, #enemySelect option { background: #1a0030; }
+
+    .chart-label {
+      color: var(--MutedGray);
+      font-size: 0.82rem;
+      margin: 0 0 0.4rem 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: bold;
     }
 
   .upload-box {
@@ -294,7 +321,7 @@
 
     <div class="card"> <!-- HP TIMELINE -->
       <div class="header-grid">
-          <div class="header-col"><h3>HP Timeline</h3></div>
+          <div class="header-col"><h3>⏰ HP Timeline</h3></div>
           <div class="header-col"><div class="tab-bar">
               <button class="tab-btn active" data-tab="avg">Average</button>
               <button class="tab-btn" data-tab="recent1">Latest Session</button>
@@ -321,12 +348,50 @@
       <canvas id="scatterChart" style="margin-top: 1rem;"></canvas>
     </div>
 
+    <div class="card"> <!-- WAVE ANALYSIS -->
+      <div class="header-grid">
+        <div class="header-col"><h3>📈 Wave Config Analysis</h3></div>
+        <div class="header-col">
+          <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.2rem;">
+            <select id="waveSelect">
+              <option value="1">Wave 1</option>
+              <option value="2">Wave 2</option>
+              <option value="3">Wave 3</option>
+              <option value="4">Wave 4</option>
+              <option value="5">Wave 5</option>
+            </select>
+
+            <select id="enemySelect">
+              <option value="BASIC">GLIP GLOP</option>
+              <option value="ZIGZAG">ZIP ZAP</option>
+              <option value="TANK">GLORK</option>
+              <option value="FAST">PHIL</option>
+              <option value="FLIMFLAM">FLIM FLAM</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <p class="chart-label">🪼 Enemy Cap Distribution (all sessions, selected wave)</p> <!-- CHART 1 -->
+      <canvas id="maxEnemiesChart" height="120"></canvas>
+
+      <p class="chart-label" style="margin-top:1.5rem;"> <!-- CHART 2 -->
+       👾 Avg Spawn Weight — Cleared vs Not Cleared (selected wave &amp; enemy)
+      </p>
+      <canvas id="weightChart" height="120"></canvas>
+
+      <p class="chart-label" style="margin-top:1.5rem;"> <!-- CHART 3 -->
+       🦑 Avg Waves Cleared by First Wave Enemy Appears
+      </p>
+      <canvas id="introWaveChart" height="120"></canvas>
+    </div>
+
     <div class="card"> <!-- WAVES CLEARED -->
       <canvas id="waveChart"></canvas>
     </div>
 
     <div class="card"> <!-- INSIGHTS -->
-      <h3>Insights</h3>
+      <h3>⚖️ Insights</h3>
       <div id="insights"></div>
     </div>
 
@@ -695,6 +760,171 @@
       await loadChart();
       await renderActiveTab();
       await loadScatter('spawn_interval'); 
+    }
+
+    loadDashboard();
+  </script>
+
+  <script>
+    let maxEnemiesChart, weightChart, introWaveChart;
+
+    const ENEMY_LABELS = {
+      BASIC:    "GLIP GLOP",
+      ZIGZAG:   "ZIP ZAP",
+      TANK:     "GLORK",
+      FAST:     "PHIL",
+      FLIMFLAM: "FLIM FLAM"
+    };
+
+    const CHART_DEFAULTS = {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { labels: { color: 'white' } } }
+    };
+
+    function destroyAll() {
+      [maxEnemiesChart, weightChart, introWaveChart].forEach(c => { if (c) c.destroy(); });
+    }
+
+    async function loadWaveAnalysis() {
+      const wave  = document.getElementById('waveSelect').value;
+      const enemy = document.getElementById('enemySelect').value;
+
+      const res    = await fetch(`/api/wormhole/wave-analysis?wave=${wave}&enemy=${enemy}`);
+      const result = await res.json();
+
+      if (!result.success) { console.error(result.error); return; }
+
+      destroyAll();
+
+      const enemyLabel = ENEMY_LABELS[enemy];
+      {
+        const dist   = result.max_enemies_dist;
+        const labels = dist.map(d => `Cap: ${d.maxEnemies}`);
+        const counts = dist.map(d => d.count);
+
+        maxEnemiesChart = new Chart(
+          document.getElementById('maxEnemiesChart').getContext('2d'),
+          {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [{
+                label: `Sessions with each enemy cap (Wave ${wave})`,
+                data: counts,
+                backgroundColor: 'rgba(138, 43, 226, 0.6)',
+                borderColor: '#7a00ff',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              ...CHART_DEFAULTS,
+              scales: {
+                x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+                y: {
+                  beginAtZero: true,
+                  ticks: { color: 'white', stepSize: 1, callback: v => Number.isInteger(v) ? v : null },
+                  grid: { color: 'rgba(255,255,255,0.08)' },
+                  title: { display: true, text: '# Sessions', color: '#ccc' }
+                }
+              }
+            }
+          }
+        );
+      }
+
+      {
+        const wc  = result.weight_comparison;
+        const hasData = wc.cleared.avg_weight !== null || wc.not_cleared.avg_weight !== null;
+
+        weightChart = new Chart(
+          document.getElementById('weightChart').getContext('2d'),
+          {
+            type: 'bar',
+            data: {
+              labels: [`Cleared Wave ${wave} (n=${wc.cleared.count})`, `Did Not Clear (n=${wc.not_cleared.count})`],
+              datasets: [{
+                label: `Avg spawn weight of ${enemyLabel} in Wave ${wave}`,
+                data: [wc.cleared.avg_weight ?? 0, wc.not_cleared.avg_weight ?? 0],
+                backgroundColor: ['rgba(0,255,255,0.5)', 'rgba(255,0,180,0.5)'],
+                borderColor:     ['#00ffff', '#ff00b4'],
+                borderWidth: 1
+              }]
+            },
+            options: {
+              ...CHART_DEFAULTS,
+              plugins: {
+                ...CHART_DEFAULTS.plugins,
+                tooltip: {
+                  callbacks: {
+                    label: ctx => hasData
+                      ? `Avg weight: ${ctx.raw?.toFixed(3)}`
+                      : 'No data for this combination'
+                  }
+                }
+              },
+              scales: {
+                x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+                y: {
+                  min: 0, max: 1,
+                  ticks: { color: 'white' },
+                  grid: { color: 'rgba(255,255,255,0.08)' },
+                  title: { display: true, text: 'Spawn Weight (0–1)', color: '#ccc' }
+                }
+              }
+            }
+          }
+        );
+      }
+
+      {
+        const summary = result.intro_wave_summary;
+        const waveNums = Object.keys(summary).sort();
+        const labels   = waveNums.map(w => `First in Wave ${w} (n=${summary[w].count})`);
+        const avgs     = waveNums.map(w => summary[w].avg_wave_cleared ?? 0);
+
+        introWaveChart = new Chart(
+          document.getElementById('introWaveChart').getContext('2d'),
+          {
+            type: 'bar',
+            indexAxis: 'y',           
+            data: {
+              labels,
+              datasets: [{
+                label: `Avg waves cleared when ${enemyLabel} first appears`,
+                data: avgs,
+                backgroundColor: 'rgba(255, 165, 0, 0.5)',
+                borderColor: '#ffa500',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              ...CHART_DEFAULTS,
+              scales: {
+                x: {
+                  min: 0,
+                  ticks: { color: 'white', stepSize: 1, callback: v => Number.isInteger(v) ? v : null },
+                  grid: { color: 'rgba(255,255,255,0.08)' },
+                  title: { display: true, text: 'Avg Waves Cleared', color: '#ccc' }
+                },
+                y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.08)' } }
+              }
+            }
+          }
+        );
+      }
+    }
+
+    document.getElementById('waveSelect').addEventListener('change', loadWaveAnalysis);
+    document.getElementById('enemySelect').addEventListener('change', loadWaveAnalysis);
+
+    async function loadDashboard() {
+      await loadSummary();
+      await loadInsights();
+      await loadChart();
+      await renderActiveTab();
+      await loadScatter('spawn_interval');
+      await loadWaveAnalysis();             
     }
 
     loadDashboard();
