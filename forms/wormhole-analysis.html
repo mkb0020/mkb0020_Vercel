@@ -7,9 +7,70 @@
   <link rel="stylesheet" href="/static/css/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: Arial, sans-serif;
       color: white;
+      margin-top: 0px;
+    }
+
+    .section-nav {
+      position: sticky;
+      top: 0px; 
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      padding: 0.6rem;
+      margin-bottom: 1.5rem;
+      margin-top: 0px;
+      background: rgba(37, 0, 73, 0.473);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(144,144,192, 0.3);
+    }
+
+    .section-nav a {
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #7b00ff37;
+      padding: 0.4rem 1.1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s, border-color 0.2s;
+      font-family: 'SpaceLetters';
+      color: var(--BohrsBabyBlue);
+      transition: border-color 0.2s, box-shadow 0.2s, color 0.2s, transform 0.15s;
+      box-shadow: 0 0 18px rgba(140, 60, 255, 0.15);
+      -webkit-tap-highlight-color: transparent;
+      text-transform: uppercase;
+    }
+
+    .section-nav a::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 50%; height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: 0.4s;
+    }
+
+    .section-nav a:hover::before,
+    .section-nav a:focus::before {
+      left: 100%;
+    }
+
+    .section-nav a:hover,
+    .section-nav a:focus {
+      border-color: rgba(0, 221, 255, 0.32);
+      box-shadow: 0 0 30px rgba(0, 200, 255, 0.1), 0 0 60px rgba(140, 60, 255, 0.15);
+      outline: none;
     }
 
     .container {
@@ -41,6 +102,7 @@
       box-shadow: 
         0 20px 50px -15px rgba(0, 0, 0, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      scroll-margin-top: 120px;
     }
 
     .card h3{
@@ -318,10 +380,20 @@
     </div>
   </div>
 
+<div class="section-nav">
+  <a href="#overview">Overview</a>
+  <a href="#hp-timeline">HP Timeline</a> 
+  <a href="#relationships">Stat vs Waves Cleared</a>
+  <a href="#damageSpikes">Damage Spikes</a>
+  <a href="#enemyHealth">Enemy Health</a>
+  <a href="#wave-analysis">Wave Analysis</a>
+  <a href="#insights-card">Insights</a>
+</div>
+
   <div class="container">
     <h1 class="title">🪱 Wormhole Analytics 🪱</h1>
 
-    <div class="card stats"> <!-- STATS -->
+    <div class="card stats" id="overview"> <!-- STATS -->
       <div class="stat">
         <h2 id="totalSessions">-</h2>
         <p>Sessions</p>
@@ -362,7 +434,7 @@
         </div>
         <div style="margin-top:0.6rem;">
           <p style="color:#aaa; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Avg Time to Kill</p>
-          <h2 id="avgKillTime" style="color:#ff00cc; margin:0;">-</h2>
+          <h2 id="avgKillTime" style="color:#FFC7FF; margin:0;">-</h2>
         </div>
       </div>
 
@@ -370,15 +442,15 @@
         <p class="chart-label">Avg Special Attacks per Session</p>
         <div class="stats" style="flex-wrap:wrap; gap:1rem;">
           <div class="stat">
-            <h2 id="avgFractal" style="color:#ff00cc;">-</h2>
+            <h2 id="avgFractal" style="color:#830CDE;">-</h2>
             <p>Fractal Cascade</p>
           </div>
           <div class="stat">
-            <h2 id="avgSlime" style="color:#00ff99;">-</h2>
+            <h2 id="avgSlime" style="color:#58E84C;">-</h2>
             <p>Slime Attacks</p>
           </div>
           <div class="stat">
-            <h2 id="avgOcular" style="color:#ffaa00;">-</h2>
+            <h2 id="avgOcular" style="color:#ff6200;">-</h2>
             <p>Ocular Prism</p>
           </div>
         </div>
@@ -418,7 +490,7 @@
 
     </div>
 
-    <div class="card"> <!-- HP TIMELINE -->
+    <div class="card" id="hp-timeline"> <!-- HP TIMELINE -->
       <div class="header-grid">
           <div class="header-col"><h3>⏰ HP Timeline</h3></div>
           <div class="header-col"><div class="tab-bar">
@@ -431,7 +503,7 @@
       <canvas id="hpTimelineChart"></canvas>
     </div>
 
-    <div class="card"> <!-- RELATIONSHIPS -->
+    <div class="card" id="relationships"> <!-- RELATIONSHIPS -->
       <div class="header-grid">
         <div class="header-col"><h3>🔬 Stat vs Waves Cleared</h3></div>
         <div class="header-col"><select id="scatterStatSelect">
@@ -447,7 +519,7 @@
       <canvas id="scatterChart" style="margin-top: 1rem;"></canvas>
     </div>
 
-    <div class="card"> <!-- DAMAGE SPIKES + SPECIAL ATTACKS -->
+    <div class="card" id="damageSpikes"> <!-- DAMAGE SPIKES + SPECIAL ATTACKS -->
       <div class="header-grid">
         <div class="header-col"><h3>💥 Damage &amp; Special Attacks</h3></div>
         <div class="header-col"><select id="sessionSelect" style="width:100%; margin-bottom:1rem;">
@@ -460,12 +532,12 @@
         </p>
     </div>
 
-    <div class="card"> <!-- AVERAGE ENEMY HEALTH v KILL RATIO -->
+    <div class="card" id="enemyHealth"> <!-- AVERAGE ENEMY HEALTH v KILL RATIO -->
       <h3>⚔️ Average Enemy Health vs Kill Ratio</h3>
       <canvas id="healthKillChart"></canvas>
     </div>
 
-    <div class="card"> <!-- WAVE ANALYSIS -->
+    <div class="card" id="wave-analysis"> <!-- WAVE ANALYSIS -->
       <div class="header-grid">
         <div class="header-col"><h3>📈 Wave Config Analysis</h3></div>
         <div class="header-col">
@@ -507,7 +579,7 @@
       <canvas id="waveChart"></canvas>
     </div>
 
-    <div class="card"> <!-- INSIGHTS -->
+    <div class="card" id="insights-card"> <!-- INSIGHTS -->
       <h3>⚖️ Insights</h3>
       <div id="insights"></div>
     </div>
@@ -597,8 +669,8 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       }]
     },
     options: {
-      circumference: 180,       // half circle
-      rotation: -90,            // start from the left
+      circumference: 180,       
+      rotation: -90,           
       cutout: '72%',
       responsive: true,
       animation: { duration: 900, easing: 'easeOutQuart' },
@@ -1108,9 +1180,9 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
   let damageSpikeChart;
 
   const ATTACK_CONFIG = {
-    fractal_cascade_attack: { label: 'Fractal Cascade', color: '#ff00cc', y: 12 },
-    slime_attack:           { label: 'Slime Attack',     color: '#00ff99', y:  7 },
-    ocular_prism_attack:    { label: 'Ocular Prism',     color: '#ffaa00', y:  2 }
+    fractal_cascade_attack: { label: 'Fractal Cascade', color: '#830CDE', y: 12 },
+    slime_attack:           { label: 'Slime Attack',     color: '#58E84C', y:  7 },
+    ocular_prism_attack:    { label: 'Ocular Prism',     color: '#ff6200', y:  2 }
   };
 
   async function populateSessionDropdown() {
