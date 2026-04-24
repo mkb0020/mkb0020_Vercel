@@ -184,43 +184,47 @@ def get_hp_timeline():
             with conn.cursor() as cur:
 
                 cur.execute("""
-                    SELECT "generatedAt"
-                    FROM wormhole_session_summary
-                    WHERE "generatedAt" IS NOT NULL
-                    ORDER BY "generatedAt" DESC
+                    SELECT DISTINCT "time"
+                    FROM wormhole_events
+                    WHERE "time" IS NOT NULL
+                    ORDER BY "time" DESC
                     LIMIT %s
                 """, (limit,))
 
-                sessions = [row[0].isoformat() for row in cur.fetchall()]
+                sessions = [row[0] for row in cur.fetchall()]
 
                 if not sessions:
-                    return jsonify({"success": True, "sessions": [], "data": {}})
+                    return jsonify({"success": True, "data": {}})
 
                 cur.execute("""
-                    SELECT "session", "time", "hp"
+                    SELECT "time", "hp", "time"
                     FROM wormhole_events
-                    WHERE "hp" = IS NOT NULL
+                    WHERE "time" = ANY(%s)
+                      AND "hp" IS NOT NULL
                     ORDER BY "time" ASC
                 """, (sessions,))
 
                 rows = cur.fetchall()
 
-        result = {s: {"labels": [], "hp": []} for s in sessions}
+        result = {str(s): {"labels": [], "hp": []} for s in sessions}
 
-        for session, time, hp in rows:
-            if session in result and time is not None:
-                result[session]["labels"].append(time.isoformat())
-                result[session]["hp"].append(hp)
+        for session_time, hp, event_time in rows:
+            key = str(session_time)
+
+            if hp is None:
+                continue
+
+            result[key]["hp"].append(hp)
+            result[key]["labels"].append(event_time.isoformat() if event_time else "")
 
         return jsonify({
             "success": True,
-            "sessions": sessions,
+            "sessions": [str(s) for s in sessions],
             "data": result
         })
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @wormhole_analysis_bp.route('/api/wormhole/insights', methods=['GET'])
 def get_insights():
