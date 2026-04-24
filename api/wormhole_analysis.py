@@ -155,7 +155,14 @@ def get_summary():
                     SELECT
                         COUNT(*),
                         AVG("waveReached"),
+                        AVG("enemySpawns"),
                         AVG("enemyKills"),
+                        AVG("avgTimeToKill"),
+                        AVG("playerDamageCount"),
+                        AVG("hpHealCount"),
+                        AVG("fractalCascadeCount"),
+                        AVG("slimeAttackCount"),
+                        AVG("ocularPrismCount"),
                         AVG(CASE WHEN "gameBeaten" = true THEN 1.0 ELSE 0.0 END)
                     FROM wormhole_session_summary
                 """)
@@ -166,8 +173,15 @@ def get_summary():
             "data": {
                 "total_sessions": row[0],
                 "avg_wave":       float(row[1] or 0),
-                "avg_kills":      float(row[2] or 0),
-                "win_rate":       float(row[3] or 0)
+                "avg_spawns":      float(row[2] or 0),
+                "avg_kills":      float(row[3] or 0),
+                "avg_kill_time":      float(row[4] or 0),
+                "avg_hp_loss":      float(row[5] or 0),
+                "avg_hp_gain":      float(row[6] or 0),
+                "avg_fractal":      float(row[7] or 0),
+                "avg_slime":      float(row[8] or 0),
+                "avg_ocular":      float(row[9] or 0),
+                "win_rate":       float(row[10] or 0)
             }
         })
 

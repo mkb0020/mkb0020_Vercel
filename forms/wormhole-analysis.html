@@ -319,6 +319,88 @@
       </div>
     </div>
 
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+      <div class="card" style="text-align:center;">
+        <p class="chart-label">Avg Kills vs Spawns</p>
+        <div style="position:relative; max-width: 260px; margin: 0 auto;">
+          <canvas id="killsGauge"></canvas>
+          <div id="killsGaugeLabel" style="
+            position: absolute;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.3rem;
+            font-family: 'Orbitron', monospace;
+            color: #00ffff;
+          ">-</div>
+        </div>
+        <div style="margin-top: 0.8rem; display:flex; justify-content:center; gap:2rem;">
+          <div class="stat">
+            <h2 id="avgSpawns" style="color:#7a00ff;">-</h2>
+            <p>Avg Spawns</p>
+          </div>
+          <div class="stat">
+            <h2 id="avgKills" style="color:#00ffff;">-</h2>
+            <p>Avg Kills</p>
+          </div>
+        </div>
+        <div style="margin-top:0.6rem;">
+          <p style="color:#aaa; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Avg Time to Kill</p>
+          <h2 id="avgKillTime" style="color:#ff00cc; margin:0;">-</h2>
+        </div>
+      </div>
+
+      <div class="card" style="display:flex; flex-direction:column; justify-content:center; gap:1rem;">
+        <p class="chart-label">Avg Special Attacks per Session</p>
+        <div class="stats" style="flex-wrap:wrap; gap:1rem;">
+          <div class="stat">
+            <h2 id="avgFractal" style="color:#ff00cc;">-</h2>
+            <p>Fractal Cascade</p>
+          </div>
+          <div class="stat">
+            <h2 id="avgSlime" style="color:#00ff99;">-</h2>
+            <p>Slime Attacks</p>
+          </div>
+          <div class="stat">
+            <h2 id="avgOcular" style="color:#ffaa00;">-</h2>
+            <p>Ocular Prism</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+
+      <div class="card" style="text-align:center;">
+        <p class="chart-label">Avg HP Lost per Session</p>
+        <div style="position:relative; max-width:260px; margin: 0 auto;">
+          <canvas id="hpLossGauge"></canvas>
+          <div id="hpLossLabel" style="
+            position:absolute; bottom:0; left:50%;
+            transform:translateX(-50%);
+            font-size:1.3rem;
+            font-family:'Orbitron', monospace;
+            color:#ff4466;
+          ">-</div>
+        </div>
+      </div>
+
+      <div class="card" style="text-align:center;">
+        <p class="chart-label">Avg HP Gained per Session</p>
+        <div style="position:relative; max-width:260px; margin: 0 auto;">
+          <canvas id="hpGainGauge"></canvas>
+          <div id="hpGainLabel" style="
+            position:absolute; bottom:0; left:50%;
+            transform:translateX(-50%);
+            font-size:1.3rem;
+            font-family:'Orbitron', monospace;
+            color:#00ff88;
+          ">-</div>
+        </div>
+      </div>
+
+    </div>
+
     <div class="card"> <!-- HP TIMELINE -->
       <div class="header-grid">
           <div class="header-col"><h3>⏰ HP Timeline</h3></div>
@@ -463,25 +545,82 @@
       loadDashboard();
     }
 
+let killsGaugeChart, hpLossGaugeChart, hpGainGaugeChart;
 
-  async function loadSummary() {
-    const res = await fetch('/api/wormhole/summary');
+function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255,0.07)') {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  const clamped = Math.min(value, max);
 
-    const text = await res.text();
-    console.log("RAW RESPONSE:", text);
-
-    if (!res.ok) {
-      console.error("Summary API failed");
-      return;
+  return new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [clamped, max - clamped],
+        backgroundColor: [fillColor, bgColor],
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      circumference: 180,       // half circle
+      rotation: -90,            // start from the left
+      cutout: '72%',
+      responsive: true,
+      animation: { duration: 900, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      }
     }
+  });
+}
 
-    const data = JSON.parse(text);
+    async function loadSummary() {
+      const res = await fetch('/api/wormhole/summary');
+      if (!res.ok) { console.error("Summary API failed"); return; }
 
-    document.getElementById('totalSessions').textContent = data.data.total_sessions;
-    document.getElementById('avgWave').textContent = data.data.avg_wave.toFixed(2);
-    document.getElementById('winRate').textContent =
-      (data.data.win_rate * 100).toFixed(1) + '%';
-  }
+      const data = (await res.json()).data;  
+      document.getElementById('totalSessions').textContent = data.total_sessions;
+      document.getElementById('avgWave').textContent       = data.avg_wave.toFixed(2);
+      document.getElementById('avgSpawns').textContent     = data.avg_spawns.toFixed(1);
+      document.getElementById('avgKills').textContent      = data.avg_kills.toFixed(1);
+      document.getElementById('avgKillTime').textContent   = data.avg_kill_time.toFixed(0) + ' ms';
+      document.getElementById('avgFractal').textContent    = data.avg_fractal.toFixed(1);
+      document.getElementById('avgSlime').textContent      = data.avg_slime.toFixed(1);
+      document.getElementById('avgOcular').textContent     = data.avg_ocular.toFixed(1);
+      document.getElementById('winRate').textContent       = (data.win_rate * 100).toFixed(1) + '%';
+
+      const killPct = data.avg_spawns > 0
+        ? ((data.avg_kills / data.avg_spawns) * 100).toFixed(1)
+        : 0;
+
+      if (killsGaugeChart) killsGaugeChart.destroy();
+      killsGaugeChart = buildGauge(
+        'killsGauge',
+        data.avg_kills,
+        data.avg_spawns || 1,
+        'rgba(0, 255, 255, 0.75)'
+      );
+      document.getElementById('killsGaugeLabel').textContent = killPct + '%';
+
+      if (hpLossGaugeChart) hpLossGaugeChart.destroy();
+      hpLossGaugeChart = buildGauge(
+        'hpLossGauge',
+        data.avg_hp_loss,
+        100,
+        'rgba(255, 60, 80, 0.8)'
+      );
+      document.getElementById('hpLossLabel').textContent = data.avg_hp_loss.toFixed(1) + ' HP';
+
+      if (hpGainGaugeChart) hpGainGaugeChart.destroy();
+      hpGainGaugeChart = buildGauge(
+        'hpGainGauge',
+        data.avg_hp_gain,
+        100,
+        'rgba(0, 255, 136, 0.8)'
+      );
+      document.getElementById('hpGainLabel').textContent = data.avg_hp_gain.toFixed(1) + ' HP';
+    }
 
     async function loadInsights() {
       const res = await fetch('/api/wormhole/insights');
