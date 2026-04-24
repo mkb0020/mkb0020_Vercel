@@ -26,14 +26,14 @@
       font-size: 2.8rem;
       font-family: 'Orbitron', monospace;
       margin-bottom: 2rem;
-      background: linear-gradient(45deg, #ff00cc, #00ffff);
+      background: linear-gradient(45deg, var(--HiggsHotPink), var(--PlanksPink), var(--ParticlePink));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .card {
       background: rgba(30, 0, 60, 0.5);
-      border: 1px solid #7a00ff;
+      border: 1px solid rgba(144,144,192, 0.5);
       border-radius: 16px;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
@@ -42,15 +42,40 @@
     }
 
     .upload-box {
-      border: 2px dashed #00ffff;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      border: 2px dashed rgba(144,144,192, 0.7);
       padding: 2rem;
       text-align: center;
       cursor: pointer;
       transition: 0.3s;
+      font-family: 'SpaceLetters';
+      color: var(--BohrsBabyBlue);
+      transition: border-color 0.2s, box-shadow 0.2s, color 0.2s, transform 0.15s;
+      box-shadow: 0 0 18px rgba(140, 60, 255, 0.15);
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .upload-box:hover {
-      background: rgba(0,255,255,0.08);
+    .upload-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 50%; height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: 0.4s;
+    }
+
+    .upload-box:hover::before,
+    .upload-box:focus::before {
+      left: 100%;
+    }
+
+    .upload-box:hover,
+    .upload-box:focus {
+      border-color: rgba(0, 221, 255, 0.32);
+      box-shadow: 0 0 30px rgba(0, 200, 255, 0.1), 0 0 60px rgba(140, 60, 255, 0.15);
+      outline: none;
     }
 
     .stats {
@@ -187,8 +212,7 @@
   </div>
 
 <div class="card">
-  <h3>HP Timeline </h3>
-  <canvas id="hpChart"></canvas>
+  <canvas id="hpTimelineChart"></canvas>
 </div>
 
 
@@ -344,63 +368,95 @@ async function loadSummary() {
     });
   }
 
-let hpChart;
+  let hpChart;
 
-async function loadHpTimeline() {
-  const res = await fetch('/api/wormhole/hp-timeline?limit=5');
-  const json = await res.json();
 
-  if (!json.success) return;
+  async function loadHpTimeline() {
+    const res = await fetch('/api/wormhole/hp-timeline');
+    const result = await res.json();
 
-  const ctx = document.getElementById('hpChart').getContext('2d');
+    if (!result.success) {
+      console.error("HP timeline error:", result.error);
+      return;
+    }
 
-  if (hpChart) hpChart.destroy();
+    const sessions = result.sessions;
+    if (!sessions.length) {
+      if (hpChart) hpChart.destroy();
+      return;
+    }
 
-  const datasets = [];
-
-  Object.entries(json.data).forEach(([session, data], index) => {
-    datasets.push({
-      label: `Session ${session.slice(0, 10)}`,
-      data: data.hp,
-      borderWidth: 2,
-      fill: false
+    const datasets = sessions.map((session, idx) => {
+      const hue = (idx * 72) % 360;
+      return {
+        label: session.label,
+        data: session.data,
+        borderColor: `hsl(${hue}, 70%, 60%)`,
+        backgroundColor: 'transparent',
+        tension: 0.1,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        fill: false,
+        showLine: true
+      };
     });
-  });
 
-  const firstSession = Object.values(json.data)[0];
-  const labels = firstSession ? firstSession.labels : [];
+    const ctx = document.getElementById('hpTimelineChart').getContext('2d');
 
-  hpChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          labels: { color: 'white' }
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: 'white' }
+    if (hpChart) hpChart.destroy();
+
+    hpChart = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const label = context.dataset.label || '';
+                const hp = context.raw.y;
+                const seconds = context.raw.x;
+                return `${label}: HP = ${hp}  (${seconds.toFixed(1)} s)`;
+              }
+            }
+          },
+          legend: {
+            labels: { color: 'white' }
+          }
         },
-        y: {
-          ticks: { color: 'white' }
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Time (seconds since session start)',
+              color: '#ccc'
+            },
+            ticks: { color: 'white' },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'HP',
+              color: '#ccc'
+            },
+            ticks: { color: 'white' },
+            grid: { color: 'rgba(255,255,255,0.1)' },
+            beginAtZero: true
+          }
         }
       }
-    }
-  });
-}
+    });
+  }
 
-async function loadDashboard() {
-  await loadSummary();
-  await loadInsights();
-  await loadChart();
-  await loadHpTimeline(); 
-}
+  async function loadDashboard() {
+    await loadSummary();
+    await loadInsights();
+    await loadChart();
+    await loadHpTimeline(); 
+  }
 
   loadDashboard();
 </script>

@@ -177,49 +177,57 @@ def get_summary():
 
 @wormhole_analysis_bp.route('/api/wormhole/hp-timeline', methods=['GET'])
 def get_hp_timeline():
+    """Return HP over time for the 5 most recent sessions."""
     try:
-        limit = int(request.args.get("limit", 5))
-
         with psycopg.connect(DB_URL) as conn:
             with conn.cursor() as cur:
-
                 cur.execute("""
-                    SELECT "session"
-                    FROM wormhole_events
-                    WHERE "session" IS NOT NULL
-                    ORDER BY "session" DESC
-                    LIMIT %s
-                """, (limit,))
-
-                sessions = [row[0].isoformat() for row in cur.fetchall()]
+                    SELECT "generatedAt"
+                    FROM wormhole_session_summary
+                    ORDER BY "generatedAt" DESC
+                    LIMIT 5
+                """)
+                sessions = cur.fetchall()
 
                 if not sessions:
-                    return jsonify({"success": True, "sessions": [], "data": {}})
+                    return jsonify({"success": True, "sessions": []})
 
-                cur.execute("""
-                    SELECT "session", "time", "hp"
-                    FROM wormhole_events
-                    WHERE "session" = ANY(%s)
-                    ORDER BY "time" ASC
-                """, (sessions,))
+                result_sessions = []
 
-                rows = cur.fetchall()
+                for (session_key,) in sessions:
+                    cur.execute("""
+                        SELECT time, hp
+                        FROM wormhole_events
+                        WHERE session = %s AND hp IS NOT NULL
+                        ORDER BY time ASC
+                    """, (session_key,))
+                    events = cur.fetchall()
 
-        result = {s: {"labels": [], "hp": []} for s in sessions}
+                    if not events:
+                        continue
 
-        for session, time, hp in rows:
-            if session in result and time is not None:
-                result[session]["labels"].append(time.isoformat())
-                result[session]["hp"].append(hp)
+                    first_time = events[0][0]
+                    data_points = []
+                    for ev_time, hp in events:
+                        rel_seconds = (ev_time - first_time).total_seconds()
+                        data_points.append({"x": rel_seconds, "y": hp})
 
-        return jsonify({
-            "success": True,
-            "sessions": sessions,
-            "data": result
-        })
+                    try:
+                        dt = datetime.fromisoformat(session_key.replace("Z", "+00:00"))
+                        label = dt.strftime("%Y-%m-%d %H:%M")
+                    except Exception:
+                        label = session_key[:16]
+
+                    result_sessions.append({
+                        "label": f"Session {label}",
+                        "data": data_points
+                    })
+
+                return jsonify({"success": True, "sessions": result_sessions})
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 @wormhole_analysis_bp.route('/api/wormhole/insights', methods=['GET'])
 def get_insights():
