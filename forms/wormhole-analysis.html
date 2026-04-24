@@ -4,11 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Wormhole Analytics</title>
-
   <link rel="stylesheet" href="/static/css/styles.css">
-
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -33,18 +30,24 @@
     }
 
     .card {
-      background: rgba(30, 0, 60, 0.5);
+      background: linear-gradient(135deg, 
+          rgba(46, 2, 75, 0.4), 
+          rgba(32, 0, 71, 0.4));
       border: 1px solid rgba(144,144,192, 0.5);
       border-radius: 16px;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 0 25px rgba(140, 0, 255, 0.3);
+      backdrop-filter: blur(50px);
+      box-shadow: 
+        0 20px 50px -15px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 
     .card h3{
      font-family: 'SpaceLetters'; 
      color: var(--BohrsBabyBlue);
+     font-size: 1.3rem;
+     text-transform: uppercase;
     }
 
     .tab-bar {
@@ -100,7 +103,36 @@
       color: #bcf7f7;
     }
 
-    .upload-box {
+    .header-grid {
+      position: relative;
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-col {
+      flex: 1;
+}
+
+    #scatterStatSelect {
+      background: rgba(38, 0, 75, 0.8);
+      border: 1px solid #7b00ff65;
+      color: var(--MutedGray);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+      position: relative;
+      justify-content: flex-end
+    }
+
+    #scatterStatSelect option {
+      background: #1a0030;
+    }
+
+  .upload-box {
       position: relative;
       overflow: hidden;
       text-transform: uppercase;
@@ -154,8 +186,6 @@
       font-family: 'SpaceLetters';
     }
 
-
-
     #insights p {
       margin: 0.5rem 0;
     }
@@ -163,11 +193,7 @@
 </head>
 
 <body>
-
-
-
-    <div class="background-gradient"></div>
-
+  <div class="background-gradient"></div>
   <div class="waves">
     <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
       <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/> <!-- DARK PURPLE-ISH BLUE-->
@@ -188,11 +214,7 @@
     <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
   </svg>
   </div>
-
   <div class="dreamy-overlay"> </div>
-
-
-
   <nav class="navbar">
     <div class="nav-container">
       <div class="left-dropdown">
@@ -252,63 +274,75 @@
     </div>
   </div>
 
-<div class="container">
+  <div class="container">
+    <h1 class="title">🪱 Wormhole Analytics 🪱</h1>
 
-  <h1 class="title">🪱 Wormhole Analytics 🪱</h1>
-
-  <div class="card stats">
-    <div class="stat">
-      <h2 id="totalSessions">-</h2>
-      <p>Sessions</p>
+    <div class="card stats"> <!-- STATS -->
+      <div class="stat">
+        <h2 id="totalSessions">-</h2>
+        <p>Sessions</p>
+      </div>
+      <div class="stat">
+        <h2 id="avgWave">-</h2>
+        <p>Avg Wave</p>
+      </div>
+      <div class="stat">
+        <h2 id="winRate">-</h2>
+        <p>Win Rate</p>
+      </div>
     </div>
-    <div class="stat">
-      <h2 id="avgWave">-</h2>
-      <p>Avg Wave</p>
+
+    <div class="card"> <!-- HP TIMELINE -->
+      <div class="header-grid">
+          <div class="header-col"><h3>HP Timeline</h3></div>
+          <div class="header-col"><div class="tab-bar">
+              <button class="tab-btn active" data-tab="avg">Average</button>
+              <button class="tab-btn" data-tab="recent1">Latest Session</button>
+              <button class="tab-btn" data-tab="recent5">Last 5 Sessions</button>
+          </div></div>
+      </div>
+
+      <canvas id="hpTimelineChart"></canvas>
     </div>
-    <div class="stat">
-      <h2 id="winRate">-</h2>
-      <p>Win Rate</p>
+
+    <div class="card"> <!-- RELATIONSHIPS -->
+      <div class="header-grid">
+        <div class="header-col"><h3>🔬 Stat vs Waves Cleared</h3></div>
+        <div class="header-col"><select id="scatterStatSelect">
+          <option value="spawn_interval">Avg Enemy Spawn Interval (s)</option>
+          <option value="heal_amount">Cosmic Prism Heal Amount</option>
+          <option value="avg_enemy_health">Avg Enemy Health</option>
+          <option value="fractal_interval">Avg Fractal Cascade Interval (s)</option>
+          <option value="slime_interval">Avg Slime Attack Interval (s)</option>
+          <option value="prism_interval">Avg Ocular Prism Interval (s)</option>
+          <option value="avg_time_to_kill">Avg Time to Kill (ms)</option>
+        </select></div>
+      </div>
+      <canvas id="scatterChart" style="margin-top: 1rem;"></canvas>
+    </div>
+
+    <div class="card"> <!-- WAVES CLEARED -->
+      <canvas id="waveChart"></canvas>
+    </div>
+
+    <div class="card"> <!-- INSIGHTS -->
+      <h3>Insights</h3>
+      <div id="insights"></div>
+    </div>
+
+    <div class="card"> <!-- UPLOAD -->
+      <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+        <p>Drop JSON Files Here</p>
+        <input type="file" id="fileInput" multiple accept=".json" style="display:none" />
+      </div>
+      <p id="uploadStatus"></p>
     </div>
   </div>
 
-<div class="card">
-  <h3>HP Timeline</h3>
-
-  <div class="tab-bar">
-    <button class="tab-btn active" data-tab="avg">Average</button>
-    <button class="tab-btn" data-tab="recent1">Latest Session</button>
-    <button class="tab-btn" data-tab="recent5">Last 5 Sessions</button>
-  </div>
-
-  <canvas id="hpTimelineChart"></canvas>
-</div>
-
-
-  <div class="card">
-    <canvas id="waveChart"></canvas>
-  </div>
-
-  <div class="card">
-    <h3>Insights</h3>
-    <div id="insights"></div>
-  </div>
-
-  <div class="card">
-    <div class="upload-box" onclick="document.getElementById('fileInput').click()">
-      <p>📂 Click or Drop JSON Files Here</p>
-      <input type="file" id="fileInput" multiple accept=".json" style="display:none" />
-    </div>
-    <p id="uploadStatus"></p>
-  </div>
-
-</div>
-
-<div id="stars"></div>
-
+  <div id="stars"></div>
   <button class="floating-back-to-top" id="floatingBackToTop">
     ↑ 
   </button>
-
   <div id="kofi-float">
     <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
       <img src="/static/images/tipjar.png" alt="Support me on Ko-fi">
@@ -322,7 +356,6 @@
       </div>
     </a>
   </div>
-
   <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
     <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
       <img src="/static/images/top.png" alt="Scroll to top">
@@ -331,248 +364,341 @@
 
   <script src="/static/js/KittyCore.js"></script>
 
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadStatus = document.getElementById('uploadStatus');
 
-<script>
-  const fileInput = document.getElementById('fileInput');
-  const uploadStatus = document.getElementById('uploadStatus');
+    fileInput.addEventListener('change', () => uploadFiles(fileInput.files));
 
-  fileInput.addEventListener('change', () => uploadFiles(fileInput.files));
+    async function uploadFiles(files) {
+      let successCount = 0;
 
-  async function uploadFiles(files) {
-    let successCount = 0;
+      for (const file of files) {
+        try {
+          const text = await file.text();
+          const json = JSON.parse(text);
 
-    for (const file of files) {
-      try {
-        const text = await file.text();
-        const json = JSON.parse(text);
+          const res = await fetch('/api/wormhole/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(json)
+          });
 
-        const res = await fetch('/api/wormhole/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(json)
-        });
+          const result = await res.json();
 
-        const result = await res.json();
-
-        if (result.success) {
-          successCount++;
+          if (result.success) {
+            successCount++;
+          }
+        } catch (err) {
+          console.error(err);
         }
-      } catch (err) {
-        console.error(err);
       }
+
+      uploadStatus.textContent = `✅ Uploaded ${successCount} sessions`;
+      loadDashboard();
     }
 
-    uploadStatus.textContent = `✅ Uploaded ${successCount} sessions`;
-    loadDashboard();
-  }
 
-
-async function loadSummary() {
-  const res = await fetch('/api/wormhole/summary');
-
-  const text = await res.text();
-  console.log("RAW RESPONSE:", text);
-
-  if (!res.ok) {
-    console.error("Summary API failed");
-    return;
-  }
-
-  const data = JSON.parse(text);
-
-  document.getElementById('totalSessions').textContent = data.data.total_sessions;
-  document.getElementById('avgWave').textContent = data.data.avg_wave.toFixed(2);
-  document.getElementById('winRate').textContent =
-    (data.data.win_rate * 100).toFixed(1) + '%';
-}
-
-  async function loadInsights() {
-    const res = await fetch('/api/wormhole/insights');
-    const data = await res.json();
-
-    const container = document.getElementById('insights');
-    container.innerHTML = data.insights
-      .map(i => `<p>✨ ${i}</p>`)
-      .join('');
-  }
-
-  let chart;
-
-  async function loadChart() {
+  async function loadSummary() {
     const res = await fetch('/api/wormhole/summary');
-    const data = await res.json();
 
-    const avgWave = data.data.avg_wave;
+    const text = await res.text();
+    console.log("RAW RESPONSE:", text);
 
-    const ctx = document.getElementById('waveChart').getContext('2d');
+    if (!res.ok) {
+      console.error("Summary API failed");
+      return;
+    }
 
-    if (chart) chart.destroy();
+    const data = JSON.parse(text);
 
-    chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Avg Wave'],
-        datasets: [{
-          label: 'Wave Progression',
-          data: [avgWave]
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            labels: { color: 'white' }
-          }
-        },
-        scales: {
-          x: {
-            ticks: { color: 'white' }
-          },
-          y: {
-            ticks: { color: 'white' }
-          }
-        }
-      }
-    });
+    document.getElementById('totalSessions').textContent = data.data.total_sessions;
+    document.getElementById('avgWave').textContent = data.data.avg_wave.toFixed(2);
+    document.getElementById('winRate').textContent =
+      (data.data.win_rate * 100).toFixed(1) + '%';
   }
 
-  let hpChart;
-  let activeTab = 'avg';
+    async function loadInsights() {
+      const res = await fetch('/api/wormhole/insights');
+      const data = await res.json();
 
+      const container = document.getElementById('insights');
+      container.innerHTML = data.insights
+        .map(i => `<p>✨ ${i}</p>`)
+        .join('');
+    }
 
-  function buildHpChart(datasets, maxX) {
-    const ctx = document.getElementById('hpTimelineChart').getContext('2d');
-    if (hpChart) hpChart.destroy();
+    let chart;
 
-    hpChart = new Chart(ctx, {
-      type: 'line',
-      data: { datasets },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const label = context.dataset.label || '';
-                const hp      = context.raw.y;
-                const seconds = context.raw.x;
-                return `${label}: HP = ${hp}  (${seconds.toFixed(1)}s)`;
-              }
+    async function loadChart() {
+      const res = await fetch('/api/wormhole/summary');
+      const data = await res.json();
+
+      const avgWave = data.data.avg_wave;
+
+      const ctx = document.getElementById('waveChart').getContext('2d');
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Avg Wave'],
+          datasets: [{
+            label: 'Wave Progression',
+            data: [avgWave]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              labels: { color: 'white' }
             }
           },
-          legend: { labels: { color: 'white' } }
-        },
-        scales: {
-          x: {
-            type: 'linear',
-            min: 0,
-            max: maxX,          
-            title: {
-              display: true,
-              text: 'Time (seconds since session start)',
-              color: '#ccc'
+          scales: {
+            x: {
+              ticks: { color: 'white' }
             },
-            ticks: { color: 'white' },
-            grid:  { color: 'rgba(255,255,255,0.1)' }
-          },
-          y: {
-            min: 0,
-            max: 100,            
-            title: { display: true, text: 'HP', color: '#ccc' },
-            ticks: { color: 'white' },
-            grid:  { color: 'rgba(255,255,255,0.1)' }
+            y: {
+              ticks: { color: 'white' }
+            }
           }
         }
-      }
-    });
-  }
-
-  function getMaxX(datasets) {
-    let max = 0;
-    for (const ds of datasets) {
-      for (const pt of ds.data) {
-        if (pt.x > max) max = pt.x;
-      }
+      });
     }
-    return Math.ceil(max / 10) * 10 || 100;
-  }
+
+    let hpChart;
+    let activeTab = 'avg';
 
 
-  async function loadHpAverage() {
-    const res    = await fetch('/api/wormhole/hp-average?bucket=10');
-    const result = await res.json();
+    function buildHpChart(datasets, maxX) {
+      const ctx = document.getElementById('hpTimelineChart').getContext('2d');
+      if (hpChart) hpChart.destroy();
 
-    if (!result.success) { console.error(result.error); return; }
+      hpChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const label = context.dataset.label || '';
+                  const hp      = context.raw.y;
+                  const seconds = context.raw.x;
+                  return `${label}: HP = ${hp}  (${seconds.toFixed(1)}s)`;
+                }
+              }
+            },
+            legend: { labels: { color: 'white' } }
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              min: 0,
+              max: maxX,          
+              title: {
+                display: true,
+                text: 'Time (seconds since session start)',
+                color: '#ccc'
+              },
+              ticks: { color: 'white' },
+              grid:  { color: 'rgba(255,255,255,0.1)' }
+            },
+            y: {
+              min: 0,
+              max: 100,            
+              title: { display: true, text: 'HP', color: '#ccc' },
+              ticks: { color: 'white' },
+              grid:  { color: 'rgba(255,255,255,0.1)' }
+            }
+          }
+        }
+      });
+    }
 
-    const datasets = [{
-      label: 'Avg HP (all sessions)',
-      data: result.data,
-      borderColor: '#00ffff',
-      backgroundColor: 'rgba(0,255,255,0.08)',
-      tension: 0.3,
-      pointRadius: 3,
-      pointHoverRadius: 5,
-      fill: true,
-      showLine: true
-    }];
-
-    buildHpChart(datasets, getMaxX(datasets));
-  }
+    function getMaxX(datasets) {
+      let max = 0;
+      for (const ds of datasets) {
+        for (const pt of ds.data) {
+          if (pt.x > max) max = pt.x;
+        }
+      }
+      return Math.ceil(max / 10) * 10 || 100;
+    }
 
 
-  async function loadHpTimeline(limit) {
-    const res    = await fetch(`/api/wormhole/hp-timeline?limit=${limit}`);
-    const result = await res.json();
+    async function loadHpAverage() {
+      const res    = await fetch('/api/wormhole/hp-average?bucket=10');
+      const result = await res.json();
 
-    if (!result.success) { console.error(result.error); return; }
+      if (!result.success) { console.error(result.error); return; }
 
-    const sessions = result.sessions;
-    if (!sessions.length) { if (hpChart) hpChart.destroy(); return; }
-
-    const datasets = sessions.map((sessionKey, idx) => {
-      const hue        = (idx * 72) % 360;
-      const shortLabel = sessionKey.slice(0, 10);
-      return {
-        label: `Session ${idx + 1} (${shortLabel})`,
-        data:  result.data[sessionKey],
-        borderColor:     `hsl(${hue}, 70%, 60%)`,
-        backgroundColor: 'transparent',
+      const datasets = [{
+        label: 'Avg HP (all sessions)',
+        data: result.data,
+        borderColor: '#00ffff',
+        backgroundColor: 'rgba(0,255,255,0.08)',
         tension: 0.3,
         pointRadius: 3,
         pointHoverRadius: 5,
-        fill: false,
+        fill: true,
         showLine: true
-      };
+      }];
+
+      buildHpChart(datasets, getMaxX(datasets));
+    }
+
+
+    async function loadHpTimeline(limit) {
+      const res    = await fetch(`/api/wormhole/hp-timeline?limit=${limit}`);
+      const result = await res.json();
+
+      if (!result.success) { console.error(result.error); return; }
+
+      const sessions = result.sessions;
+      if (!sessions.length) { if (hpChart) hpChart.destroy(); return; }
+
+      const datasets = sessions.map((sessionKey, idx) => {
+        const hue        = (idx * 72) % 360;
+        const shortLabel = sessionKey.slice(0, 10);
+        return {
+          label: `Session ${idx + 1} (${shortLabel})`,
+          data:  result.data[sessionKey],
+          borderColor:     `hsl(${hue}, 70%, 60%)`,
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          fill: false,
+          showLine: true
+        };
+      });
+
+      buildHpChart(datasets, getMaxX(datasets));
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeTab = btn.dataset.tab;
+        await renderActiveTab();
+      });
     });
 
-    buildHpChart(datasets, getMaxX(datasets));
-  }
+    async function renderActiveTab() {
+      if      (activeTab === 'avg')     await loadHpAverage();
+      else if (activeTab === 'recent1') await loadHpTimeline(1);
+      else if (activeTab === 'recent5') await loadHpTimeline(5);
+    }
 
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeTab = btn.dataset.tab;
+    async function loadDashboard() {
+      await loadSummary();
+      await loadInsights();
+      await loadChart();
+      await renderActiveTab();  
+    }
+
+    loadDashboard();
+  </script>
+
+  <script>
+    let scatterChart;
+
+    const STAT_LABELS = {
+      spawn_interval:    "Avg Enemy Spawn Interval (s)",
+      heal_amount:       "Cosmic Prism Heal Amount",
+      avg_enemy_health:  "Avg Enemy Health",
+      fractal_interval:  "Avg Fractal Cascade Interval (s)",
+      slime_interval:    "Avg Slime Attack Interval (s)",
+      prism_interval:    "Avg Ocular Prism Interval (s)",
+      avg_time_to_kill:  "Avg Time to Kill (ms)"
+    };
+
+    async function loadScatter(stat) {
+      const res    = await fetch(`/api/wormhole/scatter?stat=${stat}`);
+      const result = await res.json();
+
+      if (!result.success) {
+        console.error("Scatter error:", result.error);
+        return;
+      }
+
+      const label = STAT_LABELS[stat];
+      const ctx   = document.getElementById('scatterChart').getContext('2d');
+      if (scatterChart) scatterChart.destroy();
+
+      const xMax = result.data.length
+        ? Math.ceil(Math.max(...result.data.map(p => p.x)) * 1.1)
+        : 100;
+
+      const yValues = [...new Set(result.data.map(p => p.y))].sort((a, b) => a - b);
+
+      scatterChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label,
+            data: result.data,
+            backgroundColor: 'rgba(0, 255, 255, 0.55)',
+            pointRadius: 6,
+            pointHoverRadius: 9
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: 'white' } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) =>
+                  `${label}: ${ctx.raw.x}  |  Waves Cleared: ${ctx.raw.y}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              min: 0,
+              max: xMax,
+              title: { display: true, text: label, color: '#ccc' },
+              ticks: { color: 'white' },
+              grid:  { color: 'rgba(255,255,255,0.1)' }
+            },
+            y: {
+              type: 'linear',
+              min: 0,
+              ticks: {
+                color: 'white',
+                stepSize: 1,
+                callback: (val) => Number.isInteger(val) ? val : null
+              },
+              title: { display: true, text: 'Waves Cleared', color: '#ccc' },
+              grid:  { color: 'rgba(255,255,255,0.1)' }
+            }
+          }
+        }
+      });
+    }
+
+    document.getElementById('scatterStatSelect').addEventListener('change', (e) => {
+      loadScatter(e.target.value);
+    });
+
+    async function loadDashboard() {
+      await loadSummary();
+      await loadInsights();
+      await loadChart();
       await renderActiveTab();
-    });
-  });
+      await loadScatter('spawn_interval'); 
+    }
 
-  async function renderActiveTab() {
-    if      (activeTab === 'avg')     await loadHpAverage();
-    else if (activeTab === 'recent1') await loadHpTimeline(1);
-    else if (activeTab === 'recent5') await loadHpTimeline(5);
-  }
-
-  async function loadDashboard() {
-    await loadSummary();
-    await loadInsights();
-    await loadChart();
-    await renderActiveTab();  
-  }
-
-  loadDashboard();
-</script>
+    loadDashboard();
+  </script>
 
 </body>
 </html>

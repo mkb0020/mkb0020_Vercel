@@ -174,8 +174,6 @@ def get_summary():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
-
 @wormhole_analysis_bp.route('/api/wormhole/hp-timeline', methods=['GET'])
 def get_hp_timeline():
     try:
@@ -252,7 +250,127 @@ def get_hp_average():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@wormhole_analysis_bp.route('/api/wormhole/scatter', methods=['GET'])
+def get_scatter():
+    stat = request.args.get("stat")
+    if not stat:
+        return jsonify({"success": False, "error": "Missing stat param"}), 400
 
+    VALID_STATS = {
+        "spawn_interval",
+        "heal_amount",
+        "avg_enemy_health",
+        "fractal_interval",
+        "slime_interval",
+        "prism_interval",
+        "avg_time_to_kill"
+    }
+    if stat not in VALID_STATS:
+        return jsonify({"success": False, "error": f"Unknown stat: {stat}"}), 400
+
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+
+                # ── Direct summary columns ────────────────────────────────────
+
+                if stat == "heal_amount":
+                    cur.execute("""
+                        SELECT "COSMIC_PRISM_HEAL_AMOUNT", "waveCleared"
+                        FROM wormhole_session_summary
+                        WHERE "COSMIC_PRISM_HEAL_AMOUNT" IS NOT NULL
+                          AND "waveCleared" IS NOT NULL
+                        ORDER BY "COSMIC_PRISM_HEAL_AMOUNT"
+                    """)
+                    rows = cur.fetchall()
+
+                elif stat == "avg_enemy_health":
+                    cur.execute("""
+                        SELECT
+                            (
+                                "ENEMIES_TYPES_BASIC_HEALTH"   +
+                                "ENEMIES_TYPES_FAST_HEALTH"    +
+                                "ENEMIES_TYPES_TANK_HEALTH"    +
+                                "ENEMIES_TYPES_ZIGZAG_HEALTH"  +
+                                "ENEMIES_TYPES_FLIMFLAM_HEALTH"
+                            ) / 5.0 AS avg_health,
+                            "waveCleared"
+                        FROM wormhole_session_summary
+                        WHERE "ENEMIES_TYPES_BASIC_HEALTH"   IS NOT NULL
+                          AND "ENEMIES_TYPES_FAST_HEALTH"    IS NOT NULL
+                          AND "ENEMIES_TYPES_TANK_HEALTH"    IS NOT NULL
+                          AND "ENEMIES_TYPES_ZIGZAG_HEALTH"  IS NOT NULL
+                          AND "ENEMIES_TYPES_FLIMFLAM_HEALTH" IS NOT NULL
+                          AND "waveCleared" IS NOT NULL
+                        ORDER BY avg_health
+                    """)
+                    rows = cur.fetchall()
+
+                elif stat == "avg_time_to_kill":
+                    cur.execute("""
+                        SELECT "avgTimeToKill", "waveCleared"
+                        FROM wormhole_session_summary
+                        WHERE "avgTimeToKill" IS NOT NULL
+                          AND "waveCleared"   IS NOT NULL
+                        ORDER BY "avgTimeToKill"
+                    """)
+                    rows = cur.fetchall()
+
+                # ── Event-interval stats (LAG window function) ─────────────────
+
+                else:
+                    event_type_map = {
+                        "spawn_interval":   "enemy_spawn",
+                        "fractal_interval": "fractal_cascade_attack",
+                        "slime_interval":   "slime_attack",
+                        "prism_interval":   "ocular_prism_attack"
+                    }
+                    event_type = event_type_map[stat]
+
+                    cur.execute("""
+                        WITH event_times AS (
+                            SELECT
+                                "session",
+                                "time",
+                                LAG("time") OVER (
+                                    PARTITION BY "session"
+                                    ORDER BY "time"
+                                ) AS prev_time
+                            FROM wormhole_events
+                            WHERE "type" = %s
+                              AND "time" IS NOT NULL
+                        ),
+                        session_avg AS (
+                            SELECT
+                                "session",
+                                AVG(
+                                    EXTRACT(EPOCH FROM ("time" - prev_time))
+                                ) AS avg_interval
+                            FROM event_times
+                            WHERE prev_time IS NOT NULL
+                            GROUP BY "session"
+                            HAVING COUNT(*) > 1   -- need at least 2 events to get a gap
+                        )
+                        SELECT sa.avg_interval, s."waveCleared"
+                        FROM session_avg sa
+                        JOIN wormhole_session_summary s
+                          ON sa."session"::timestamptz = s."generatedAt"
+                        WHERE s."waveCleared" IS NOT NULL
+                        ORDER BY sa.avg_interval
+                    """, (event_type,))
+                    rows = cur.fetchall()
+
+        data = [
+            {"x": round(float(row[0]), 4), "y": int(row[1])}
+            for row in rows
+            if row[0] is not None
+        ]
+
+        return jsonify({"success": True, "stat": stat, "data": data})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    
 @wormhole_analysis_bp.route('/api/wormhole/insights', methods=['GET'])
 def get_insights():
     try:
