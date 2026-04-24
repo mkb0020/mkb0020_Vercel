@@ -177,14 +177,16 @@ def get_summary():
 
 @wormhole_analysis_bp.route('/api/wormhole/hp-timeline', methods=['GET'])
 def get_hp_timeline():
-    """Return HP over time for the 5 most recent sessions."""
+    """Return HP over time for the 5 most recent sessions.
+       Uses 'time' column as session identifier."""
     try:
         with psycopg.connect(DB_URL) as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT "generatedAt"
-                    FROM wormhole_session_summary
-                    ORDER BY "generatedAt" DESC
+                    SELECT DISTINCT "time"
+                    FROM wormhole_events
+                    WHERE hp IS NOT NULL
+                    ORDER BY "time" DESC
                     LIMIT 5
                 """)
                 sessions = cur.fetchall()
@@ -194,13 +196,13 @@ def get_hp_timeline():
 
                 result_sessions = []
 
-                for (session_key,) in sessions:
+                for (session_id,) in sessions:
                     cur.execute("""
-                        SELECT time, hp
+                        SELECT event_time, hp
                         FROM wormhole_events
-                        WHERE session = %s AND hp IS NOT NULL
-                        ORDER BY time ASC
-                    """, (session_key,))
+                        WHERE "time" = %s AND hp IS NOT NULL
+                        ORDER BY event_time ASC
+                    """, (session_id,))
                     events = cur.fetchall()
 
                     if not events:
@@ -209,15 +211,13 @@ def get_hp_timeline():
                     first_time = events[0][0]
                     data_points = []
                     for ev_time, hp in events:
-                        rel_seconds = (ev_time - first_time).total_seconds()
-                        data_points.append({"x": rel_seconds, "y": hp})
+                        if isinstance(ev_time, datetime):
+                            rel_seconds = (ev_time - first_time).total_seconds()
+                        else:
+                            rel_seconds = ev_time - first_time
+                        data_points.append({"x": float(rel_seconds), "y": hp})
 
-                    try:
-                        dt = datetime.fromisoformat(session_key.replace("Z", "+00:00"))
-                        label = dt.strftime("%Y-%m-%d %H:%M")
-                    except Exception:
-                        label = session_key[:16]
-
+                    label = str(session_id)[:16] 
                     result_sessions.append({
                         "label": f"Session {label}",
                         "data": data_points
@@ -227,7 +227,6 @@ def get_hp_timeline():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @wormhole_analysis_bp.route('/api/wormhole/insights', methods=['GET'])
 def get_insights():
