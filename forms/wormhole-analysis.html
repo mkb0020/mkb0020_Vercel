@@ -377,85 +377,79 @@ async function loadSummary() {
 
   let hpChart;
 
-
   async function loadHpTimeline() {
-    const res = await fetch('/api/wormhole/hp-timeline');
-    const result = await res.json();
+      const res = await fetch('/api/wormhole/hp-timeline');
+      const result = await res.json();
 
-    if (!result.success) {
-      console.error("HP timeline error:", result.error);
-      return;
-    }
-
-    const sessions = result.sessions;
-    if (!sessions.length) {
-      if (hpChart) hpChart.destroy();
-      return;
-    }
-
-    const datasets = sessions.map((session, idx) => {
-      const hue = (idx * 72) % 360;
-      return {
-        label: session.label,
-        data: session.data,
-        borderColor: `hsl(${hue}, 70%, 60%)`,
-        backgroundColor: 'transparent',
-        tension: 0.1,
-        pointRadius: 3,
-        pointHoverRadius: 5,
-        fill: false,
-        showLine: true
-      };
-    });
-
-    const ctx = document.getElementById('hpTimelineChart').getContext('2d');
-
-    if (hpChart) hpChart.destroy();
-
-    hpChart = new Chart(ctx, {
-      type: 'line',
-      data: { datasets },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const label = context.dataset.label || '';
-                const hp = context.raw.y;
-                const seconds = context.raw.x;
-                return `${label}: HP = ${hp}  (${seconds.toFixed(1)} s)`;
-              }
-            }
-          },
-          legend: {
-            labels: { color: 'white' }
-          }
-        },
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: 'Time (seconds since session start)',
-              color: '#ccc'
-            },
-            ticks: { color: 'white' },
-            grid: { color: 'rgba(255,255,255,0.1)' }
-          },
-          y: {
-            title: {
-              display: true,
-              text: 'HP',
-              color: '#ccc'
-            },
-            ticks: { color: 'white' },
-            grid: { color: 'rgba(255,255,255,0.1)' },
-            beginAtZero: true
-          }
-        }
+      if (!result.success) {
+          console.error("HP timeline error:", result.error);
+          return;
       }
-    });
+
+      const sessions = result.sessions;
+      if (!sessions.length) {
+          if (hpChart) hpChart.destroy();
+          return;
+      }
+
+      const datasets = sessions.map((sessionKey, idx) => {
+          const hue = (idx * 72) % 360;
+          const shortLabel = sessionKey.slice(0, 10); 
+          return {
+              label: `Session ${idx + 1} (${shortLabel})`,
+              data: result.data[sessionKey],           
+              borderColor: `hsl(${hue}, 70%, 60%)`,
+              backgroundColor: 'transparent',
+              tension: 0.3,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: false,
+              showLine: true
+          };
+      });
+
+      const ctx = document.getElementById('hpTimelineChart').getContext('2d');
+      if (hpChart) hpChart.destroy();
+
+      hpChart = new Chart(ctx, {
+          type: 'line',
+          data: { datasets },
+          options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                  tooltip: {
+                      callbacks: {
+                          label: (context) => {
+                              const label = context.dataset.label || '';
+                              const hp = context.raw.y;
+                              const seconds = context.raw.x;
+                              return `${label}: HP = ${hp}  (${seconds.toFixed(1)}s)`;
+                          }
+                      }
+                  },
+                  legend: { labels: { color: 'white' } }
+              },
+              scales: {
+                  x: {
+                      type: 'linear',              
+                      title: {
+                          display: true,
+                          text: 'Time (seconds since session start)',
+                          color: '#ccc'
+                      },
+                      ticks: { color: 'white' },
+                      grid: { color: 'rgba(255,255,255,0.1)' }
+                  },
+                  y: {
+                      title: { display: true, text: 'HP', color: '#ccc' },
+                      ticks: { color: 'white' },
+                      grid: { color: 'rgba(255,255,255,0.1)' },
+                      beginAtZero: true
+                  }
+              }
+          }
+      });
   }
 
   async function loadDashboard() {
