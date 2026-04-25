@@ -124,12 +124,12 @@ def upload_session():
 
                 for event in events:
                     elapsed = event.get("time", 0) or 0
-                    event_time = (generated_at + timedelta(seconds=elapsed)) if generated_at else None
+                    event_time = (generated_at + timedelta(seconds=elapsed / 1000)) if generated_at else None
 
                     cur.execute("""
                         INSERT INTO wormhole_events (
-                            "session", "type", "time", "amount", "hp", "lives", "enemyType"
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                            "session", "type", "time", "amount", "hp", "lives", "enemyId", "enemyType"
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """, (
                         session_key,
                         event.get("type"),
@@ -137,8 +137,11 @@ def upload_session():
                         event.get("amount"),
                         event.get("hp"),
                         event.get("lives"),
+                        event.get("id"),        # ← the enemy id
                         event.get("enemyType")
                     ))
+
+
 
         return jsonify({"success": True, "session": session_key})
 
@@ -690,33 +693,21 @@ def get_time_to_kill():
                     return jsonify({"success": False, "error": "Session not found"}), 404
 
                 cur.execute("""
-                    WITH spawns AS (
-                        SELECT "time", "enemyType",
-                               ROW_NUMBER() OVER (PARTITION BY "enemyType" ORDER BY "time") AS rn
-                        FROM wormhole_events
-                        WHERE "session" = %s
-                          AND "type" = 'enemy_spawn'
-                          AND "enemyType" IS NOT NULL
-                    ),
-                    kills AS (
-                        SELECT "time", "enemyType",
-                               ROW_NUMBER() OVER (PARTITION BY "enemyType" ORDER BY "time") AS rn
-                        FROM wormhole_events
-                        WHERE "session" = %s
-                          AND "type" = 'enemy_kill'
-                          AND "enemyType" IS NOT NULL
-                    )
                     SELECT
-                        k."enemyType",
+                        s."enemyType",
                         AVG(EXTRACT(EPOCH FROM (k."time" - s."time"))) AS avg_ttk_sec,
                         COUNT(*) AS sample_count
-                    FROM kills k
-                    JOIN spawns s
-                      ON k."enemyType" = s."enemyType" AND k.rn = s.rn
-                    WHERE k."time" > s."time"
-                    GROUP BY k."enemyType"
-                    ORDER BY k."enemyType"
-                """, (session_key, session_key))
+                    FROM wormhole_events s
+                    JOIN wormhole_events k
+                      ON  k."session"  = s."session"
+                      AND k."enemyId"  = s."enemyId"
+                      AND k."type"     = 'enemy_killed'
+                      AND s."type"     = 'enemy_spawn'
+                    WHERE s."session" = %s
+                      AND s."enemyType" IS NOT NULL
+                    GROUP BY s."enemyType"
+                    ORDER BY s."enemyType"
+                """, (session_key,))
                 ttk_rows = cur.fetchall()
 
         ttk_by_type = {}
@@ -731,7 +722,6 @@ def get_time_to_kill():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @wormhole_analysis_bp.route('/api/wormhole/enemy-density', methods=['GET'])
 def get_enemy_density():
@@ -759,7 +749,7 @@ def get_enemy_density():
                         "type"
                     FROM wormhole_events
                     WHERE "session" = %s
-                      AND "type" IN ('enemy_spawn', 'enemy_kill')
+                      AND "type" IN ('enemy_spawn', 'enemy_killed')
                     ORDER BY "time" ASC
                 """, (generated_at, session_key))
                 event_rows = cur.fetchall()
@@ -777,7 +767,7 @@ def get_enemy_density():
         for elapsed, event_type in event_rows:
             if event_type == 'enemy_spawn':
                 count += 1
-            elif event_type == 'enemy_kill':
+            elif event_type == 'enemy_killed':
                 count = max(0, count - 1)
             density_timeline.append({"x": round(float(elapsed), 2), "y": count})
 
