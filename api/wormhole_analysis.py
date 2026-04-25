@@ -137,7 +137,7 @@ def upload_session():
                         event.get("amount"),
                         event.get("hp"),
                         event.get("lives"),
-                        event.get("id"),        # ← the enemy id
+                        event.get("id"),       
                         event.get("enemyType")
                     ))
 
@@ -607,6 +607,316 @@ def get_damage_spikes():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@wormhole_analysis_bp.route('/api/wormhole/hp-insights', methods=['GET'])
+def get_hp_insights():
+    """Analyze HP timeline for a session and return structured, meaningful insights."""
+    session_key = request.args.get("session")
+    if not session_key:
+        return jsonify({"success": False, "error": "Missing session param"}), 400
+
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT "generatedAt", "waveCleared", "playerDamageCount", "hpHealCount"
+                    FROM wormhole_session_summary
+                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                """, (session_key,))
+                row = cur.fetchone()
+                if not row:
+                    return jsonify({"success": False, "error": "Session not found"}), 404
+                generated_at, wave_cleared, damage_count, heal_count = row
+
+                cur.execute("""
+                    SELECT
+                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed,
+                        "hp"
+                    FROM wormhole_events
+                    WHERE "session" = %s AND "hp" IS NOT NULL
+                    ORDER BY "time" ASC
+                """, (generated_at, session_key))
+                hp_rows = cur.fetchall()
+
+        if not hp_rows:
+            return jsonify({"success": True, "session": session_key, "insights": [], "stats": {}})
+
+        timeline = [(float(r[0]), int(r[1])) for r in hp_rows if r[0] is not None]
+        total_duration = timeline[-1][0] if timeline else 1.0
+
+        # ── 1. DEATH DETECTION ─────────────────────────────────────────────────
+        DEATH_FROM  = 15   
+        DEATH_TO    = 85   
+        deaths = []
+        for i in range(1, len(timeline)):
+            t_prev, hp_prev = timeline[i - 1]
+            t_curr, hp_curr = timeline[i]
+            if hp_prev <= DEATH_FROM and hp_curr >= DEATH_TO:
+                deaths.append({
+                    "time":        round(t_curr, 1),
+                    "pct_through": round(t_curr / total_duration, 2)
+                })
+
+        # ── 2. SPIKE DETECTION ─────────────────────────────────────────────────
+        SPIKE_THRESHOLD = 15
+        MEGA_THRESHOLD  = 25
+        spikes = []
+        for i in range(1, len(timeline)):
+            t_prev, hp_prev = timeline[i - 1]
+            t_curr, hp_curr = timeline[i]
+            drop = hp_prev - hp_curr
+            if drop >= SPIKE_THRESHOLD and not (hp_prev <= DEATH_FROM and hp_curr >= DEATH_TO):
+                spikes.append({
+                    "time":    round(t_curr, 1),
+                    "drop":    drop,
+                    "is_mega": drop >= MEGA_THRESHOLD
+                })
+
+        # ── 3. OVERALL TREND - LINEAR REGRESSION ───────────────────────────────
+        n      = len(timeline)
+        times  = [p[0] for p in timeline]
+        hps    = [p[1] for p in timeline]
+        mean_t = sum(times) / n
+        mean_h = sum(hps)   / n
+        num    = sum((times[i] - mean_t) * (hps[i] - mean_h) for i in range(n))
+        den    = sum((times[i] - mean_t) ** 2                 for i in range(n))
+        slope  = num / den if den != 0 else 0  
+
+        # ── 4. EARLY vs LATE PRESSURE ──────────────────────────────────────────
+        mid       = total_duration / 2
+        early_hps = [hp for t, hp in timeline if t <  mid]
+        late_hps  = [hp for t, hp in timeline if t >= mid]
+        early_avg = sum(early_hps) / len(early_hps) if early_hps else 0
+        late_avg  = sum(late_hps)  / len(late_hps)  if late_hps  else 0
+
+        # ── 5. FLAT PERIOD DETECTION ───────────────────────────────────────────
+        FLAT_WINDOW = 20   
+        FLAT_RANGE  = 5    
+        flat_periods = []
+        w_start = 0
+        for i in range(1, n):
+            t_start = timeline[w_start][0]
+            t_curr  = timeline[i][0]
+            if t_curr - t_start >= FLAT_WINDOW:
+                window_hps = [hp for _, hp in timeline[w_start:i + 1]]
+                if max(window_hps) - min(window_hps) <= FLAT_RANGE:
+                    flat_periods.append({
+                        "start":  round(t_start, 1),
+                        "end":    round(t_curr, 1),
+                        "avg_hp": round(sum(window_hps) / len(window_hps), 1)
+                    })
+                w_start = i
+
+        # ── 6. DAMAGE vs HEALING BALANCE ───────────────────────────────────────
+        dmg_events  = int(damage_count  or 0)
+        heal_events = int(heal_count    or 0)
+
+        # ── BUILD INSIGHTS ─────────────────────────────────────────────────────
+        insights = []
+        early_deaths = [d for d in deaths if d["pct_through"] < 0.60]
+        late_deaths  = [d for d in deaths if d["pct_through"] >= 0.60]
+        if not deaths:
+            insights.append({
+                "category": "deaths", "status": "ok", "icon": "💚",
+                "title":   "No Deaths",
+                "message": ("No deaths this session — you made it through without hitting zero. "
+                            "Since you're an experienced player, this is a good sign that the "
+                            "damage level isn't catastrophically high.")
+            })
+        elif early_deaths:
+            times_str = ", ".join(f"{d['time']}s" for d in early_deaths)
+            insights.append({
+                "category": "deaths", "status": "critical", "icon": "🛑",
+                "title":   f"Early Death{'s' if len(early_deaths) > 1 else ''} ({len(early_deaths)}x)",
+                "message": (f"Died {len(early_deaths)}x during the early game ({times_str}). "
+                            f"Even as an experienced player you died before the 60% mark — "
+                            f"this strongly suggests waves 1–3 are too punishing. "
+                            f"Consider tuning enemy damage, spawn rate, or adding a healing buff early on.")
+            })
+        else:
+            times_str = ", ".join(f"{d['time']}s" for d in late_deaths)
+            insights.append({
+                "category": "deaths", "status": "warning", "icon": "⚠️",
+                "title":   f"Late-Game Death{'s' if len(late_deaths) > 1 else ''} ({len(late_deaths)}x)",
+                "message": (f"Died {len(late_deaths)}x in the final stretch ({times_str}). "
+                            f"Late deaths are expected and healthy — this signals the endgame "
+                            f"has real teeth. For a normal player this will feel brutal; "
+                            f"watch that it doesn't become unavoidable.")
+            })
+
+        mega_spikes = [s for s in spikes if s["is_mega"]]
+        if not spikes:
+            insights.append({
+                "category": "spikes", "status": "warning", "icon": "⚠️",
+                "title":   "No Noticeable Damage Spikes",
+                "message": ("HP never dropped sharply in a single hit. "
+                            "The game may feel like a slow grind rather than "
+                            "dynamic combat — consider adding moments of intensity "
+                            "where enemies deal more burst damage.")
+            })
+        elif len(mega_spikes) > 3:
+            worst_few = sorted(mega_spikes, key=lambda s: -s["drop"])[:4]
+            spike_str = ", ".join(f"{s['time']}s (−{s['drop']} HP)" for s in worst_few)
+            insights.append({
+                "category": "spikes", "status": "critical", "icon": "🛑",
+                "title":   f"Way Too Many Huge Spikes ({len(mega_spikes)})",
+                "message": (f"Found {len(mega_spikes)} hits of >{MEGA_THRESHOLD} HP in one blow. "
+                            f"Worst: {spike_str}. At this frequency, damage will feel random "
+                            f"and unfair — players can't react fast enough. "
+                            f"Consider capping single-hit damage or reducing enemy laser intensity.")
+            })
+        elif mega_spikes:
+            worst = max(mega_spikes, key=lambda s: s["drop"])
+            insights.append({
+                "category": "spikes", "status": "warning", "icon": "⚠️",
+                "title":   f"{len(mega_spikes)} Large Spike{'s' if len(mega_spikes) > 1 else ''}",
+                "message": (f"A few big hits (>{MEGA_THRESHOLD} HP) detected. "
+                            f"Biggest: −{worst['drop']} HP at {worst['time']}s. "
+                            f"A couple dramatic moments are fine for tension, "
+                            f"but keep an eye on frequency.")
+            })
+        else:
+            biggest = max(spikes, key=lambda s: s["drop"])
+            insights.append({
+                "category": "spikes", "status": "ok", "icon": "💚",
+                "title":   f"Spike Pattern Looks Good ({len(spikes)} spikes)",
+                "message": (f"Damage spikes are present and add rhythm without being crushing. "
+                            f"Biggest hit: −{biggest['drop']} HP at {biggest['time']}s. "
+                            f"This feels punchy but readable.")
+            })
+
+        if abs(slope) < 0.03:
+            insights.append({
+                "category": "trend", "status": "warning", "icon": "⚠️",
+                "title":   "HP Almost Perfectly Flat",
+                "message": (f"The overall HP trend is nearly flat ({slope:+.3f} HP/s). "
+                            f"There's no meaningful net drain across the session — "
+                            f"players may feel invincible. Try reducing heal amount or "
+                            f"increasing damage frequency.")
+            })
+        elif slope < -0.4:
+            insights.append({
+                "category": "trend", "status": "critical", "icon": "🛑",
+                "title":   "HP Declining Too Fast",
+                "message": (f"Overall slope is {slope:.3f} HP/s — steep enough to "
+                            f"feel like a death march with no breathing room. "
+                            f"Consider increasing heal availability or reducing "
+                            f"sustained enemy damage.")
+            })
+        else:
+            insights.append({
+                "category": "trend", "status": "ok", "icon": "💚",
+                "title":   "HP Trend Looks Healthy",
+                "message": (f"Overall slope of {slope:+.3f} HP/s — gradual pressure "
+                            f"without a death spiral. Players should feel the weight "
+                            f"of the session without feeling hopeless.")
+            })
+
+        pressure_diff = early_avg - late_avg
+        if pressure_diff < 5:
+            insights.append({
+                "category": "escalation", "status": "warning", "icon": "⚠️",
+                "title":   "Damage Doesn't Ramp Up Much",
+                "message": (f"Avg HP early game: {early_avg:.0f} → late game: {late_avg:.0f} "
+                            f"(only −{pressure_diff:.0f} HP difference). "
+                            f"Waves 4–5 should feel harder than wave 1. "
+                            f"Consider bumping enemy aggression, density, or special attack frequency in late waves.")
+            })
+        elif pressure_diff > 35:
+            insights.append({
+                "category": "escalation", "status": "warning", "icon": "⚠️",
+                "title":   "Late Game May Be Too Brutal",
+                "message": (f"HP drops from ~{early_avg:.0f} early to ~{late_avg:.0f} late "
+                            f"(−{pressure_diff:.0f} HP). That's a big jump — "
+                            f"normal players hitting waves 4–5 for the first time "
+                            f"could feel overwhelmed with no ramp-up warning.")
+            })
+        else:
+            insights.append({
+                "category": "escalation", "status": "ok", "icon": "💚",
+                "title":   "Escalation Feels Natural",
+                "message": (f"HP goes from ~{early_avg:.0f} in the first half to "
+                            f"~{late_avg:.0f} in the second half (−{pressure_diff:.0f} HP). "
+                            f"A smooth ramp that should feel fair but increasingly tense.")
+            })
+
+        if heal_events == 0:
+            insights.append({
+                "category": "balance", "status": "warning", "icon": "⚠️",
+                "title":   "No Healing This Session",
+                "message": ("Zero healing events recorded. If the Cosmic Prism never "
+                            "triggered or was never useful, it may feel like a dead ability. "
+                            "Make sure healing opportunities arise naturally in the flow of combat.")
+            })
+        elif dmg_events > 0:
+            ratio = dmg_events / heal_events
+            if ratio < 1.5:
+                insights.append({
+                    "category": "balance", "status": "warning", "icon": "⚠️",
+                    "title":   "Healing Outpacing Damage",
+                    "message": (f"{dmg_events} damage events vs {heal_events} heals "
+                                f"({ratio:.1f}:1 ratio). Players may feel too safe. "
+                                f"Consider reducing heal frequency or heal amount, "
+                                f"or increasing enemy pressure.")
+                })
+            elif ratio > 8:
+                insights.append({
+                    "category": "balance", "status": "warning", "icon": "⚠️",
+                    "title":   "Healing Feels Rare",
+                    "message": (f"{dmg_events} damage events vs {heal_events} heals "
+                                f"({ratio:.1f}:1 ratio). Healing is very infrequent — "
+                                f"the Cosmic Prism might feel useless or hard to trigger. "
+                                f"Make sure it's available often enough to feel like a real lifeline.")
+                })
+            else:
+                insights.append({
+                    "category": "balance", "status": "ok", "icon": "💚",
+                    "title":   "Damage/Heal Balance Is Good",
+                    "message": (f"{dmg_events} damage events vs {heal_events} heals "
+                                f"({ratio:.1f}:1). Healthy tension — "
+                                f"players feel pressure but have recovery moments. "
+                                f"The Cosmic Prism earns its place.")
+                })
+
+        if flat_periods:
+            longest = max(flat_periods, key=lambda p: p["end"] - p["start"])
+            dur     = round(longest["end"] - longest["start"])
+            insights.append({
+                "category": "pacing", "status": "warning", "icon": "⚠️",
+                "title":   f"Dead Zone Detected (~{dur}s)",
+                "message": (f"HP barely moved between {longest['start']}s and {longest['end']}s "
+                            f"(avg HP {longest['avg_hp']}, swing ≤{FLAT_RANGE}). "
+                            f"Something in this window isn't applying pressure — "
+                            f"check if a wave transition, spawn delay, or lull in enemy AI "
+                            f"is letting the player breathe for too long.")
+            })
+
+        stats = {
+            "death_count":       len(deaths),
+            "early_death_count": len(early_deaths),
+            "spike_count":       len(spikes),
+            "mega_spike_count":  len(mega_spikes),
+            "max_spike_drop":    max((s["drop"] for s in spikes), default=0),
+            "overall_slope":     round(slope, 4),
+            "early_avg_hp":      round(early_avg, 1),
+            "late_avg_hp":       round(late_avg, 1),
+            "damage_events":     dmg_events,
+            "heal_events":       heal_events,
+            "duration":          round(total_duration, 1),
+            "flat_period_count": len(flat_periods)
+        }
+
+        return jsonify({
+            "success":  True,
+            "session":  session_key,
+            "insights": insights,
+            "stats":    stats
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @wormhole_analysis_bp.route('/api/wormhole/health-kill-ratio', methods=['GET'])
 def get_health_kill_ratio():
     """Scatter: avg enemy health vs kill ratio (kills / spawns) per session."""
@@ -725,6 +1035,70 @@ def get_time_to_kill():
 
 @wormhole_analysis_bp.route('/api/wormhole/enemy-density', methods=['GET'])
 def get_enemy_density():
+    """Enemy count on screen over time for a specific session, plus a pressure score."""
+    session_key = request.args.get("session")
+    if not session_key:
+        return jsonify({"success": False, "error": "Missing session param"}), 400
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT "generatedAt", "playerDamageCount", "hpHealCount"
+                    FROM wormhole_session_summary
+                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                """, (session_key,))
+                row = cur.fetchone()
+                if not row:
+                    return jsonify({"success": False, "error": "Session not found"}), 404
+                generated_at, player_damage_count, hp_heal_count = row
+
+                cur.execute("""
+                    SELECT
+                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed,
+                        "type"
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                      AND "type" IN ('enemy_spawn', 'enemy_killed')
+                    ORDER BY "time" ASC
+                """, (generated_at, session_key))
+                event_rows = cur.fetchall()
+
+                cur.execute("""
+                    SELECT EXTRACT(EPOCH FROM (MAX("time") - MIN("time")))
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                """, (session_key,))
+                dur_row = cur.fetchone()
+                duration = float(dur_row[0] or 1) if dur_row and dur_row[0] else 1.0
+
+        density_timeline = []
+        count = 0
+        for elapsed, event_type in event_rows:
+            if event_type == 'enemy_spawn':
+                count += 1
+            elif event_type == 'enemy_killed':
+                count = max(0, count - 1)
+            density_timeline.append({"x": round(float(elapsed), 2), "y": count})
+
+        avg_density   = (sum(p["y"] for p in density_timeline) / len(density_timeline)) if density_timeline else 0.0
+        damage_rate   = float(player_damage_count or 0) / duration
+        healing_rate  = float(hp_heal_count or 0) / duration
+        pressure      = round(damage_rate + avg_density - healing_rate, 3)
+
+        return jsonify({
+            "success":        True,
+            "session":        session_key,
+            "density":        density_timeline,
+            "avg_density":    round(avg_density, 2),
+            "damage_rate":    round(damage_rate, 4),
+            "healing_rate":   round(healing_rate, 4),
+            "pressure_score": pressure,
+            "duration":       round(duration, 1)
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
     """Enemy count on screen over time for a specific session, plus a pressure score."""
     session_key = request.args.get("session")
     if not session_key:

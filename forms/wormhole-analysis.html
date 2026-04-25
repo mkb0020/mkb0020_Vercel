@@ -307,6 +307,71 @@
     #insights p {
       margin: 0.5rem 0;
     }
+
+    #insightsSessionSelect {
+      background: rgba(38, 0, 75, 0.8);
+      border: 1px solid #7b00ff65;
+      color: var(--MutedGray);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+      max-width: 340px;
+    }
+    #insightsSessionSelect option { background: #1a0030; }
+
+    .insight-item {
+      display: flex;
+      gap: 0.9rem;
+      align-items: flex-start;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.7rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.03);
+      transition: background 0.2s;
+    }
+    .insight-item:hover { background: rgba(255,255,255,0.055); }
+
+    .insight-item.ok       { border-left: 3px solid #58E84C; }
+    .insight-item.warning  { border-left: 3px solid #ff6200; }
+    .insight-item.critical { border-left: 3px solid #FF0000; }
+
+    .insight-icon { font-size: 1.4rem; line-height: 1; margin-top: 0.1rem; flex-shrink: 0; }
+
+    .insight-title {
+      font-family: 'SpaceLetters';
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.3rem;
+    }
+    .insight-item.ok       .insight-title { color: #58E84C; }
+    .insight-item.warning  .insight-title { color: #ff8c42; }
+    .insight-item.critical .insight-title { color: #FF6060; }
+
+    .insight-message {
+      color: #bbb;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .insight-stat {
+      text-align: center;
+    }
+    .insight-stat h4 {
+      margin: 0;
+      font-family: 'SpaceLetters';
+      font-size: 1.1rem;
+    }
+    .insight-stat p {
+      margin: 0.1rem 0 0 0;
+      font-size: 0.72rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
   </style>
 </head>
 
@@ -624,7 +689,16 @@
     </div>
 
     <div class="card" id="insights-card"> <!-- INSIGHTS -->
-      <h3>⚖️ Insights</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:0.5rem;">
+        <h3 style="margin:0;">⚖️ Insights</h3>
+        <select id="insightsSessionSelect">
+          <option value="">Loading sessions…</option>
+        </select>
+      </div>
+      <div id="insightsStatsBar" style="display:none; flex-wrap:wrap; gap:1.5rem; margin-bottom:1.4rem;
+           padding:0.9rem 1.2rem; background:rgba(255,255,255,0.04); border-radius:10px;
+           border:1px solid rgba(144,144,192,0.2);">
+      </div>
       <div id="insights"></div>
     </div>
 
@@ -787,15 +861,83 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       document.getElementById('hpGainLabel').textContent = data.avg_hp_gain.toFixed(1) + ' HP';
     }
 
-    async function loadInsights() {
-      const res = await fetch('/api/wormhole/insights');
+    async function loadInsights(sessionKey) {
+      const container  = document.getElementById('insights');
+      const statsBar   = document.getElementById('insightsStatsBar');
+
+      if (!sessionKey) {
+        container.innerHTML = '<p style="color:#888; font-size:0.9rem;">Select a session to see insights.</p>';
+        statsBar.style.display = 'none';
+        return;
+      }
+
+      container.innerHTML = '<p style="color:#888; font-size:0.9rem;">Analyzing session…</p>';
+
+      const res  = await fetch(`/api/wormhole/hp-insights?session=${encodeURIComponent(sessionKey)}`);
       const data = await res.json();
 
-      const container = document.getElementById('insights');
-      container.innerHTML = data.insights
-        .map(i => `<p>✨ ${i}</p>`)
-        .join('');
+      if (!data.success || !data.insights?.length) {
+        container.innerHTML = '<p style="color:#888; font-size:0.9rem;">No data found for this session.</p>';
+        statsBar.style.display = 'none';
+        return;
+      }
+
+      const s = data.stats;
+      const slopeColor = Math.abs(s.overall_slope) < 0.03 ? '#ff6200'
+                       : s.overall_slope < -0.4           ? '#FF6060'
+                       :                                    '#58E84C';
+
+      statsBar.style.display = 'flex';
+      statsBar.innerHTML = `
+        <div class="insight-stat">
+          <h4 style="color:#ff4466;">${s.death_count}</h4>
+          <p>Deaths</p>
+        </div>
+        <div class="insight-stat">
+          <h4 style="color:#ff8c42;">${s.spike_count}</h4>
+          <p>Damage Spikes</p>
+        </div>
+        <div class="insight-stat">
+          <h4 style="color:#cc44ff;">${s.mega_spike_count}</h4>
+          <p>Mega Spikes (>25 HP)</p>
+        </div>
+        <div class="insight-stat">
+          <h4 style="color:${slopeColor};">${s.overall_slope > 0 ? '+' : ''}${s.overall_slope}</h4>
+          <p>HP/s Trend</p>
+        </div>
+        <div class="insight-stat">
+          <h4 style="color:#00ffff;">${s.early_avg_hp} → ${s.late_avg_hp}</h4>
+          <p>Avg HP (early → late)</p>
+        </div>
+        <div class="insight-stat">
+          <h4 style="color:#00ff88;">${s.damage_events} / ${s.heal_events}</h4>
+          <p>Dmg / Heal Events</p>
+        </div>
+        <div class="insight-stat">
+          <h4 style="color:#aaa;">${s.duration}s</h4>
+          <p>Session Duration</p>
+        </div>`;
+
+      const ORDER = ['deaths', 'spikes', 'trend', 'escalation', 'balance', 'pacing'];
+      const sorted = [...data.insights].sort((a, b) => {
+        const ai = ORDER.indexOf(a.category);
+        const bi = ORDER.indexOf(b.category);
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      });
+
+      container.innerHTML = sorted.map(insight => `
+        <div class="insight-item ${insight.status}">
+          <div class="insight-icon">${insight.icon}</div>
+          <div>
+            <div class="insight-title">${insight.title}</div>
+            <div class="insight-message">${insight.message}</div>
+          </div>
+        </div>`).join('');
     }
+
+    document.getElementById('insightsSessionSelect').addEventListener('change', e => {
+      if (e.target.value) loadInsights(e.target.value);
+    });
 
     let chart;
 
@@ -967,7 +1109,6 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
     async function loadDashboard() {
       await loadSummary();
-      await loadInsights();
       await loadChart();
       await renderActiveTab();  
     }
@@ -1060,7 +1201,6 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
     async function loadDashboard() {
       await loadSummary();
-      await loadInsights();
       await loadChart();
       await renderActiveTab();
       await loadScatter('spawn_interval'); 
@@ -1224,7 +1364,6 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
     async function loadDashboard() {
       await loadSummary();
-      await loadInsights();
       await loadChart();
       await renderActiveTab();
       await loadScatter('spawn_interval');
@@ -1253,7 +1392,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       return `<option value="${s.key}">${beaten} ${s.label}  —  Wave ${s.waveCleared ?? '?'} cleared</option>`;
     }).join('');
 
-    ['sessionSelect', 'ttkSessionSelect', 'densitySessionSelect'].forEach(id => {
+    ['sessionSelect', 'ttkSessionSelect', 'densitySessionSelect', 'insightsSessionSelect'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = optionsHTML;
     });
@@ -1263,6 +1402,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       loadDamageSpikes(firstKey);
       loadTTK(firstKey);
       loadEnemyDensity(firstKey);
+      loadInsights(firstKey);
     }
   }
 
@@ -1580,12 +1720,11 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
   async function loadDashboard() {
     await loadSummary();
-    await loadInsights();
     await loadChart();
     await renderActiveTab();
     await loadScatter('spawn_interval');
     await loadWaveAnalysis();
-    await populateSessionDropdown();  
+    await populateSessionDropdown();
     await loadHealthKillRatio();
   }
 
