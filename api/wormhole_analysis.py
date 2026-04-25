@@ -719,9 +719,9 @@ def get_hp_insights():
             insights.append({
                 "category": "deaths", "status": "ok", "icon": "💚",
                 "title":   "No Deaths",
-                "message": ("No deaths this session — you made it through without hitting zero. "
-                            "Since you're an experienced player, this is a good sign that the "
-                            "damage level isn't catastrophically high.")
+                "message": ("No deaths this session. "
+                            "Damage level"
+                            "isn't catastrophically high.")
             })
         elif early_deaths:
             times_str = ", ".join(f"{d['time']}s" for d in early_deaths)
@@ -729,7 +729,7 @@ def get_hp_insights():
                 "category": "deaths", "status": "critical", "icon": "🛑",
                 "title":   f"Early Death{'s' if len(early_deaths) > 1 else ''} ({len(early_deaths)}x)",
                 "message": (f"Died {len(early_deaths)}x during the early game ({times_str}). "
-                            f"Even as an experienced player you died before the 60% mark — "
+                            f"Death occured before the 60% mark which is not a good sign as an experienced player — "
                             f"this strongly suggests waves 1–3 are too punishing. "
                             f"Consider tuning enemy damage, spawn rate, or adding a healing buff early on.")
             })
@@ -739,7 +739,7 @@ def get_hp_insights():
                 "category": "deaths", "status": "warning", "icon": "⚠️",
                 "title":   f"Late-Game Death{'s' if len(late_deaths) > 1 else ''} ({len(late_deaths)}x)",
                 "message": (f"Died {len(late_deaths)}x in the final stretch ({times_str}). "
-                            f"Late deaths are expected and healthy — this signals the endgame "
+                            f"Late deaths are expected and ok — this signals the endgame "
                             f"has real teeth. For a normal player this will feel brutal; "
                             f"watch that it doesn't become unavoidable.")
             })
