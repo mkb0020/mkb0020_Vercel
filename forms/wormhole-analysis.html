@@ -229,6 +229,18 @@
           background: #1a0030;
         }
 
+    #ttkSessionSelect, #densitySessionSelect {
+      background: rgba(38, 0, 75, 0.8);
+      border: 1px solid #7b00ff65;
+      color: var(--MutedGray);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    #ttkSessionSelect option, #densitySessionSelect option { background: #1a0030; }
+
     .chart-label {
       color: var(--MutedGray);
       font-size: 0.82rem;
@@ -385,6 +397,8 @@
   <a href="#hp-timeline">HP Timeline</a> 
   <a href="#relationships">Stat vs Waves Cleared</a>
   <a href="#damageSpikes">Damage Spikes</a>
+  <a href="#ttk-card">Time To Kill</a>
+  <a href="#density-card">Enemy Density</a>
   <a href="#enemyHealth">Enemy Health</a>
   <a href="#wave-analysis">Wave Analysis</a>
   <a href="#insights-card">Insights</a>
@@ -400,17 +414,21 @@
       </div>
       <div class="stat">
         <h2 id="avgWave">-</h2>
-        <p>Avg Wave</p>
+        <p>Average Wave Cleared</p>
       </div>
       <div class="stat">
         <h2 id="winRate">-</h2>
         <p>Win Rate</p>
       </div>
+      <div class="stat">
+        <h2 id="bossEntryHp">-</h2>
+        <p>Average Boss Battle Start HP</p>
+      </div>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
       <div class="card" style="text-align:center;">
-        <p class="chart-label">Avg Kills vs Spawns</p>
+        <p class="chart-label">Average Kills vs Spawns</p>
         <div style="position:relative; max-width: 260px; margin: 0 auto;">
           <canvas id="killsGauge"></canvas>
           <div id="killsGaugeLabel" style="
@@ -425,21 +443,21 @@
         <div style="margin-top: 0.8rem; display:flex; justify-content:center; gap:2rem;">
           <div class="stat">
             <h2 id="avgSpawns" style="color:#7a00ff;">-</h2>
-            <p>Avg Spawns</p>
+            <p>Average Spawns</p>
           </div>
           <div class="stat">
             <h2 id="avgKills" style="color:#00ffff;">-</h2>
-            <p>Avg Kills</p>
+            <p>Average Kills</p>
           </div>
         </div>
         <div style="margin-top:0.6rem;">
-          <p style="color:#aaa; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Avg Time to Kill</p>
+          <p style="color:#aaa; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Average Time to Kill</p>
           <h2 id="avgKillTime" style="color:#FFC7FF; margin:0;">-</h2>
         </div>
       </div>
 
       <div class="card" style="display:flex; flex-direction:column; justify-content:center; gap:1rem;">
-        <p class="chart-label">Avg Special Attacks per Session</p>
+        <p class="chart-label">Average Special Attacks per Session</p>
         <div class="stats" style="flex-wrap:wrap; gap:1rem;">
           <div class="stat">
             <h2 id="avgFractal" style="color:#830CDE;">-</h2>
@@ -461,7 +479,7 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
 
       <div class="card" style="text-align:center;">
-        <p class="chart-label">Avg HP Lost per Session</p>
+        <p class="chart-label">Average HP Lost per Session</p>
         <div style="position:relative; max-width:260px; margin: 0 auto;">
           <canvas id="hpLossGauge"></canvas>
           <div id="hpLossLabel" style="
@@ -475,7 +493,7 @@
       </div>
 
       <div class="card" style="text-align:center;">
-        <p class="chart-label">Avg HP Gained per Session</p>
+        <p class="chart-label">Average HP Gained per Session</p>
         <div style="position:relative; max-width:260px; margin: 0 auto;">
           <canvas id="hpGainGauge"></canvas>
           <div id="hpGainLabel" style="
@@ -507,13 +525,13 @@
       <div class="header-grid">
         <div class="header-col"><h3>🔬 Stat vs Waves Cleared</h3></div>
         <div class="header-col"><select id="scatterStatSelect">
-          <option value="spawn_interval">Avg Enemy Spawn Interval (s)</option>
+          <option value="spawn_interval">Average Enemy Spawn Interval (s)</option>
           <option value="heal_amount">Cosmic Prism Heal Amount</option>
-          <option value="avg_enemy_health">Avg Enemy Health</option>
-          <option value="fractal_interval">Avg Fractal Cascade Interval (s)</option>
-          <option value="slime_interval">Avg Slime Attack Interval (s)</option>
-          <option value="prism_interval">Avg Ocular Prism Interval (s)</option>
-          <option value="avg_time_to_kill">Avg Time to Kill (ms)</option>
+          <option value="avg_enemy_health">Average Enemy Health</option>
+          <option value="fractal_interval">Average Fractal Cascade Interval (s)</option>
+          <option value="slime_interval">Average Slime Attack Interval (s)</option>
+          <option value="prism_interval">Average Ocular Prism Interval (s)</option>
+          <option value="avg_time_to_kill">Average Time to Kill (ms)</option>
         </select></div>
       </div>
       <canvas id="scatterChart" style="margin-top: 1rem;"></canvas>
@@ -532,12 +550,38 @@
         </p>
     </div>
 
+    <div class="card" id="ttk-card"> <!-- TIME TO KILL -->
+      <div class="header-grid">
+        <div class="header-col"><h3>⏱️ Time To Kill</h3></div>
+        <div class="header-col">
+          <select id="ttkSessionSelect">
+            <option value="">Loading sessions…</option>
+          </select>
+        </div>
+      </div>
+      <div id="ttkResults"></div>
+      <p id="ttkEmpty" style="color:#aaa; text-align:center; display:none;">No TTK data for this session.</p>
+    </div>
+
+    <div class="card" id="density-card"> <!-- ENEMY DENSITY -->
+      <div class="header-grid">
+        <div class="header-col"><h3>👾 Enemy Density</h3></div>
+        <div class="header-col">
+          <select id="densitySessionSelect">
+            <option value="">Loading sessions…</option>
+          </select>
+        </div>
+      </div>
+      <canvas id="densityChart"></canvas>
+      <div id="pressureScore"></div>
+    </div>
+
     <div class="card" id="enemyHealth"> <!-- AVERAGE ENEMY HEALTH v KILL RATIO -->
       <h3>⚔️ Average Enemy Health vs Kill Ratio</h3>
       <canvas id="healthKillChart"></canvas>
     </div>
 
-    <div class="card" id="wave-analysis"> <!-- WAVE ANALYSIS -->
+    <div class="card" id="wave-analysis">
       <div class="header-grid">
         <div class="header-col"><h3>📈 Wave Config Analysis</h3></div>
         <div class="header-col">
@@ -565,12 +609,12 @@
       <canvas id="maxEnemiesChart" height="120"></canvas>
 
       <p class="chart-label" style="margin-top:1.5rem;"> <!-- CHART 2 -->
-       👾 Avg Spawn Weight — Cleared vs Not Cleared (selected wave &amp; enemy)
+       👾 Average Spawn Weight — Cleared vs Not Cleared (selected wave &amp; enemy)
       </p>
       <canvas id="weightChart" height="120"></canvas>
 
       <p class="chart-label" style="margin-top:1.5rem;"> <!-- CHART 3 -->
-       🦑 Avg Waves Cleared by First Wave Enemy Appears
+       🦑 Average Waves Cleared by First Wave Enemy Appears
       </p>
       <canvas id="introWaveChart" height="120"></canvas>
     </div>
@@ -695,7 +739,21 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       document.getElementById('avgFractal').textContent    = data.avg_fractal.toFixed(1);
       document.getElementById('avgSlime').textContent      = data.avg_slime.toFixed(1);
       document.getElementById('avgOcular').textContent     = data.avg_ocular.toFixed(1);
-      document.getElementById('winRate').textContent       = (data.win_rate * 100).toFixed(1) + '%';
+
+      const winRatePct = data.win_rate * 100;
+      const winRateEl  = document.getElementById('winRate');
+      winRateEl.textContent = winRatePct.toFixed(1) + '%';
+      winRateEl.style.color = (winRatePct >= 80 && winRatePct <= 95) ? '#58E84C' : '#FF0000';
+
+      const bossHpEl = document.getElementById('bossEntryHp');
+      if (data.avg_boss_entry_hp !== null && data.avg_boss_entry_hp !== undefined) {
+        const bossHp = data.avg_boss_entry_hp;
+        bossHpEl.textContent = bossHp.toFixed(1) + '%';
+        bossHpEl.style.color = (bossHp >= 60 && bossHp <= 90) ? '#58E84C' : '#FF0000';
+      } else {
+        bossHpEl.textContent = 'N/A';
+        bossHpEl.style.color = '#888';
+      }
 
       const killPct = data.avg_spawns > 0
         ? ((data.avg_kills / data.avg_spawns) * 100).toFixed(1)
@@ -849,7 +907,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       if (!result.success) { console.error(result.error); return; }
 
       const datasets = [{
-        label: 'Avg HP (all sessions)',
+        label: 'Average HP (all sessions)',
         data: result.data,
         borderColor: '#00ffff',
         backgroundColor: 'rgba(0,255,255,0.08)',
@@ -1190,15 +1248,22 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     const result = await res.json();
     if (!result.success) return;
 
-    const select = document.getElementById('sessionSelect');
-    select.innerHTML = result.sessions.map(s => {
+    const optionsHTML = result.sessions.map(s => {
       const beaten = s.gameBeaten ? '🏆' : '💀';
-      return `<option value="${s.key}">
-        ${beaten} ${s.label}  —  Wave ${s.waveCleared ?? '?'} cleared
-      </option>`;
+      return `<option value="${s.key}">${beaten} ${s.label}  —  Wave ${s.waveCleared ?? '?'} cleared</option>`;
     }).join('');
 
-    if (result.sessions.length) loadDamageSpikes(result.sessions[0].key);
+    ['sessionSelect', 'ttkSessionSelect', 'densitySessionSelect'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = optionsHTML;
+    });
+
+    if (result.sessions.length) {
+      const firstKey = result.sessions[0].key;
+      loadDamageSpikes(firstKey);
+      loadTTK(firstKey);
+      loadEnemyDensity(firstKey);
+    }
   }
 
   async function loadDamageSpikes(sessionKey) {
@@ -1294,6 +1359,159 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
   document.getElementById('sessionSelect').addEventListener('change', (e) => {
     if (e.target.value) loadDamageSpikes(e.target.value);
+  });
+
+  // ── TIME TO KILL ──────────────────────────────────────────────────────────────
+
+  const TTK_TARGETS = {
+    BASIC:    { min: 2,  max: 4 },
+    FAST:     { min: 1,  max: 3 },
+    TANK:     { min: 5,  max: 8 },
+    FLIMFLAM: { min: 4,  max: 7 }
+  };
+
+  const ENEMY_DISPLAY_NAMES = {
+    BASIC:    'Glip Glop (Basic)',
+    FAST:     'Phil (Fast)',
+    TANK:     'Glork (Tank)',
+    ZIGZAG:   'Zip Zap (ZigZag)',
+    FLIMFLAM: 'Flim Flam'
+  };
+
+  function getTTKStatus(type, ttk) {
+    const t = TTK_TARGETS[type];
+    if (!t) return { color: '#aaaaaa', emoji: '' };
+    if (ttk >= t.min && ttk <= t.max) return { color: '#58E84C', emoji: '💚' };
+    const diff = ttk < t.min ? t.min - ttk : ttk - t.max;
+    if (diff <= 2) return { color: '#ff6200', emoji: '⚠️' };
+    return { color: '#FF0000', emoji: '🛑' };
+  }
+
+  async function loadTTK(sessionKey) {
+    const res    = await fetch(`/api/wormhole/time-to-kill?session=${encodeURIComponent(sessionKey)}`);
+    const result = await res.json();
+    const container = document.getElementById('ttkResults');
+    const empty     = document.getElementById('ttkEmpty');
+
+    if (!result.success || !Object.keys(result.ttk_by_type).length) {
+      container.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    container.innerHTML = Object.entries(result.ttk_by_type).map(([type, data]) => {
+      const { color, emoji } = getTTKStatus(type, data.avg_ttk);
+      const t = TTK_TARGETS[type];
+      const targetStr = t ? `<span style="color:#555; font-size:0.75rem;">(target: ${t.min}–${t.max}s)</span>` : '';
+      const name = ENEMY_DISPLAY_NAMES[type] || type;
+      const n    = data.sample_count;
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                    padding:0.6rem 0.2rem; border-bottom:1px solid rgba(255,255,255,0.07);">
+          <span style="color:#aaa; font-size:0.95rem;">${name} <span style="color:#444; font-size:0.8rem;">(n=${n})</span></span>
+          <span style="font-family:'SpaceLetters'; font-size:1.1rem; color:${color};">
+            ${data.avg_ttk.toFixed(2)}s ${emoji} ${targetStr}
+          </span>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('ttkSessionSelect').addEventListener('change', e => {
+    if (e.target.value) loadTTK(e.target.value);
+  });
+
+  // ── ENEMY DENSITY ─────────────────────────────────────────────────────────────
+
+  let densityChart;
+
+  async function loadEnemyDensity(sessionKey) {
+    const res    = await fetch(`/api/wormhole/enemy-density?session=${encodeURIComponent(sessionKey)}`);
+    const result = await res.json();
+    if (!result.success) { console.error(result.error); return; }
+
+    const ctx = document.getElementById('densityChart').getContext('2d');
+    if (densityChart) densityChart.destroy();
+
+    if (!result.density.length) {
+      document.getElementById('pressureScore').innerHTML =
+        '<p style="color:#aaa; text-align:center;">No density data for this session.</p>';
+      return;
+    }
+
+    const maxX = Math.ceil(Math.max(...result.density.map(p => p.x)) / 10) * 10 || 60;
+
+    densityChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [{
+          label: 'Enemies on Screen',
+          data:  result.density,
+          borderColor:     '#ff00cc',
+          backgroundColor: 'rgba(255, 0, 204, 0.1)',
+          fill:    true,
+          tension: 0.2,
+          pointRadius:      1,
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'nearest', intersect: false },
+        plugins: {
+          legend: { labels: { color: 'white' } },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.raw.y} enemies at ${ctx.raw.x.toFixed(1)}s`
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear', min: 0, max: maxX,
+            title: { display: true, text: 'Elapsed (seconds)', color: '#ccc' },
+            ticks: { color: 'white' },
+            grid:  { color: 'rgba(255,255,255,0.08)' }
+          },
+          y: {
+            min: 0,
+            title: { display: true, text: 'Enemy Count', color: '#ccc' },
+            ticks: { color: 'white', stepSize: 1, callback: v => Number.isInteger(v) ? v : null },
+            grid:  { color: 'rgba(255,255,255,0.08)' }
+          }
+        }
+      }
+    });
+
+    const p = result.pressure_score;
+    const pressureColor = p < 1 ? '#58E84C' : p < 3 ? '#ff6200' : '#FF0000';
+    document.getElementById('pressureScore').innerHTML = `
+      <div style="margin-top:1.2rem; display:flex; flex-wrap:wrap; gap:1.5rem;
+                  justify-content:center; text-align:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:1rem;">
+        <div class="stat">
+          <h2 style="color:#ff4466; font-family:'SpaceLetters';">${result.damage_rate.toFixed(3)}</h2>
+          <p>Damage Rate (hits/s)</p>
+        </div>
+        <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">+</div>
+        <div class="stat">
+          <h2 style="color:#ff00cc; font-family:'SpaceLetters';">${result.avg_density.toFixed(2)}</h2>
+          <p>Average Enemy Density</p>
+        </div>
+        <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">−</div>
+        <div class="stat">
+          <h2 style="color:#00ff88; font-family:'SpaceLetters';">${result.healing_rate.toFixed(3)}</h2>
+          <p>Healing Rate (heals/s)</p>
+        </div>
+        <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">=</div>
+        <div class="stat">
+          <h2 style="color:${pressureColor}; font-family:'SpaceLetters';">${p.toFixed(3)}</h2>
+          <p>Pressure Score</p>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('densitySessionSelect').addEventListener('change', e => {
+    if (e.target.value) loadEnemyDensity(e.target.value);
   });
 
 
