@@ -417,7 +417,6 @@
       letter-spacing: 0.04em;
     }
 
-    /* ── CONFIG INSPECTOR ── */
     #configSessionSelect {
       background: rgba(38, 0, 75, 0.8);
       border: 1px solid #7b00ff65;
@@ -480,7 +479,7 @@
     }
     .config-cell-label {
       font-size: 0.68rem;
-      color: #7070a0;
+      color: #DBE2E9;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       margin-bottom: 0.2rem;
@@ -488,9 +487,9 @@
     .config-cell-value {
       font-family: 'SpaceLetters';
       font-size: 0.95rem;
-      color: #00ffff;
+      color: #c4b5fd;
     }
-    .config-cell-value.null-val { color: #444; font-style: italic; }
+    .config-cell-value.null-val { color: #9090C0; font-style: italic; }
 
     .wave-config-table {
       width: 100%;
@@ -540,7 +539,7 @@
       font-family: 'SpaceLetters';
     }
     #configPlaceholder {
-      color: #555;
+      color: #9090C0;
       font-size: 0.9rem;
       text-align: center;
       padding: 2rem 0;
@@ -757,7 +756,7 @@
     <a href="#density-card">Enemy Density</a>
     <a href="#enemyHealth">Enemy Health</a>
     <a href="#wave-analysis">Wave Analysis</a>
-    <a href="#config-inspector">Config Inspector</a>
+    <a href="#config-inspector">Config Viewer</a>
 </div>
 
   <div class="container">
@@ -1004,9 +1003,9 @@
 
     <div class="card" id="config-inspector"> <!-- CONFIG  -->
       <div class="header-grid" style="align-items:center;">
-        <div class="header-col"><h3>🔧 Config Inspector</h3></div>
+        <div class="header-col"><h3>🔧 Config</h3></div>
         <div class="header-col" style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
-          <button class="config-copy-btn" id="configCopyBtn" style="display:none;" onclick="copyConfigToClipboard()">📋 Copy Config</button>
+          <!--<button class="config-copy-btn" id="configCopyBtn" style="display:none;" onclick="copyConfigToClipboard()">📋 Copy Config</button>-->
           <select id="configSessionSelect">
             <option value="">— Select a session —</option>
           </select>
@@ -2211,18 +2210,18 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
       return `<tr>
         <td><span class="wave-label">Wave ${waveNum}</span></td>
-        <td>${typeTags || '<span style="color:#444">—</span>'}</td>
+        <td>${typeTags || '<span style="color:#9090C0">—</span>'}</td>
         <td><span class="wave-max">${maxEn}</span></td>
       </tr>`;
     }).join('');
 
     return `<div class="config-group">
-      <div class="config-group-title">🌊 Wave Configs</div>
+      <div class="config-group-title">Wave Configs</div>
       <table class="wave-config-table">
         <thead>
           <tr>
             <th style="width:70px">Wave</th>
-            <th>Enemy Types <span style="color:#555; font-size:0.65rem; font-family:monospace;">(name · weight)</span></th>
+            <th>Enemy Types <span style="color:#9090C0; font-size:0.65rem; font-family:monospace;">(name · weight)</span></th>
             <th style="width:90px">Max Enemies</th>
           </tr>
         </thead>
@@ -2263,10 +2262,10 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       `<div style="margin-bottom:1.2rem; display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap;">
          <span style="color:#9090C0; font-size:0.8rem; font-family:'SpaceLetters'; text-transform:uppercase;">Outcome:</span>
          ${outcome}
-         <span style="color:#555; font-size:0.8rem;">Wave ${result.waveCleared ?? '?'} cleared</span>
+         <span style="color:#9090C0; font-size:0.8rem;">Wave ${result.waveCleared ?? '?'} cleared</span>
        </div>`,
 
-      renderConfigGroup('✨ Cosmic Prism', [
+      renderConfigGroup('💎 Cosmic Prism', [
         cfgCell('Heal Amount', c.COSMIC_PRISM.HEAL_AMOUNT, 'HP')
       ].join('')),
 
@@ -2283,21 +2282,22 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
           cfgCell('Prism Cooldown Min',    t.PRISM_COOLDOWN_MIN,    'ms'),
           cfgCell('Prism Cooldown Max',    t.PRISM_COOLDOWN_MAX,    'ms'),
         ] : [];
-        return renderConfigGroup(`🔫 ${name} (${key})`, [
-          cfgCell('Health',          t.HEALTH),
+        //return renderConfigGroup(`🦑 ${name} (${key})`, [
+        return renderConfigGroup(`🦑 ${name}`, [
+        cfgCell('Health',          t.HEALTH),
           cfgCell('Laser Interval',  t.LASER_INTERVAL, 'ms'),
           cfgCell('Combat Duration', t.COMBAT_DURATION, 'ms'),
           ...extras
         ].join(''));
       }),
 
-      renderConfigGroup('🟢 Slime Attack', [
+      renderConfigGroup('Slime Attack', [
         cfgCell('First Attack Min',  c.SLIME_ATTACK.FIRST_ATTACK_MIN, 'ms'),
         cfgCell('First Attack Max',  c.SLIME_ATTACK.FIRST_ATTACK_MAX, 'ms'),
         cfgCell('Repeat Interval',   c.SLIME_ATTACK.REPEAT_INTERVAL,  'ms'),
       ].join('')),
 
-      renderConfigGroup('🌀 Fractal Cascade', [
+      renderConfigGroup('Fractal Cascade', [
         cfgCell('First Delay Min', c.FRACTAL_CASCADE.FIRST_DELAY_MIN, 'ms'),
         cfgCell('First Delay Max', c.FRACTAL_CASCADE.FIRST_DELAY_MAX, 'ms'),
         cfgCell('Cooldown Min',    c.FRACTAL_CASCADE.COOLDOWN_MIN,    'ms'),
