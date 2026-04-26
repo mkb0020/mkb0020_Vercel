@@ -656,17 +656,17 @@
         </div>
         <div style="margin-top: 0.8rem; display:flex; justify-content:center; gap:2rem;">
           <div class="stat">
-            <h2 id="avgSpawns" style="color:#7a00ff;">-</h2>
+            <h2 id="avgSpawns" style="color:#c4b5fd;">-</h2>
             <p>Average Spawns</p>
           </div>
           <div class="stat">
-            <h2 id="avgKills" style="color:#00ffff;">-</h2>
+            <h2 id="avgKills" style="color:#c4b5fd;">-</h2>
             <p>Average Kills</p>
           </div>
         </div>
         <div style="margin-top:0.6rem;">
-          <p style="color:#aaa; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Average Time to Kill</p>
-          <h2 id="avgKillTime" style="color:#FFC7FF; margin:0;">-</h2>
+          <p style="color:#9090C0; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Average Time to Kill</p>
+          <h2 id="avgKillTime" style="color:#830CDE; margin:0;">-</h2>
         </div>
       </div>
 
@@ -1915,11 +1915,11 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
             <p>Config maxEnemies</p>
           </div>
           <div class="insight-stat">
-            <h4 style="color:${parseFloat(s.saturated_pct) > 0.35 ? '#FF6060' : '#aaa'};">${satPct}</h4>
+            <h4 style="color:${parseFloat(s.saturated_pct) > 0.35 ? '#FF0000' : '#00FFFF'};">${satPct}</h4>
             <p>Time at Max Cap</p>
           </div>
           <div class="insight-stat">
-            <h4 style="color:#666; font-size:0.9rem;">${window}</h4>
+            <h4 style="color:#9090C0; font-size:0.9rem;">${window}</h4>
             <p>Wave Window</p>
           </div>
         </div>`;
