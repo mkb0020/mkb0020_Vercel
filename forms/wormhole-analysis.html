@@ -701,7 +701,7 @@
             transform:translateX(-50%);
             font-size:1.3rem;
             font-family:'Orbitron', monospace;
-            color:#ff4466;
+            color:#ff0000;
           ">-</div>
         </div>
       </div>
@@ -715,7 +715,7 @@
             transform:translateX(-50%);
             font-size:1.3rem;
             font-family:'Orbitron', monospace;
-            color:#00ff88;
+            color:#58E84C;
           ">-</div>
         </div>
       </div>
@@ -1048,7 +1048,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       statsBar.style.display = 'flex';
       statsBar.innerHTML = `
         <div class="insight-stat">
-          <h4 style="color:#ff4466;">${s.death_count}</h4>
+          <h4 style="color:#ff0000;">${s.death_count}</h4>
           <p>Deaths</p>
         </div>
         <div class="insight-stat">
@@ -1068,7 +1068,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
           <p>Avg HP (early → late)</p>
         </div>
         <div class="insight-stat">
-          <h4 style="color:#00ff88;">${s.damage_events} / ${s.heal_events}</h4>
+          <h4 style="color:#58E84C;">${s.damage_events} / ${s.heal_events}</h4>
           <p>Dmg / Heal Events</p>
         </div>
         <div class="insight-stat">
@@ -1799,7 +1799,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
         datasets: [{
           label: 'Enemies on Screen',
           data:  result.density,
-          borderColor:     '#ff00cc',
+          borderColor:     '#c71585',
           backgroundColor: 'rgba(255, 0, 204, 0.1)',
           fill:    true,
           tension: 0.2,
@@ -1841,17 +1841,17 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       <div style="margin-top:1.2rem; display:flex; flex-wrap:wrap; gap:1.5rem;
                   justify-content:center; text-align:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:1rem;">
         <div class="stat">
-          <h2 style="color:#ff4466; font-family:'SpaceLetters';">${result.damage_rate.toFixed(3)}</h2>
+          <h2 style="color:#ff0000; font-family:'SpaceLetters';">${result.damage_rate.toFixed(3)}</h2>
           <p>Damage Rate (hits/s)</p>
         </div>
         <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">+</div>
         <div class="stat">
-          <h2 style="color:#ff00cc; font-family:'SpaceLetters';">${result.avg_density.toFixed(2)}</h2>
+          <h2 style="color:#c71585; font-family:'SpaceLetters';">${result.avg_density.toFixed(2)}</h2>
           <p>Average Enemy Density</p>
         </div>
         <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">−</div>
         <div class="stat">
-          <h2 style="color:#00ff88; font-family:'SpaceLetters';">${result.healing_rate.toFixed(3)}</h2>
+          <h2 style="color:#58E84C; font-family:'SpaceLetters';">${result.healing_rate.toFixed(3)}</h2>
           <p>Healing Rate (heals/s)</p>
         </div>
         <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">=</div>
@@ -1903,7 +1903,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
                     justify-content: center; 
                     text-align: center;">
           <div class="insight-stat">
-            <h4 style="color:#ff00cc;">${s.avg_density !== undefined ? s.avg_density.toFixed(2) : '—'}</h4>
+            <h4 style="color:#c71585;">${s.avg_density !== undefined ? s.avg_density.toFixed(2) : '—'}</h4>
             <p>Avg Density${targetLabel ? ' (' + targetLabel + ')' : ''}</p>
           </div>
           <div class="insight-stat">
@@ -1971,7 +1971,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
           label:           'Sessions',
           data:            result.data,
           backgroundColor: 'rgba(255, 0, 204, 0.55)',
-          borderColor:     '#ff00cc',
+          borderColor:     '#c71585',
           pointRadius:     6,
           pointHoverRadius: 9
         }]
