@@ -416,6 +416,148 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
+
+    /* ── CONFIG INSPECTOR ── */
+    #configSessionSelect {
+      background: rgba(38, 0, 75, 0.8);
+      border: 1px solid #7b00ff65;
+      color: var(--MutedGray);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    #configSessionSelect option { background: #1a0030; }
+
+    .config-copy-btn {
+      position: relative;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #7b00ff75;
+      padding: 0.4rem 1.1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'SpaceLetters';
+      color: var(--BohrsBabyBlue);
+      transition: border-color 0.2s, box-shadow 0.2s, color 0.2s;
+      box-shadow: 0 0 18px rgba(140, 60, 255, 0.15);
+      white-space: nowrap;
+    }
+    .config-copy-btn:hover {
+      border-color: rgba(0, 221, 255, 0.32);
+      box-shadow: 0 0 30px rgba(0, 200, 255, 0.1), 0 0 60px rgba(140, 60, 255, 0.15);
+    }
+    .config-copy-btn.copied {
+      border-color: rgba(88, 232, 76, 0.5);
+      color: #58E84C;
+    }
+
+    .config-group {
+      margin-bottom: 1.2rem;
+    }
+    .config-group-title {
+      font-family: 'SpaceLetters';
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ParticlePink);
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid rgba(199, 21, 133, 0.25);
+    }
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.5rem;
+    }
+    .config-cell {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(144, 144, 192, 0.12);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+    }
+    .config-cell-label {
+      font-size: 0.68rem;
+      color: #7070a0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.2rem;
+    }
+    .config-cell-value {
+      font-family: 'SpaceLetters';
+      font-size: 0.95rem;
+      color: #00ffff;
+    }
+    .config-cell-value.null-val { color: #444; font-style: italic; }
+
+    .wave-config-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .wave-config-table th {
+      font-family: 'SpaceLetters';
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--BohrsBabyBlue);
+      padding: 0.4rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(144,144,192,0.2);
+    }
+    .wave-config-table td {
+      padding: 0.45rem 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: #ccc;
+      vertical-align: top;
+    }
+    .wave-config-table tr:last-child td { border-bottom: none; }
+    .wave-config-table .wave-label {
+      font-family: 'SpaceLetters';
+      color: #cc44ff;
+      font-size: 0.82rem;
+    }
+    .wave-tag {
+      display: inline-block;
+      background: rgba(131, 12, 222, 0.25);
+      border: 1px solid rgba(131, 12, 222, 0.4);
+      border-radius: 5px;
+      padding: 0.1rem 0.45rem;
+      font-size: 0.72rem;
+      font-family: 'SpaceLetters';
+      color: #cc88ff;
+      margin: 0.1rem 0.15rem 0.1rem 0;
+    }
+    .wave-weight {
+      color: #58E84C;
+      font-family: 'SpaceLetters';
+      font-size: 0.82rem;
+    }
+    .wave-max {
+      color: #ff6200;
+      font-family: 'SpaceLetters';
+    }
+    #configPlaceholder {
+      color: #555;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 2rem 0;
+    }
+    .config-outcome-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 8px;
+      font-family: 'SpaceLetters';
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .config-outcome-badge.win  { background: rgba(88,232,76,0.12); border: 1px solid rgba(88,232,76,0.35); color: #58E84C; }
+    .config-outcome-badge.loss { background: rgba(255,60,80,0.12);  border: 1px solid rgba(255,60,80,0.35);  color: #FF6060; }
   </style>
 </head>
 
@@ -615,7 +757,7 @@
     <a href="#density-card">Enemy Density</a>
     <a href="#enemyHealth">Enemy Health</a>
     <a href="#wave-analysis">Wave Analysis</a>
-    <a href="#insights-card">Insights</a>
+    <a href="#config-inspector">Config Inspector</a>
 </div>
 
   <div class="container">
@@ -858,6 +1000,21 @@
            border:1px solid rgba(144,144,192,0.2);">
       </div>
       <div id="insights"></div>
+    </div>
+
+    <div class="card" id="config-inspector"> <!-- CONFIG  -->
+      <div class="header-grid" style="align-items:center;">
+        <div class="header-col"><h3>🔧 Config Inspector</h3></div>
+        <div class="header-col" style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+          <button class="config-copy-btn" id="configCopyBtn" style="display:none;" onclick="copyConfigToClipboard()">📋 Copy Config</button>
+          <select id="configSessionSelect">
+            <option value="">— Select a session —</option>
+          </select>
+        </div>
+      </div>
+      <div id="configBody">
+        <p id="configPlaceholder">Select a session above to inspect its config snapshot.</p>
+      </div>
     </div>
 
     <div class="card"> <!-- UPLOAD -->
@@ -1550,7 +1707,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       return `<option value="${s.key}">${beaten} ${s.label}  —  Wave ${s.waveCleared ?? '?'} cleared</option>`;
     }).join('');
 
-    ['sessionSelect', 'ttkSessionSelect', 'densitySessionSelect', 'insightsSessionSelect'].forEach(id => {
+    ['sessionSelect', 'ttkSessionSelect', 'densitySessionSelect', 'insightsSessionSelect', 'configSessionSelect'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = optionsHTML;
     });
@@ -2011,6 +2168,166 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     });
   }
 
+
+  // ── CONFIG INSPECTOR ────────────────────────────────────────────────
+  const ENEMY_DISPLAY = {
+    BASIC:    'Glip Glop',
+    FAST:     'Phil',
+    TANK:     'Glork',
+    ZIGZAG:   'Zip Zap',
+    FLIMFLAM: 'Flim Flam'
+  };
+
+  let _lastConfigRaw = null; 
+
+  function cfgCell(label, value, unit = '') {
+    const isNull = value === null || value === undefined;
+    const display = isNull ? 'N/A' : (value + (unit ? ' ' + unit : ''));
+    return `<div class="config-cell">
+      <div class="config-cell-label">${label}</div>
+      <div class="config-cell-value${isNull ? ' null-val' : ''}">${display}</div>
+    </div>`;
+  }
+
+  function renderConfigGroup(title, cells) {
+    return `<div class="config-group">
+      <div class="config-group-title">${title}</div>
+      <div class="config-grid">${cells}</div>
+    </div>`;
+  }
+
+  function renderWaveConfigs(waveConfigs) {
+    const rows = waveConfigs.map((w, i) => {
+      const waveNum = i + 1;
+      const types   = w.types   ? w.types.split(',').map(t => t.trim())   : [];
+      const weights = w.weights ? w.weights.split(',').map(v => v.trim()) : [];
+      const maxEn   = w.maxEnemies ?? 'N/A';
+
+      const typeTags = types.map((t, idx) => {
+        const displayName = ENEMY_DISPLAY[t] || t;
+        const weight      = weights[idx] !== undefined ? weights[idx] : '?';
+        return `<span class="wave-tag">${displayName}</span><span class="wave-weight" title="weight">${weight}</span>`;
+      }).join(' ');
+
+      return `<tr>
+        <td><span class="wave-label">Wave ${waveNum}</span></td>
+        <td>${typeTags || '<span style="color:#444">—</span>'}</td>
+        <td><span class="wave-max">${maxEn}</span></td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="config-group">
+      <div class="config-group-title">🌊 Wave Configs</div>
+      <table class="wave-config-table">
+        <thead>
+          <tr>
+            <th style="width:70px">Wave</th>
+            <th>Enemy Types <span style="color:#555; font-size:0.65rem; font-family:monospace;">(name · weight)</span></th>
+            <th style="width:90px">Max Enemies</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }
+
+  async function loadConfigInspector(sessionKey) {
+    const body      = document.getElementById('configBody');
+    const copyBtn   = document.getElementById('configCopyBtn');
+    const placeholder = document.getElementById('configPlaceholder');
+
+    if (!sessionKey) {
+      body.innerHTML = '<p id="configPlaceholder" style="color:#555;font-size:0.9rem;text-align:center;padding:2rem 0;">Select a session above to inspect its config snapshot.</p>';
+      copyBtn.style.display = 'none';
+      _lastConfigRaw = null;
+      return;
+    }
+
+    body.innerHTML = '<p style="color:#888;font-size:0.9rem;text-align:center;padding:2rem 0;">Loading config…</p>';
+
+    const res    = await fetch(`/api/wormhole/session-config?session=${encodeURIComponent(sessionKey)}`);
+    const result = await res.json();
+
+    if (!result.success) {
+      body.innerHTML = `<p style="color:#FF6060;text-align:center;">Error: ${result.error}</p>`;
+      return;
+    }
+
+    _lastConfigRaw = result.config;
+    const c = result.config;
+    const outcome = result.gameBeaten
+      ? `<span class="config-outcome-badge win">🏆 Game Beaten</span>`
+      : `<span class="config-outcome-badge loss">💀 ${result.runOutcome || 'Defeated'} — Wave ${result.waveCleared ?? '?'}</span>`;
+
+    const html = [
+      `<div style="margin-bottom:1.2rem; display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap;">
+         <span style="color:#9090C0; font-size:0.8rem; font-family:'SpaceLetters'; text-transform:uppercase;">Outcome:</span>
+         ${outcome}
+         <span style="color:#555; font-size:0.8rem;">Wave ${result.waveCleared ?? '?'} cleared</span>
+       </div>`,
+
+      renderConfigGroup('✨ Cosmic Prism', [
+        cfgCell('Heal Amount', c.COSMIC_PRISM.HEAL_AMOUNT, 'HP')
+      ].join('')),
+
+      renderConfigGroup('👾 Enemy Spawning', [
+        cfgCell('Spawn Interval Min', c.ENEMIES.SPAWN_INTERVAL_MIN, 's'),
+        cfgCell('Spawn Interval Max', c.ENEMIES.SPAWN_INTERVAL_MAX, 's'),
+      ].join('')),
+
+      ...Object.entries(c.ENEMIES.TYPES).map(([key, t]) => {
+        const name = ENEMY_DISPLAY[key] || key;
+        const extras = key === 'FLIMFLAM' ? [
+          cfgCell('Prism First Delay Min', t.PRISM_FIRST_DELAY_MIN, 'ms'),
+          cfgCell('Prism First Delay Max', t.PRISM_FIRST_DELAY_MAX, 'ms'),
+          cfgCell('Prism Cooldown Min',    t.PRISM_COOLDOWN_MIN,    'ms'),
+          cfgCell('Prism Cooldown Max',    t.PRISM_COOLDOWN_MAX,    'ms'),
+        ] : [];
+        return renderConfigGroup(`🔫 ${name} (${key})`, [
+          cfgCell('Health',          t.HEALTH),
+          cfgCell('Laser Interval',  t.LASER_INTERVAL, 'ms'),
+          cfgCell('Combat Duration', t.COMBAT_DURATION, 'ms'),
+          ...extras
+        ].join(''));
+      }),
+
+      renderConfigGroup('🟢 Slime Attack', [
+        cfgCell('First Attack Min',  c.SLIME_ATTACK.FIRST_ATTACK_MIN, 'ms'),
+        cfgCell('First Attack Max',  c.SLIME_ATTACK.FIRST_ATTACK_MAX, 'ms'),
+        cfgCell('Repeat Interval',   c.SLIME_ATTACK.REPEAT_INTERVAL,  'ms'),
+      ].join('')),
+
+      renderConfigGroup('🌀 Fractal Cascade', [
+        cfgCell('First Delay Min', c.FRACTAL_CASCADE.FIRST_DELAY_MIN, 'ms'),
+        cfgCell('First Delay Max', c.FRACTAL_CASCADE.FIRST_DELAY_MAX, 'ms'),
+        cfgCell('Cooldown Min',    c.FRACTAL_CASCADE.COOLDOWN_MIN,    'ms'),
+        cfgCell('Cooldown Max',    c.FRACTAL_CASCADE.COOLDOWN_MAX,    'ms'),
+      ].join('')),
+
+      renderWaveConfigs(c.WAVE_CONFIGS),
+    ].join('');
+
+    body.innerHTML = html;
+    copyBtn.style.display = 'inline-flex';
+  }
+
+  function copyConfigToClipboard() {
+    if (!_lastConfigRaw) return;
+    const text = JSON.stringify(_lastConfigRaw, null, 2);
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('configCopyBtn');
+      btn.textContent = '✅ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '📋 Copy Config';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  document.getElementById('configSessionSelect').addEventListener('change', e => {
+    loadConfigInspector(e.target.value);
+  });
 
   async function loadDashboard() {
     await loadSummary();

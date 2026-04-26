@@ -538,6 +538,97 @@ def get_sessions():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@wormhole_analysis_bp.route('/api/wormhole/session-config', methods=['GET'])
+def get_session_config():
+    """Returns all config snapshot values for a specific session."""
+    session_key = request.args.get("session")
+    if not session_key:
+        return jsonify({"success": False, "error": "Missing session param"}), 400
+
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT
+                        "COSMIC_PRISM_HEAL_AMOUNT",
+                        "ENEMIES_SPAWN_INTERVAL_MIN", "ENEMIES_SPAWN_INTERVAL_MAX",
+                        "ENEMIES_TYPES_BASIC_HEALTH", "ENEMIES_TYPES_BASIC_LASER_INTERVAL", "ENEMIES_TYPES_BASIC_COMBAT_DURATION",
+                        "ENEMIES_TYPES_FAST_HEALTH",  "ENEMIES_TYPES_FAST_LASER_INTERVAL",  "ENEMIES_TYPES_FAST_COMBAT_DURATION",
+                        "ENEMIES_TYPES_TANK_HEALTH",  "ENEMIES_TYPES_TANK_LASER_INTERVAL",  "ENEMIES_TYPES_TANK_COMBAT_DURATION",
+                        "ENEMIES_TYPES_ZIGZAG_HEALTH","ENEMIES_TYPES_ZIGZAG_LASER_INTERVAL","ENEMIES_TYPES_ZIGZAG_COMBAT_DURATION",
+                        "ENEMIES_TYPES_FLIMFLAM_HEALTH","ENEMIES_TYPES_FLIMFLAM_LASER_INTERVAL","ENEMIES_TYPES_FLIMFLAM_COMBAT_DURATION",
+                        "ENEMIES_TYPES_FLIMFLAM_PRISM_FIRST_DELAY_MIN","ENEMIES_TYPES_FLIMFLAM_PRISM_FIRST_DELAY_MAX",
+                        "ENEMIES_TYPES_FLIMFLAM_PRISM_COOLDOWN_MIN","ENEMIES_TYPES_FLIMFLAM_PRISM_COOLDOWN_MAX",
+                        "SLIME_ATTACK_FIRST_ATTACK_MIN","SLIME_ATTACK_FIRST_ATTACK_MAX","SLIME_ATTACK_REPEAT_INTERVAL",
+                        "FRACTAL_CASCADE_FIRST_DELAY_MIN","FRACTAL_CASCADE_FIRST_DELAY_MAX",
+                        "FRACTAL_CASCADE_COOLDOWN_MIN","FRACTAL_CASCADE_COOLDOWN_MAX",
+                        "WAVE_CONFIGS_wave1_types","WAVE_CONFIGS_wave1_weights","WAVE_CONFIGS_wave1_maxEnemies",
+                        "WAVE_CONFIGS_wave2_types","WAVE_CONFIGS_wave2_weights","WAVE_CONFIGS_wave2_maxEnemies",
+                        "WAVE_CONFIGS_wave3_types","WAVE_CONFIGS_wave3_weights","WAVE_CONFIGS_wave3_maxEnemies",
+                        "WAVE_CONFIGS_wave4_types","WAVE_CONFIGS_wave4_weights","WAVE_CONFIGS_wave4_maxEnemies",
+                        "WAVE_CONFIGS_wave5_types","WAVE_CONFIGS_wave5_weights","WAVE_CONFIGS_wave5_maxEnemies",
+                        "waveCleared", "gameBeaten", "runOutcome"
+                    FROM wormhole_session_summary
+                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                """, (session_key,))
+                row = cur.fetchone()
+
+        if not row:
+            return jsonify({"success": False, "error": "Session not found"}), 404
+
+        def val(v):
+            return float(v) if v is not None else None
+
+        config = {
+            "COSMIC_PRISM": {
+                "HEAL_AMOUNT": val(row[0])
+            },
+            "ENEMIES": {
+                "SPAWN_INTERVAL_MIN": val(row[1]),
+                "SPAWN_INTERVAL_MAX": val(row[2]),
+                "TYPES": {
+                    "BASIC":    { "HEALTH": val(row[3]),  "LASER_INTERVAL": val(row[4]),  "COMBAT_DURATION": val(row[5])  },
+                    "FAST":     { "HEALTH": val(row[6]),  "LASER_INTERVAL": val(row[7]),  "COMBAT_DURATION": val(row[8])  },
+                    "TANK":     { "HEALTH": val(row[9]),  "LASER_INTERVAL": val(row[10]), "COMBAT_DURATION": val(row[11]) },
+                    "ZIGZAG":   { "HEALTH": val(row[12]), "LASER_INTERVAL": val(row[13]), "COMBAT_DURATION": val(row[14]) },
+                    "FLIMFLAM": {
+                        "HEALTH": val(row[15]), "LASER_INTERVAL": val(row[16]), "COMBAT_DURATION": val(row[17]),
+                        "PRISM_FIRST_DELAY_MIN": val(row[18]), "PRISM_FIRST_DELAY_MAX": val(row[19]),
+                        "PRISM_COOLDOWN_MIN":    val(row[20]), "PRISM_COOLDOWN_MAX":    val(row[21])
+                    }
+                }
+            },
+            "SLIME_ATTACK": {
+                "FIRST_ATTACK_MIN": val(row[22]), "FIRST_ATTACK_MAX": val(row[23]),
+                "REPEAT_INTERVAL":  val(row[24])
+            },
+            "FRACTAL_CASCADE": {
+                "FIRST_DELAY_MIN": val(row[25]), "FIRST_DELAY_MAX": val(row[26]),
+                "COOLDOWN_MIN":    val(row[27]), "COOLDOWN_MAX":    val(row[28])
+            },
+            "WAVE_CONFIGS": [
+                { "types": row[29], "weights": row[30], "maxEnemies": row[31] },
+                { "types": row[32], "weights": row[33], "maxEnemies": row[34] },
+                { "types": row[35], "weights": row[36], "maxEnemies": row[37] },
+                { "types": row[38], "weights": row[39], "maxEnemies": row[40] },
+                { "types": row[41], "weights": row[42], "maxEnemies": row[43] }
+            ]
+        }
+
+        return jsonify({
+            "success":    True,
+            "session":    session_key,
+            "waveCleared": row[44],
+            "gameBeaten":  row[45],
+            "runOutcome":  row[46],
+            "config":     config
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @wormhole_analysis_bp.route('/api/wormhole/damage-spikes', methods=['GET'])
 def get_damage_spikes():
     """HP timeline + special attack timestamps for one session."""
