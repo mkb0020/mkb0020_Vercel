@@ -1892,9 +1892,16 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
         : '—';
 
       statsBar = `
-        <div style="display:flex; flex-wrap:wrap; gap:1.2rem; margin-bottom:0.9rem;
-             padding:0.75rem 1rem; background:rgba(255,255,255,0.04); border-radius:8px;
-             border:1px solid rgba(144,144,192,0.18);">
+          <div style="margin-bottom:0.9rem; 
+                    padding:0.85rem 1rem; 
+                    background:rgba(255,255,255,0.04); 
+                    border-radius:10px;
+                    border:1px solid rgba(144,144,192,0.18);
+                    display: flex; 
+                    flex-wrap: wrap; 
+                    gap: 1.4rem; 
+                    justify-content: center; 
+                    text-align: center;">
           <div class="insight-stat">
             <h4 style="color:#ff00cc;">${s.avg_density !== undefined ? s.avg_density.toFixed(2) : '—'}</h4>
             <p>Avg Density${targetLabel ? ' (' + targetLabel + ')' : ''}</p>
