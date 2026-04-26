@@ -20,7 +20,7 @@
     .section-nav {
       position: sticky;
       top: 0px; 
-      z-index: 1000;
+      z-index: 100;
       display: flex;
       justify-content: center;
       gap: 0.6rem;
@@ -71,6 +71,29 @@
       border-color: rgba(0, 221, 255, 0.32);
       box-shadow: 0 0 30px rgba(0, 200, 255, 0.1), 0 0 60px rgba(140, 60, 255, 0.15);
       outline: none;
+    }
+
+
+    .modal-card {
+      background: linear-gradient(135deg, 
+          rgba(66, 4, 107, 0.4), 
+          rgba(60, 2, 131, 0.4));
+      border: 1px solid rgba(144, 144, 192, 0.105);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(50px);
+      box-shadow: 
+        0 20px 50px -15px rgba(131,12,222, 0.201),
+        inset 0 1px 0 rgba(255, 255, 255, 0.135);
+    }
+
+    .modal-card h3 {
+      color: var(--ParticlePink);
+    }
+
+    .modal-card strong {
+      color: var(--ParticlePink);
     }
 
     .container {
@@ -438,7 +461,7 @@
           <div class="question-mark">?</div>
         </button>
         <div class="dropdown-menu" id="dropdownMenu">
-          <!--<button id="openMainHelp">About </button>-->
+          <button id="openMainHelp">About </button>
           <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
         </div>
       </div>
@@ -451,9 +474,113 @@
         <h1 class="modal-title">WORMHOLE ANALYSIS</h1>
         <button class="modal-close" id="closeModal">X</button>
       </div>
-      <div class="modal-body">
-        <h3>PLACEHOLDER!</h3>
-      </div>
+          <div class="modal-body">
+            <div class="modal-card"><h3>About This Analysis</h3>
+              <p>This project is a data-driven analysis of gameplay from my game <a href="https://mkb0020.itch.io/wormholes" style="text-decoration: none;"><strong style="color: #00FFFF">Wormhole's All the Way Down</strong></a>, designed to explore how telemetry can be used to evaluate and balance game systems in real time.</p>
+            </div>
+            <div class="modal-card"><h3>Purpose</h3>
+              <p>The goal of this analysis is to answer a core game design question:</p>
+              <blockquote><p><em>“Is the game challenging, fair, and engaging?”</em></p></blockquote>
+              <p>Rather than relying purely on intuition, this project uses structured gameplay data to identify patterns in difficulty, player performance, and system behavior. The insights gathered here help guide balancing decisions such as enemy tuning, spawn rates, healing effectiveness, and pacing. </p>
+            </div>
+            <div class="modal-card"><h3>Metrics &amp; Signals Analyzed</h3>
+              <p>Each play session is broken down into both <strong>summary metrics</strong> and <strong>event-level data</strong>, allowing for both high-level trends and detailed behavioral analysis.</p>
+              <p>Key metrics include:</p>
+              <ul>
+                <li><strong>Win Rate &amp; Wave Progression</strong><br />
+                  Used to evaluate overall difficulty and identify where players struggle.
+                </li>
+                <li><strong>Damage Taken vs Healing</strong><br />
+                  Helps assess survivability and whether sustain mechanics are balanced.
+                </li>
+                <li><strong>Time-to-Kill (TTK)</strong><br />
+                  Measures how long enemies take to defeat, indicating whether enemies feel too weak or too tanky.
+                </li>
+                <li>
+                  <strong>Enemy Spawn vs Kill Rates</strong><br />
+                  Highlights whether players are being overwhelmed or maintaining control.
+                </li>
+                <li>
+                  <strong>Boss Entry State (HP &amp; Lives)</strong><br />
+                  Provides insight into how punishing earlier phases are before the final challenge.
+                </li>
+                <li>
+                  <strong>Damage Spikes &amp; Event Pressure</strong><br />
+                  Correlates sudden increases in player damage with special mechanics (e.g., enemy abilities), helping identify unfair or overly punishing moments.
+                </li>
+                <li>
+                  <strong>Pressure Score (Custom Metric)</strong><br />
+                  A composite metric combining:
+                  <ul>
+                    <li>Damage Rate</li>
+                    <li>Enemy Density</li>
+                    <li>Healing Rate</li>
+                  </ul>
+                  This is used to quantify how “intense” the game feels over time and ensure a healthy balance between tension and recovery.
+                </li>
+              </ul>
+            </div>
+            <div class="modal-card"><h3>Playtesting Context</h3>
+              <p>All data currently displayed was collected from <strong>solo playtesting (the developer)</strong>.</p>
+              <p>Because I have full knowledge of:</p>
+              <ul>
+                <li>enemy behaviors</li>
+                <li>spawn timing</li>
+                <li>special mechanics</li>
+              </ul>
+              <p>…this introduces a natural <strong>skill and information bias</strong>.</p>
+              <p>To compensate, the analysis is interpreted as an <strong>upper-bound (optimal play)</strong> rather than an average player experience. Target balance ranges are adjusted accordingly—for example:</p>
+              <ul>
+                <li>A higher expected win rate (≈80–95%)</li>
+                <li>Stronger boss entry conditions</li>
+                <li>Lower baseline damage intake</li>
+              </ul>
+            </div>
+            <div class="modal-card"><h3>Data Collection Method</h3>
+              <p>Gameplay data is captured using a custom-built <strong>JavaScript session recorder</strong> integrated directly into the game.</p>
+              <p>For each play session, the system records:</p>
+              <ul>
+                <li>
+                  <strong>Config Snapshot</strong><br />
+                  A full snapshot of game parameters at runtime (enemy stats, spawn rates, wave configurations, etc.)<br />
+                  → Ensures all analysis is tied to the exact version of the game being tested.
+                </li>
+                <li>
+                  <strong>Event Stream</strong><br />
+                  Timestamped gameplay events such as:
+                  <ul>
+                    <li>Enemy spawns &amp; kills</li>
+                    <li>Player damage &amp; healing</li>
+                    <li>Wave transitions</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Session Summary</strong><br />
+                  Aggregated metrics computed at the end of each run for fast querying and visualization.
+                </li>
+              </ul>
+              <p> All data is stored in a database and visualized in real time through this dashboard, allowing for continuous iteration and balance tuning.</p>
+            </div>
+            <div class="modal-card"><h3>Why This Matters</h3>
+              <p>
+                This project demonstrates how game design decisions can be informed by <strong>data, not just intuition</strong>. By combining telemetry, visualization, and lightweight analysis, it becomes possible to:
+              </p>
+              <ul>
+                <li>Identify balance issues early</li>
+                <li>Validate design changes objectively</li>
+                <li>Create a smoother and more engaging player experience</li>
+              </ul>
+              <p>It also serves as a practical example of integrating:</p>
+              <ul>
+                <li>Frontend visualization</li>
+                <li>Backend APIs</li>
+                <li>Database-driven analytics</li>
+                <li>Real-time data pipelines</li>
+              </ul>
+              <p>into a single cohesive system.</p>
+            </div>
+            <div class="modal-card"><p><em>This analysis is ongoing and evolves as more gameplay data is collected.</em></p></div>
+          </div>
     </div>
   </div>
 
