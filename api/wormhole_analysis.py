@@ -14,6 +14,7 @@ wormhole_analysis_bp = Blueprint('wormhole_analysis', __name__)
 def upload_session():
     try:
         data = request.get_json()
+
         meta        = data.get("meta", {})
         config      = data.get("configSnapshot", {})
         summary     = data.get("summary", {})
@@ -136,7 +137,7 @@ def upload_session():
                         event.get("amount"),
                         event.get("hp"),
                         event.get("lives"),
-                        event.get("id"),       
+                        event.get("id"),        
                         event.get("enemyType")
                     ))
 
@@ -146,6 +147,7 @@ def upload_session():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 @wormhole_analysis_bp.route('/api/wormhole/summary', methods=['GET'])
 def get_summary():
@@ -381,6 +383,7 @@ def get_scatter():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     
+
 @wormhole_analysis_bp.route('/api/wormhole/wave-analysis', methods=['GET'])
 def get_wave_analysis():
     try:
@@ -500,6 +503,7 @@ def get_wave_analysis():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
 @wormhole_analysis_bp.route('/api/wormhole/sessions', methods=['GET'])
 def get_sessions():
     """Returns all sessions for the dropdown, newest first."""
@@ -532,6 +536,7 @@ def get_sessions():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 @wormhole_analysis_bp.route('/api/wormhole/damage-spikes', methods=['GET'])
 def get_damage_spikes():
@@ -601,6 +606,7 @@ def get_damage_spikes():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
 @wormhole_analysis_bp.route('/api/wormhole/hp-insights', methods=['GET'])
 def get_hp_insights():
     """Analyze HP timeline for a session and return structured, meaningful insights."""
@@ -638,7 +644,7 @@ def get_hp_insights():
         timeline = [(float(r[0]), int(r[1])) for r in hp_rows if r[0] is not None]
         total_duration = timeline[-1][0] if timeline else 1.0
 
-        # ── 1. DEATH DETECTION ─────────────────────────────────────────────────
+        # ── 1. DEATH DETECTION 
         DEATH_FROM  = 15   
         DEATH_TO    = 85   
         deaths = []
@@ -651,7 +657,7 @@ def get_hp_insights():
                     "pct_through": round(t_curr / total_duration, 2)
                 })
 
-        # ── 2. SPIKE DETECTION ─────────────────────────────────────────────────
+        # ── 2. SPIKE DETECTION 
         SPIKE_THRESHOLD = 15
         MEGA_THRESHOLD  = 25
         spikes = []
@@ -659,14 +665,14 @@ def get_hp_insights():
             t_prev, hp_prev = timeline[i - 1]
             t_curr, hp_curr = timeline[i]
             drop = hp_prev - hp_curr
-            if drop >= SPIKE_THRESHOLD and not (hp_prev <= DEATH_FROM and hp_curr >= DEATH_TO):
+            if drop >= SPIKE_THRESHOLD and not (hp_prev <= DEATH_FROM and hp_curr >= DEATH_TO): # EXCLUDE DEATH-RESPAWN JUMPS
                 spikes.append({
                     "time":    round(t_curr, 1),
                     "drop":    drop,
                     "is_mega": drop >= MEGA_THRESHOLD
                 })
 
-        # ── 3. OVERALL TREND - LINEAR REGRESSION ───────────────────────────────
+        # ── 3. OVERALL TREND (LINEAR REGRESSION ) 
         n      = len(timeline)
         times  = [p[0] for p in timeline]
         hps    = [p[1] for p in timeline]
@@ -676,14 +682,14 @@ def get_hp_insights():
         den    = sum((times[i] - mean_t) ** 2                 for i in range(n))
         slope  = num / den if den != 0 else 0  
 
-        # ── 4. EARLY vs LATE PRESSURE ──────────────────────────────────────────
+        # ── 4. EARLY vs LATE PRESSURE 
         mid       = total_duration / 2
         early_hps = [hp for t, hp in timeline if t <  mid]
         late_hps  = [hp for t, hp in timeline if t >= mid]
         early_avg = sum(early_hps) / len(early_hps) if early_hps else 0
         late_avg  = sum(late_hps)  / len(late_hps)  if late_hps  else 0
 
-        # ── 5. FLAT PERIOD DETECTION ───────────────────────────────────────────
+        # ── 5. FLAT PERIOD DETECTION 
         FLAT_WINDOW = 20   
         FLAT_RANGE  = 5    
         flat_periods = []
@@ -701,21 +707,20 @@ def get_hp_insights():
                     })
                 w_start = i
 
-        # ── 6. DAMAGE vs HEALING BALANCE ───────────────────────────────────────
         dmg_events  = int(damage_count  or 0)
         heal_events = int(heal_count    or 0)
 
-        # ── BUILD INSIGHTS ─────────────────────────────────────────────────────
         insights = []
+
         early_deaths = [d for d in deaths if d["pct_through"] < 0.60]
         late_deaths  = [d for d in deaths if d["pct_through"] >= 0.60]
         if not deaths:
             insights.append({
                 "category": "deaths", "status": "ok", "icon": "💚",
                 "title":   "No Deaths",
-                "message": ("No deaths this session. "
-                            "Damage level"
-                            "isn't catastrophically high.")
+                "message": ("No deaths this session — you made it through without hitting zero. "
+                            "Since you're an experienced player, this is a good sign that the "
+                            "damage level isn't catastrophically high.")
             })
         elif early_deaths:
             times_str = ", ".join(f"{d['time']}s" for d in early_deaths)
@@ -723,7 +728,7 @@ def get_hp_insights():
                 "category": "deaths", "status": "critical", "icon": "🛑",
                 "title":   f"Early Death{'s' if len(early_deaths) > 1 else ''} ({len(early_deaths)}x)",
                 "message": (f"Died {len(early_deaths)}x during the early game ({times_str}). "
-                            f"Death occured before the 60% mark which is not a good sign as an experienced player — "
+                            f"Even as an experienced player you died before the 60% mark — "
                             f"this strongly suggests waves 1–3 are too punishing. "
                             f"Consider tuning enemy damage, spawn rate, or adding a healing buff early on.")
             })
@@ -733,7 +738,7 @@ def get_hp_insights():
                 "category": "deaths", "status": "warning", "icon": "⚠️",
                 "title":   f"Late-Game Death{'s' if len(late_deaths) > 1 else ''} ({len(late_deaths)}x)",
                 "message": (f"Died {len(late_deaths)}x in the final stretch ({times_str}). "
-                            f"Late deaths are expected and ok — this signals the endgame "
+                            f"Late deaths are expected and healthy — this signals the endgame "
                             f"has real teeth. For a normal player this will feel brutal; "
                             f"watch that it doesn't become unavoidable.")
             })
@@ -910,6 +915,188 @@ def get_hp_insights():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
+
+@wormhole_analysis_bp.route('/api/wormhole/density-insights', methods=['GET'])
+def get_density_insights():
+    """Per-wave density insight for a specific session and wave number."""
+    session_key = request.args.get("session")
+    wave_str    = request.args.get("wave")
+    if not session_key or not wave_str:
+        return jsonify({"success": False, "error": "Missing session or wave param"}), 400
+    try:
+        wave_num = int(wave_str)
+        if wave_num not in range(1, 6):
+            return jsonify({"success": False, "error": "Wave must be 1–5"}), 400
+    except ValueError:
+        return jsonify({"success": False, "error": "Invalid wave param"}), 400
+
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                max_col = f"WAVE_CONFIGS_wave{wave_num}_maxEnemies"
+                cur.execute(f"""
+                    SELECT "generatedAt", "waveCleared", "playerDamageCount", "hpHealCount",
+                           "{max_col}"
+                    FROM wormhole_session_summary
+                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                """, (session_key,))
+                row = cur.fetchone()
+                if not row:
+                    return jsonify({"success": False, "error": "Session not found"}), 404
+                generated_at, wave_cleared, damage_count, heal_count, cfg_max_enemies = row
+                wave_cleared = int(wave_cleared or 5)
+
+                cur.execute("""
+                    SELECT EXTRACT(EPOCH FROM (MAX("time") - MIN("time")))
+                    FROM wormhole_events WHERE "session" = %s
+                """, (session_key,))
+                dur_row  = cur.fetchone()
+                duration = float(dur_row[0] or 1) if dur_row and dur_row[0] else 1.0
+
+                cur.execute("""
+                    SELECT EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed, "type"
+                    FROM wormhole_events
+                    WHERE "session" = %s AND "type" IN ('enemy_spawn','enemy_killed')
+                    ORDER BY "time" ASC
+                """, (generated_at, session_key))
+                event_rows = cur.fetchall()
+
+        total_waves = max(wave_cleared, wave_num)
+        wave_duration = duration / total_waves
+        w_start = wave_duration * (wave_num - 1)
+        w_end   = wave_duration *  wave_num
+
+        density_in_wave = []
+        count = 0
+        for elapsed_raw, event_type in event_rows:
+            elapsed = float(elapsed_raw)
+            if event_type == 'enemy_spawn':
+                count += 1
+            elif event_type == 'enemy_killed':
+                count = max(0, count - 1)
+            if w_start <= elapsed <= w_end:
+                density_in_wave.append(count)
+
+        if not density_in_wave:
+            return jsonify({
+                "success": True,
+                "session": session_key,
+                "wave": wave_num,
+                "insight": {
+                    "status": "warning", "icon": "⚠️",
+                    "title": "No Event Data for This Wave",
+                    "message": ("No enemy spawn/kill events were recorded in this wave window. "
+                                "The wave may not have been reached, or the timing estimate is off.")
+                },
+                "stats": {}
+            })
+
+        avg_density = sum(density_in_wave) / len(density_in_wave)
+        max_density = max(density_in_wave)
+        cfg_max     = int(cfg_max_enemies) if cfg_max_enemies is not None else None
+
+        saturated_pct = (sum(1 for d in density_in_wave if cfg_max and d >= cfg_max)
+                         / len(density_in_wave)) if cfg_max else 0.0
+
+        WAVE_TARGETS = {
+            1: {"min_density": 1.0, "max_density": 2.5, "label": "gentle warm-up"},
+            2: {"min_density": 1.5, "max_density": 3.5, "label": "escalating"},
+            3: {"min_density": 2.0, "max_density": 4.0, "label": "mid-game pressure"},
+            4: {"min_density": 2.5, "max_density": 5.0, "label": "high pressure"},
+            5: {"min_density": 3.0, "max_density": 6.0, "label": "intense endgame"},
+        }
+        target = WAVE_TARGETS[wave_num]
+
+        cfg_str = f" (config maxEnemies: {cfg_max})" if cfg_max is not None else ""
+
+        if avg_density < target["min_density"]:
+            status = "warning"
+            icon   = "⚠️"
+            title  = f"Wave {wave_num} Feels Too Sparse"
+            if cfg_max is not None and avg_density < cfg_max * 0.5:
+                message = (
+                    f"Average density in wave {wave_num} is only {avg_density:.1f} enemies on screen{cfg_str}. "
+                    f"The maxEnemies cap of {cfg_max} is almost never being reached — "
+                    f"either the spawn interval is too slow or enemies are dying before new ones arrive. "
+                    f"For a {target['label']} feel, you want avg density around {target['min_density']}–{target['max_density']}. "
+                    f"Consider raising the spawn rate rather than maxEnemies, since the cap isn't the bottleneck."
+                )
+            else:
+                message = (
+                    f"Average density in wave {wave_num} is {avg_density:.1f}{cfg_str}. "
+                    f"Target for this wave ({target['label']}) is {target['min_density']}–{target['max_density']} avg enemies. "
+                    f"The screen feels emptier than it should — players may find this wave too relaxing."
+                )
+        elif avg_density > target["max_density"]:
+            status = "critical"
+            icon   = "🛑"
+            title  = f"Wave {wave_num} May Be Overcrowded"
+            if saturated_pct > 0.4:
+                message = (
+                    f"Screen was at max capacity ({cfg_max} enemies) for {saturated_pct:.0%} of wave {wave_num}{cfg_str}. "
+                    f"When the screen is constantly full, new spawns are suppressed and the wave loses rhythm — "
+                    f"it just becomes a wall of enemies with no ebb and flow. "
+                    f"Consider lowering maxEnemies for wave {wave_num} to around {max(1, (cfg_max or 6) - 2)}, "
+                    f"or increasing kill incentives so the density cycles more naturally."
+                )
+            else:
+                message = (
+                    f"Average density of {avg_density:.1f} in wave {wave_num} is above the target of "
+                    f"{target['max_density']}{cfg_str}. This wave might feel relentless — "
+                    f"especially for a normal player who hasn't memorized patterns. "
+                    f"A peak density of {max_density} was hit at points. "
+                    f"Consider trimming maxEnemies slightly to give players a moment to breathe between bursts."
+                )
+        else:
+            status = "ok"
+            icon   = "💚"
+            title  = f"Wave {wave_num} Density Looks Right"
+            sat_note = ""
+            if cfg_max and saturated_pct > 0.25:
+                sat_note = (
+                    f" The cap of {cfg_max} was hit for {saturated_pct:.0%} of the wave — "
+                    f"that's on the high side; a slight reduction could create more satisfying burst moments."
+                )
+            elif cfg_max and saturated_pct < 0.05:
+                sat_note = (
+                    f" The maxEnemies cap of {cfg_max} was rarely reached, "
+                    f"so spawn rate is the real pacing driver here — which is fine."
+                )
+            message = (
+                f"Average density of {avg_density:.1f} enemies on screen fits the {target['label']} feel "
+                f"expected from wave {wave_num} (target: {target['min_density']}–{target['max_density']}){cfg_str}. "
+                f"Peak density hit: {max_density}.{sat_note}"
+            )
+
+        stats = {
+            "avg_density":    round(avg_density, 2),
+            "max_density":    max_density,
+            "saturated_pct":  round(saturated_pct, 3),
+            "cfg_max_enemies": cfg_max,
+            "wave_window_start": round(w_start, 1),
+            "wave_window_end":   round(w_end, 1),
+            "target_min": target["min_density"],
+            "target_max": target["max_density"],
+        }
+
+        return jsonify({
+            "success": True,
+            "session": session_key,
+            "wave":    wave_num,
+            "insight": {
+                "status":  status,
+                "icon":    icon,
+                "title":   title,
+                "message": message
+            },
+            "stats": stats
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @wormhole_analysis_bp.route('/api/wormhole/health-kill-ratio', methods=['GET'])
 def get_health_kill_ratio():
     """Scatter: avg enemy health vs kill ratio (kills / spawns) per session."""
@@ -975,6 +1162,7 @@ def get_insights():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
 @wormhole_analysis_bp.route('/api/wormhole/time-to-kill', methods=['GET'])
 def get_time_to_kill():
     """Per-enemy-type avg TTK for a specific session, derived by pairing spawn/kill events."""
@@ -1027,6 +1215,70 @@ def get_time_to_kill():
 
 @wormhole_analysis_bp.route('/api/wormhole/enemy-density', methods=['GET'])
 def get_enemy_density():
+    """Enemy count on screen over time for a specific session, plus a pressure score."""
+    session_key = request.args.get("session")
+    if not session_key:
+        return jsonify({"success": False, "error": "Missing session param"}), 400
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT "generatedAt", "playerDamageCount", "hpHealCount"
+                    FROM wormhole_session_summary
+                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                """, (session_key,))
+                row = cur.fetchone()
+                if not row:
+                    return jsonify({"success": False, "error": "Session not found"}), 404
+                generated_at, player_damage_count, hp_heal_count = row
+
+                cur.execute("""
+                    SELECT
+                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed,
+                        "type"
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                      AND "type" IN ('enemy_spawn', 'enemy_killed')
+                    ORDER BY "time" ASC
+                """, (generated_at, session_key))
+                event_rows = cur.fetchall()
+
+                cur.execute("""
+                    SELECT EXTRACT(EPOCH FROM (MAX("time") - MIN("time")))
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                """, (session_key,))
+                dur_row = cur.fetchone()
+                duration = float(dur_row[0] or 1) if dur_row and dur_row[0] else 1.0
+
+        density_timeline = []
+        count = 0
+        for elapsed, event_type in event_rows:
+            if event_type == 'enemy_spawn':
+                count += 1
+            elif event_type == 'enemy_killed':
+                count = max(0, count - 1)
+            density_timeline.append({"x": round(float(elapsed), 2), "y": count})
+
+        avg_density   = (sum(p["y"] for p in density_timeline) / len(density_timeline)) if density_timeline else 0.0
+        damage_rate   = float(player_damage_count or 0) / duration
+        healing_rate  = float(hp_heal_count or 0) / duration
+        pressure      = round(damage_rate + avg_density - healing_rate, 3)
+
+        return jsonify({
+            "success":        True,
+            "session":        session_key,
+            "density":        density_timeline,
+            "avg_density":    round(avg_density, 2),
+            "damage_rate":    round(damage_rate, 4),
+            "healing_rate":   round(healing_rate, 4),
+            "pressure_score": pressure,
+            "duration":       round(duration, 1)
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
     """Enemy count on screen over time for a specific session, plus a pressure score."""
     session_key = request.args.get("session")
     if not session_key:

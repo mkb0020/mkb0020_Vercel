@@ -33,6 +33,8 @@
       border-bottom: 1px solid rgba(144,144,192, 0.3);
     }
 
+
+
     .section-nav a {
       text-decoration: none;
       position: relative;
@@ -72,7 +74,6 @@
       box-shadow: 0 0 30px rgba(0, 200, 255, 0.1), 0 0 60px rgba(140, 60, 255, 0.15);
       outline: none;
     }
-
 
     .modal-card {
       background: linear-gradient(135deg, 
@@ -344,6 +345,26 @@
     }
     #insightsSessionSelect option { background: #1a0030; }
 
+    #densityWaveSelect {
+      background: rgba(38, 0, 75, 0.8);
+      border: 1px solid #7b00ff65;
+      color: var(--MutedGray);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    #densityWaveSelect option { background: #1a0030; }
+
+    .ttk-insight-blurb {
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.03);
+      border-left: 3px solid #7b00ff;
+    }
+    .ttk-insight-blurb .insight-title { color: #cc88ff; }
+
     .insight-item {
       display: flex;
       gap: 0.9rem;
@@ -468,6 +489,7 @@
     </div>
   </nav>
 
+
   <div id="helpModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -585,15 +607,15 @@
   </div>
 
 <div class="section-nav">
-  <a href="#overview">Overview</a>
-  <a href="#hp-timeline">HP Timeline</a> 
-  <a href="#relationships">Stat vs Waves Cleared</a>
-  <a href="#damageSpikes">Damage Spikes</a>
-  <a href="#ttk-card">Time To Kill</a>
-  <a href="#density-card">Enemy Density</a>
-  <a href="#enemyHealth">Enemy Health</a>
-  <a href="#wave-analysis">Wave Analysis</a>
-  <a href="#insights-card">Insights</a>
+    <a href="#overview">Overview</a>
+    <a href="#hp-timeline">HP Timeline</a> 
+    <a href="#relationships">Stat vs Waves Cleared</a>
+    <a href="#damageSpikes">Damage Spikes</a>
+    <a href="#ttk-card">Time To Kill</a>
+    <a href="#density-card">Enemy Density</a>
+    <a href="#enemyHealth">Enemy Health</a>
+    <a href="#wave-analysis">Wave Analysis</a>
+    <a href="#insights-card">Insights</a>
 </div>
 
   <div class="container">
@@ -753,19 +775,28 @@
       </div>
       <div id="ttkResults"></div>
       <p id="ttkEmpty" style="color:#aaa; text-align:center; display:none;">No TTK data for this session.</p>
+      <div id="ttkInsight" style="margin-top:1rem;"></div>
     </div>
 
     <div class="card" id="density-card"> <!-- ENEMY DENSITY -->
       <div class="header-grid">
         <div class="header-col"><h3>👾 Enemy Density</h3></div>
-        <div class="header-col">
+        <div class="header-col" style="display:flex; gap:0.6rem; flex-wrap:wrap; justify-content:flex-end;">
           <select id="densitySessionSelect">
             <option value="">Loading sessions…</option>
+          </select>
+          <select id="densityWaveSelect">
+            <option value="1">Wave 1</option>
+            <option value="2">Wave 2</option>
+            <option value="3">Wave 3</option>
+            <option value="4">Wave 4</option>
+            <option value="5">Wave 5</option>
           </select>
         </div>
       </div>
       <canvas id="densityChart"></canvas>
       <div id="pressureScore"></div>
+      <div id="densityInsight" style="margin-top:1rem;"></div>
     </div>
 
     <div class="card" id="enemyHealth"> <!-- AVERAGE ENEMY HEALTH v KILL RATIO -->
@@ -1529,6 +1560,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       loadDamageSpikes(firstKey);
       loadTTK(firstKey);
       loadEnemyDensity(firstKey);
+      loadDensityInsight(firstKey, document.getElementById('densityWaveSelect').value || '1');
       loadInsights(firstKey);
     }
   }
@@ -1628,11 +1660,11 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     if (e.target.value) loadDamageSpikes(e.target.value);
   });
 
-  // ── TIME TO KILL ──────────────────────────────────────────────────────────────
+  // ── TIME TO KILL 
   const TTK_TARGETS = {
     BASIC:    { min: 2,  max: 4 },
     ZIGZAG: { min: 4,  max:6 },
-    FAST:     { min: 2,  max: 6 },
+    FAST:     { min: 4,  max: 6 },
     TANK:     { min: 5,  max: 8 },
     FLIMFLAM: { min: 4,  max: 7 }
   };
@@ -1657,39 +1689,92 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
   async function loadTTK(sessionKey) {
     const res    = await fetch(`/api/wormhole/time-to-kill?session=${encodeURIComponent(sessionKey)}`);
     const result = await res.json();
-    const container = document.getElementById('ttkResults');
-    const empty     = document.getElementById('ttkEmpty');
+    const container  = document.getElementById('ttkResults');
+    const empty      = document.getElementById('ttkEmpty');
+    const insightDiv = document.getElementById('ttkInsight');
 
     if (!result.success || !Object.keys(result.ttk_by_type).length) {
       container.innerHTML = '';
+      insightDiv.innerHTML = '';
       empty.style.display = 'block';
       return;
     }
     empty.style.display = 'none';
 
-    container.innerHTML = Object.entries(result.ttk_by_type).map(([type, data]) => {
+    const entries = Object.entries(result.ttk_by_type);
+
+    container.innerHTML = entries.map(([type, data]) => {
       const { color, emoji } = getTTKStatus(type, data.avg_ttk);
       const t = TTK_TARGETS[type];
-      const targetStr = t ? `<span style="color:#9090C0; font-size:0.75rem;">(target: ${t.min}–${t.max}s)</span>` : '';
+      const targetStr = t ? `<span style="color:#555; font-size:0.75rem;">(target: ${t.min}–${t.max}s)</span>` : '';
       const name = ENEMY_DISPLAY_NAMES[type] || type;
       const n    = data.sample_count;
       return `
         <div style="display:flex; justify-content:space-between; align-items:center;
                     padding:0.6rem 0.2rem; border-bottom:1px solid rgba(255,255,255,0.07);">
-          <span style="color:#DBE2E9; font-size:0.95rem; font-family: 'SpaceLetters';">${name} <span style="color:#9090C0; font-size:0.8rem;">(n=${n})</span></span>
+          <span style="color:#aaa; font-size:0.95rem;">${name} <span style="color:#444; font-size:0.8rem;">(n=${n})</span></span>
           <span style="font-family:'SpaceLetters'; font-size:1.1rem; color:${color};">
             ${data.avg_ttk.toFixed(2)}s ${emoji} ${targetStr}
           </span>
         </div>`;
     }).join('');
+
+    const tooFast   = [];   
+    const tooSlow   = [];   
+    const justRight = [];
+    const lowSample = [];
+    const DISPLAY   = ENEMY_DISPLAY_NAMES;
+
+    for (const [type, data] of entries) {
+      const t = TTK_TARGETS[type];
+      if (!t) continue;
+      if (data.sample_count < 3) { lowSample.push(DISPLAY[type] || type); continue; }
+      if (data.avg_ttk < t.min)       tooFast.push({ name: DISPLAY[type] || type, ttk: data.avg_ttk, target: t });
+      else if (data.avg_ttk > t.max)  tooSlow.push({ name: DISPLAY[type] || type, ttk: data.avg_ttk, target: t });
+      else                            justRight.push(DISPLAY[type] || type);
+    }
+
+    const blurbParts = [];
+
+    if (tooFast.length && tooSlow.length) {
+      const fastNames = tooFast.map(e => e.name).join(' and ');
+      const slowNames = tooSlow.map(e => e.name).join(' and ');
+      blurbParts.push(`This session had a mixed picture: <strong>${fastNames}</strong> folded fast (maybe too fast — they barely put up a fight), while <strong>${slowNames}</strong> soaked up way more damage than expected. That mismatch can make combat feel inconsistent — easy waves sandwiched with frustrating bullet-sponge moments.`);
+      tooFast.forEach(e => blurbParts.push(`↳ ${e.name} avg TTK ${e.ttk.toFixed(2)}s — target is ${e.target.min}–${e.target.max}s. Consider bumping their health a bit so they don't feel like cardboard.`));
+      tooSlow.forEach(e => blurbParts.push(`↳ ${e.name} avg TTK ${e.ttk.toFixed(2)}s — target is ${e.target.min}–${e.target.max}s. Could lower their health or move speed to make them feel beatable without dumping half your ammo.`));
+    } else if (tooFast.length === entries.length - lowSample.length) {
+      blurbParts.push(`You were absolutely shredding everything this session. Every enemy type died faster than the target window — which means either your firepower is too high, enemy health is too low, or you just had an especially dominant run. Since you know the patterns well, lean toward the former.`);
+      tooFast.forEach(e => blurbParts.push(`↳ ${e.name}: ${e.ttk.toFixed(2)}s (target ${e.target.min}–${e.target.max}s) — try bumping health by ~20% and retesting.`));
+    } else if (tooSlow.length === entries.length - lowSample.length) {
+      blurbParts.push(`This session enemies were all taking longer than expected to kill — a bullet-sponge session. For a normal player this would feel really grindy and frustrating. Check if enemy health was bumped up recently, or if a damage bug might be in play.`);
+      tooSlow.forEach(e => blurbParts.push(`↳ ${e.name}: ${e.ttk.toFixed(2)}s (target ${e.target.min}–${e.target.max}s) — might need a health reduction, or verify the damage values are applying correctly.`));
+    } else if (tooFast.length) {
+      blurbParts.push(`Most enemies felt well-tuned, but a few died a little too easily:`);
+      tooFast.forEach(e => blurbParts.push(`↳ ${e.name}: ${e.ttk.toFixed(2)}s (target ${e.target.min}–${e.target.max}s) — a small health bump would make them feel like a real threat.`));
+    } else if (tooSlow.length) {
+      blurbParts.push(`Most enemies felt well-tuned, but a couple were dragging on:`);
+      tooSlow.forEach(e => blurbParts.push(`↳ ${e.name}: ${e.ttk.toFixed(2)}s (target ${e.target.min}–${e.target.max}s) — nudge their health down so kills feel satisfying and rhythmic.`));
+    } else if (justRight.length) {
+      blurbParts.push(`TTK looks solid across the board this session 💚 — all enemies with enough samples are landing in their target windows. Combat should feel punchy and fair.`);
+    }
+
+    if (lowSample.length) {
+      blurbParts.push(`<em style="color:#666; font-size:0.82rem;">Low sample count (n&lt;3) for: ${lowSample.join(', ')} — not enough kills to draw conclusions.</em>`);
+    }
+
+    insightDiv.innerHTML = blurbParts.length
+      ? `<div class="ttk-insight-blurb">
+           <div class="insight-title" style="font-family:'SpaceLetters'; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.5rem;">🧠 What the TTK is saying</div>
+           <div style="color:#bbb; font-size:0.88rem; line-height:1.6;">${blurbParts.join('<br><br>')}</div>
+         </div>`
+      : '';
   }
 
   document.getElementById('ttkSessionSelect').addEventListener('change', e => {
     if (e.target.value) loadTTK(e.target.value);
   });
 
-  // ── ENEMY DENSITY ─────────────────────────────────────────────────────────────
-
+  // ── ENEMY DENSITY 
   let densityChart;
 
   async function loadEnemyDensity(sessionKey) {
@@ -1714,8 +1799,8 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
         datasets: [{
           label: 'Enemies on Screen',
           data:  result.density,
-          borderColor:     '#c71585',
-          backgroundColor: 'rgba(199,21,133, 0.1)',
+          borderColor:     '#ff00cc',
+          backgroundColor: 'rgba(255, 0, 204, 0.1)',
           fill:    true,
           tension: 0.2,
           pointRadius:      1,
@@ -1756,20 +1841,20 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       <div style="margin-top:1.2rem; display:flex; flex-wrap:wrap; gap:1.5rem;
                   justify-content:center; text-align:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:1rem;">
         <div class="stat">
-          <h2 style="color:#ff0000; font-family:'SpaceLetters';">${result.damage_rate.toFixed(3)}</h2>
+          <h2 style="color:#ff4466; font-family:'SpaceLetters';">${result.damage_rate.toFixed(3)}</h2>
           <p>Damage Rate (hits/s)</p>
         </div>
-        <div class="stat" style="font-size:1.5rem; color:#9090C0; align-self:center;">+</div>
+        <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">+</div>
         <div class="stat">
-          <h2 style="color:#c71585; font-family:'SpaceLetters';">${result.avg_density.toFixed(2)}</h2>
+          <h2 style="color:#ff00cc; font-family:'SpaceLetters';">${result.avg_density.toFixed(2)}</h2>
           <p>Average Enemy Density</p>
         </div>
-        <div class="stat" style="font-size:1.5rem; color:#9090C0; align-self:center;">−</div>
+        <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">−</div>
         <div class="stat">
-          <h2 style="color:#58E84C; font-family:'SpaceLetters';">${result.healing_rate.toFixed(3)}</h2>
+          <h2 style="color:#00ff88; font-family:'SpaceLetters';">${result.healing_rate.toFixed(3)}</h2>
           <p>Healing Rate (heals/s)</p>
         </div>
-        <div class="stat" style="font-size:1.5rem; color:#9090C0; align-self:center;">=</div>
+        <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">=</div>
         <div class="stat">
           <h2 style="color:${pressureColor}; font-family:'SpaceLetters';">${p.toFixed(3)}</h2>
           <p>Pressure Score</p>
@@ -1777,8 +1862,84 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       </div>`;
   }
 
+  async function loadDensityInsight(sessionKey, wave) {
+    const insightDiv = document.getElementById('densityInsight');
+    if (!sessionKey) { insightDiv.innerHTML = ''; return; }
+
+    insightDiv.innerHTML = '<p style="color:#888; font-size:0.88rem; margin-top:0.5rem;">Analyzing wave…</p>';
+
+    const res  = await fetch(`/api/wormhole/density-insights?session=${encodeURIComponent(sessionKey)}&wave=${wave}`);
+    const data = await res.json();
+
+    if (!data.success) { insightDiv.innerHTML = ''; return; }
+
+    const { insight, stats } = data;
+
+    let statsBar = '';
+    if (stats && Object.keys(stats).length) {
+      const s = stats;
+      const targetLabel = s.target_min !== undefined
+        ? `target: ${s.target_min}–${s.target_max}`
+        : '';
+      const satPct = s.saturated_pct !== undefined
+        ? `${(s.saturated_pct * 100).toFixed(0)}%`
+        : '—';
+      const cfgMax = s.cfg_max_enemies !== null && s.cfg_max_enemies !== undefined
+        ? s.cfg_max_enemies
+        : '—';
+      const window = s.wave_window_start !== undefined
+        ? `${s.wave_window_start}s – ${s.wave_window_end}s`
+        : '—';
+
+      statsBar = `
+        <div style="display:flex; flex-wrap:wrap; gap:1.2rem; margin-bottom:0.9rem;
+             padding:0.75rem 1rem; background:rgba(255,255,255,0.04); border-radius:8px;
+             border:1px solid rgba(144,144,192,0.18);">
+          <div class="insight-stat">
+            <h4 style="color:#ff00cc;">${s.avg_density !== undefined ? s.avg_density.toFixed(2) : '—'}</h4>
+            <p>Avg Density${targetLabel ? ' (' + targetLabel + ')' : ''}</p>
+          </div>
+          <div class="insight-stat">
+            <h4 style="color:#cc44ff;">${s.max_density !== undefined ? s.max_density : '—'}</h4>
+            <p>Peak Enemies</p>
+          </div>
+          <div class="insight-stat">
+            <h4 style="color:#ff8c42;">${cfgMax}</h4>
+            <p>Config maxEnemies</p>
+          </div>
+          <div class="insight-stat">
+            <h4 style="color:${parseFloat(s.saturated_pct) > 0.35 ? '#FF6060' : '#aaa'};">${satPct}</h4>
+            <p>Time at Max Cap</p>
+          </div>
+          <div class="insight-stat">
+            <h4 style="color:#666; font-size:0.9rem;">${window}</h4>
+            <p>Wave Window</p>
+          </div>
+        </div>`;
+    }
+
+    insightDiv.innerHTML = `
+      ${statsBar}
+      <div class="insight-item ${insight.status}">
+        <div class="insight-icon">${insight.icon}</div>
+        <div>
+          <div class="insight-title">${insight.title}</div>
+          <div class="insight-message">${insight.message}</div>
+        </div>
+      </div>`;
+  }
+
   document.getElementById('densitySessionSelect').addEventListener('change', e => {
-    if (e.target.value) loadEnemyDensity(e.target.value);
+    if (e.target.value) {
+      loadEnemyDensity(e.target.value);
+      const wave = document.getElementById('densityWaveSelect').value;
+      loadDensityInsight(e.target.value, wave);
+    }
+  });
+
+  document.getElementById('densityWaveSelect').addEventListener('change', e => {
+    const session = document.getElementById('densitySessionSelect').value;
+    if (session) loadDensityInsight(session, e.target.value);
   });
 
 
