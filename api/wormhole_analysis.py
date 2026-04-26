@@ -14,7 +14,6 @@ wormhole_analysis_bp = Blueprint('wormhole_analysis', __name__)
 def upload_session():
     try:
         data = request.get_json()
-
         meta        = data.get("meta", {})
         config      = data.get("configSnapshot", {})
         summary     = data.get("summary", {})
@@ -147,7 +146,6 @@ def upload_session():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @wormhole_analysis_bp.route('/api/wormhole/summary', methods=['GET'])
 def get_summary():
@@ -383,7 +381,6 @@ def get_scatter():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     
-
 @wormhole_analysis_bp.route('/api/wormhole/wave-analysis', methods=['GET'])
 def get_wave_analysis():
     try:
@@ -503,7 +500,6 @@ def get_wave_analysis():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
 @wormhole_analysis_bp.route('/api/wormhole/sessions', methods=['GET'])
 def get_sessions():
     """Returns all sessions for the dropdown, newest first."""
@@ -536,7 +532,6 @@ def get_sessions():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @wormhole_analysis_bp.route('/api/wormhole/damage-spikes', methods=['GET'])
 def get_damage_spikes():
@@ -605,7 +600,6 @@ def get_damage_spikes():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @wormhole_analysis_bp.route('/api/wormhole/hp-insights', methods=['GET'])
 def get_hp_insights():
@@ -916,7 +910,6 @@ def get_hp_insights():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
 @wormhole_analysis_bp.route('/api/wormhole/health-kill-ratio', methods=['GET'])
 def get_health_kill_ratio():
     """Scatter: avg enemy health vs kill ratio (kills / spawns) per session."""
@@ -981,7 +974,6 @@ def get_insights():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @wormhole_analysis_bp.route('/api/wormhole/time-to-kill', methods=['GET'])
 def get_time_to_kill():
