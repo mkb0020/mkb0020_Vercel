@@ -1,57 +1,59 @@
 /* ============================ COLOR PALETTE ============================ */
-   :root {
-      --BosonBlue: #170032;
-      --ProtonPurple: #37025a;
-      --VortexViolet: #830cde;
-      --PlasmaPurple: #A55AFF;
-      --EntangledEucalyptus: #764ba2;
-      --PulsarPeriwinkle: #667eea;
-      --BohrsBabyBlue: #c4b5fd;
-      --NuclearFuscia:#dc4ce8;
-      --PlanksPink: #ff69b4;
-      --HiggsHotPink: #c71585;
-      --ParticlePink: #FFC7FF;
-      --OrionOrange: #fad0c4;
-      --OrbitalOrange: #ff9a9e;
-      --OptimalOrange: #ff6200;
-      --LaserRed: #FF0000;
-      --RadiationRed: #730132;
-      --AlphaAqua: #67FEBD;
-      --AquaAura: #00ffff;
-      --RadioactiveGreen: #58e84c;
-      --DarkCooGray: #657383;
-      --CoolGray: #9090C0;
-      --MutedGray: #C4C3D0;
-      --glass: rgba(255,255,255,0.2);
-      --glass2: rgba(95, 94, 94, 0.194);
-      --glass3: rgba(138, 137, 137, 0.158);
-      --glass4: rgba(47, 4, 77, 0.2);
-      --glass5: rgba(212, 212, 212, 0.2);
-      --YoungsYellow: #fecd39;
-      --border: rgba(0,255,255,0.25);
-    }
+:root {
+  --BosonBlue: #170032;
+  --ProtonPurple: #37025a;
+  --VortexViolet: #830cde;
+  --PlasmaPurple: #A55AFF;
+  --EntangledEucalyptus: #764ba2;
+  --PulsarPeriwinkle: #667eea;
+  --BohrsBabyBlue: #c4b5fd;
+  --NuclearFuscia: #dc4ce8;
+  --PlanksPink: #ff69b4;
+  --HiggsHotPink: #c71585;
+  --ParticlePink: #FFC7FF;
+  --OrionOrange: #fad0c4;
+  --OrbitalOrange: #ff9a9e;
+  --OptimalOrange: #ff6200;
+  --LaserRed: #cc0000;
+  --RadiationRed: #730132;
+  --AlphaAqua: #67FEBD;
+  --AquaAura: #00ffff;
+  --RadioactiveGreen: #58e84c;
+  --YoungsYellow: #fecd39;
+  --DarkCooGray: #657383;
+  --CoolGray: #9090C0;
+  --MutedGray: #C4C3D0;
+  --LightGray: #DBE2E9;
+  --glass: rgba(255, 255, 255, 0.2);
+  --glass2: rgba(95, 94, 94, 0.194);
+  --glass3: rgba(138, 137, 137, 0.158);
+  --glass4: rgba(47, 4, 77, 0.2);
+  --glass5: rgba(212, 212, 212, 0.2);
+  --modal: rgba(40, 4, 68, 0.4);
+  --border: rgba(0, 255, 255, 0.25);
+}
 
 /* ============================ FONTS ============================ */
 @font-face {
-  font-family: 'GothNerd'; 
-  src: url('/static/fonts/ScienceGothic.ttf') format('truetype'); 
+  font-family: 'GothNerd';
+  src: url('/static/fonts/ScienceGothic.ttf') format('truetype');
 }
 
 @font-face {
-  font-family: 'SpaceLetters'; 
-  src: url('/static/fonts/Orbitron-Bold.ttf') format('truetype'); 
+  font-family: 'SpaceLetters';
+  src: url('/static/fonts/Orbitron-Bold.ttf') format('truetype');
 }
 
 /* ============================ ANIMATIONS ============================ */
 @keyframes neonPulse {
-  from { 
-    text-shadow: 
+  from {
+    text-shadow:
       0 0 10px var(--ParticleGlow2),
       0 0 20px var(--ParticleGlow3),
       0 0 30px var(--ParticleGlow3);
   }
-  to { 
-    text-shadow: 
+  to {
+    text-shadow:
       0 0 20px var(--ParticleGlow3),
       0 0 30px var(--NuclearFuscia),
       0 0 40px var(--NuclearFuscia);
@@ -63,38 +65,100 @@
   50% { box-shadow: 0 0 40px var(--NuclearFuscia); }
 }
 
-#stars {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -10;
-        }
-.star {
-            position: absolute;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #fff;
-            animation: twinkle 4s infinite;
-        }
+@keyframes float-up {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120px) translateX(var(--drift)) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes hue-shift-slow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes hue-shift-fast {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes hueCycle {
+  0% { filter: hue-rotate(0deg) brightness(1.1) saturate(1.3); }
+  25% { filter: hue-rotate(90deg) brightness(1.3) saturate(1.6); }
+  50% { filter: hue-rotate(180deg) brightness(1.4) saturate(1.8); }
+  75% { filter: hue-rotate(270deg) brightness(1.2) saturate(1.5); }
+  100% { filter: hue-rotate(360deg) brightness(1.1) saturate(1.3); }
+}
+
+@keyframes neonFlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
 @keyframes twinkle {
-            0%,100% { opacity: 0.4; transform: scale(1); }
-            50%     { opacity: 1; transform: scale(1.4); }
-        }
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.4); }
+}
+
+@keyframes wave-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* ============================ BASE STYLES ============================ */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body, html {
-    margin: 0;
-    margin-top: 40px;
-    margin-bottom: 40px;
-    padding: 0;
-    min-height: 100vh; 
-    height: 100%; 
-    color: #FFFFFF;
-    background: transparent;
-    background-repeat: no-repeat; 
-    background-attachment: fixed;
+  margin: 40px 0;
+  padding: 0;
+  min-height: 100vh;
+  height: 100%;
+  color: #FFFFFF;
+  background: transparent;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+#stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -10;
+}
+
+.star {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #fff;
+  animation: twinkle 4s infinite;
 }
 
 /* ====================== SCROLL BAR =========================*/
@@ -119,21 +183,20 @@ html::-webkit-scrollbar-thumb {
     #00ffff 20%,
     #67FEBD 25%
   );
-  border-radius: 8px;          
+  border-radius: 8px;
   border: 2px solid #000000;
   box-shadow:
     0 0 10px #000000,
     0 0 20px #000000,
     inset 0 0 6px #ffffff33;
-  background-size: 300% 300%;    
+  background-size: 300% 300%;
   filter: hue-rotate(0deg);
-  animation: 
-    hueCycle 18s linear infinite,    
-    neonFlow 8s ease-in-out infinite alternate; 
+  animation:
+    hueCycle 18s linear infinite,
+    neonFlow 8s ease-in-out infinite alternate;
 }
 
-/* BG*/
-
+/* ====================== BACKGROUND =========================*/
 .background-gradient {
   position: fixed;
   inset: 0;
@@ -148,10 +211,10 @@ html::-webkit-scrollbar-thumb {
   left: 0;
   width: 100%;
   height: 100vh;
-  height: 100dvh; 
+  height: 100dvh;
   pointer-events: none;
   z-index: -2;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .waves svg {
@@ -163,42 +226,21 @@ html::-webkit-scrollbar-thumb {
   animation: wave-scroll linear infinite;
 }
 
-#wave1 { animation-duration: 60s; } /* DARK PURPLE-ISH BLUE */
-#wave2 { animation-duration: 50s; } /* DARK HOT PINK */
-#wave3 { animation-duration: 45s; } /* COOL-TONED PURPLE */
-#wave4 { animation-duration: 70s; } /* DARK PURPLE-ISH BLUE */
-#wave5 { animation-duration: 30s; } /* LIGHT HOT PINK */
-#wave6 { animation-duration: 55s; } /* DARK HOT PINK */
+#wave1 { animation-duration: 60s; }
+#wave2 { animation-duration: 50s; }
+#wave3 { animation-duration: 45s; }
+#wave4 { animation-duration: 70s; }
+#wave5 { animation-duration: 30s; }
+#wave6 { animation-duration: 55s; }
 
-@keyframes wave-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+.dreamy-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(30px);
+  pointer-events: none;
+  z-index: -1;
 }
-
-
-@media screen and (max-width: 1024px) { /* HIDE WAVES ON MOBILE */
-  .waves {
-    display: none !important;
-  }
-
-  .background-gradient {
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(to bottom, #320156 10%, #47017a 55%, var(--HiggsHotPink) 90%, var(--OptimalOrange) 99%);
-    opacity: 1;
-    z-index: -3;
-  }
-
-}
-
-    .dreamy-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.1);
-      backdrop-filter: blur(30px);
-      pointer-events: none;
-      z-index: -1;
-    }
 
 /* ============================ NAVBAR ============================ */
 .navbar {
@@ -219,12 +261,9 @@ html::-webkit-scrollbar-thumb {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 0.5rem;
-  padding-bottom:  1rem;
-  padding-right: 1rem;
-  padding-left: 1rem;
+  padding: 0.5rem 1rem 1rem 1rem;
   height: 30px;
-  max-height:30px;
+  max-height: 30px;
 }
 
 .home-link {
@@ -238,16 +277,12 @@ html::-webkit-scrollbar-thumb {
 .home-icon {
   width: 38px;
   height: 38px;
-  top: 50%;
-  mask: none !important;
-  -webkit-mask: none !important;
   transition: all 0.3s ease;
   flex-shrink: 0;
 }
 
 .home-icon:hover {
-  transform: scale(1.05);
-  filter: drop-shadow(0 0 30px var(--AquaAura));
+  transform: scale(1.01);
 }
 
 .logo {
@@ -265,38 +300,30 @@ html::-webkit-scrollbar-thumb {
   flex-shrink: 0;
 }
 
-/* ============================ HELP DROPDOWN ============================ */
-.help-dropdown {
+/* ============================ DROPDOWNS ============================ */
+.help-dropdown, .left-dropdown {
   position: relative;
   display: inline-block;
 }
 
-
-
 .help-icon {
   width: 38px;
   height: 38px;
-  top: 50%;
   background: transparent;
   color: var(--AquaAura);
   border: none;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  position: relative;
-  display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
   overflow: hidden;
 }
 
 .help-icon:hover {
-  transform: scale(1.1) rotate(180deg);
-  box-shadow: 
-    0 0 25px var(--AquaAura),
-    0 0 35px var(--AlphaAqua);
+  transform: scale(1.01) rotate(180deg);
 }
 
 .help-dropdown.active .help-icon {
@@ -310,25 +337,19 @@ html::-webkit-scrollbar-thumb {
   color: var(--AquaAura);
   text-shadow: 0 0 10px var(--AquaAura);
   z-index: 2;
-  margin: 0;                  
-  line-height: 1;            
-  display: flex;              
-  align-items: center;       
-  justify-content: center;    
-  height: 100%;
+  margin: 0;
+  line-height: 1;
 }
 
-.dropdown-menu {
+.dropdown-menu, .left-menu {
   position: absolute;
   top: 100%;
-  right: 0;
   background: rgba(25, 0, 45, 0.728);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(70px);
   -webkit-backdrop-filter: blur(70px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 24px;
   box-shadow: 0 3px 5px var(--AquaAura);
-  backdrop-filter: blur(70px);
   min-width: 280px;
   opacity: 0;
   visibility: hidden;
@@ -338,7 +359,17 @@ html::-webkit-scrollbar-thumb {
   text-transform: uppercase;
 }
 
-.dropdown-menu button {
+.dropdown-menu { right: 0; }
+.left-menu { left: 0; border-radius: 15px; min-width: 300px; padding: 10px 0; }
+
+.help-dropdown.active .dropdown-menu,
+.left-dropdown.active .left-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(5px);
+}
+
+.dropdown-menu button, .menu-item {
   width: 100%;
   padding: 16px 20px;
   background: transparent;
@@ -349,33 +380,21 @@ html::-webkit-scrollbar-thumb {
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.2s;
-  border-bottom: 1px solid var(--PlasmaPurple);
   text-transform: uppercase;
+  display: block;
+  text-decoration: none;
 }
 
-.dropdown-menu button:hover {
-  background: rgba(101,115,131,0.25);
+.dropdown-menu button { border-bottom: 1px solid var(--PlasmaPurple); }
+.dropdown-menu button:last-child { border-bottom: none; }
+
+.dropdown-menu button:hover, .menu-item:hover {
+  background: rgba(101, 115, 131, 0.25);
   border-color: var(--PlasmaPurple);
   box-shadow: 0 0 20px var(--VortexViolet);
-  text-shadow: none;
-  border-radius:12px;
+  border-radius: 12px;
   padding-left: 30px;
-}
-
-.dropdown-menu button:last-child {
-  border-bottom: none;
-}
-
-.help-dropdown.active .dropdown-menu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-/* ============================ LEFT DROPDOWN MENU ============================ */
-.left-dropdown {
-  position: relative;
-  display: inline-block;
-  z-index: 1001;
+  color: white;
 }
 
 .menu-trigger {
@@ -388,61 +407,8 @@ html::-webkit-scrollbar-thumb {
   justify-content: center;
 }
 
-.menu-trigger .home-icon {
-  transition: all 0.3s ease;
-}
-
 .menu-trigger:hover .home-icon {
-  transform: scale(1.5);
-  filter: drop-shadow(0 0 30px var(--AquaAura));
-}
-
-.left-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: rgba(25, 0, 45, 0.728);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(70px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
-  box-shadow: 0 3px 5px var(--AquaAura);
-  backdrop-filter: blur(70px);
-  border-radius: 15px;
-  min-width: 300px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
-  padding: 10px 0;
-  z-index: 9999;
-}
-
-.left-dropdown.active .left-menu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(5px);
-}
-
-.menu-item {
-  display: block;
-  width: 100%;
-  padding: 14px 20px;
-  color: #FFFFFF;
-  text-align: left;
-  text-decoration: none;
-  font-family: 'GothNerd', sans-serif;
-  font-size: 1.1rem;
-  transition: all 0.2s;
-  text-transform: uppercase;
-}
-
-.menu-item:hover {
-  background: rgba(101,115,131,0.25);
-  border-color: var(--PlasmaPurple);
-  box-shadow: 0 0 20px var(--VortexViolet);
-  color: white;
-  padding-left: 30px;
+  transform: scale(1.07);
 }
 
 .social-links {
@@ -483,18 +449,18 @@ html::-webkit-scrollbar-thumb {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  overflow-y: auto; 
+  overflow-y: auto;
 }
 
 .modal-content {
-  background: rgba(58, 58, 58, 0.135);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 
+  background: var(--modal);
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+  border: 1px solid rgba(196, 181, 253, 0.15);
+  box-shadow:
     0 25px 60px -15px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-radius: 18px;
   max-width: 800px;
   width: 100%;
   max-height: 90vh;
@@ -502,21 +468,7 @@ html::-webkit-scrollbar-thumb {
   animation: modalSlideIn 0.4s ease;
 }
 
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .modal-header {
-  top: 0;
-  background: rgba(0, 0, 0, 0.267);
-  backdrop-filter: blur(70px);
   padding: 1.5rem;
   display: flex;
   justify-content: space-between;
@@ -528,7 +480,7 @@ html::-webkit-scrollbar-thumb {
 .modal-title {
   font-family: 'GothNerd', sans-serif;
   font-size: 1.8rem;
-  background: linear-gradient(45deg, var(--ParticlePink), var(--NuclearFuscia), var(--AlphaAqua));
+  background: linear-gradient(45deg, var(--BohrsBabyBlue), var(--BohrsBabyBlue));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -538,29 +490,28 @@ html::-webkit-scrollbar-thumb {
 }
 
 .modal-close {
-  background: var(--RadiationRed);
-  color: var(--ParticlePink);
-  border: 2px solid var(--ParticlePink);
+  background: transparent;
+  color: var(--LaserRed);
+  border: 1px solid var(--LaserRed);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 1.5rem;
+  width: 35px;
+  height: 35px;
+  font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-
 }
 
 .modal-close:hover {
-  background: var(--ParticlePink);
-  color: var(--BosonBlue);
-  transform: rotate(90deg) scale(1.1);
-  box-shadow: 0 0 20px var(--ParticleGlow3);
+  background: var(--LaserRed);
+  color: var(--modal);
+  transform: rotate(360deg);
+  box-shadow: 0 0 20px var(--HiggsHotPink);
+  border: 1px solid var(--HiggsHotPink);
 }
 
 .modal-body {
@@ -576,21 +527,13 @@ html::-webkit-scrollbar-thumb {
   font-family: 'GothNerd', sans-serif;
 }
 
-.modal-body p {
+.modal-body p, .modal-body ul, .modal-body li {
   margin: 1rem 0;
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.modal-body ul {
-  margin-left: 2rem;
-  margin-bottom: 1rem;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.modal-body li {
-  margin: 0.5rem 0;
-  font-family: Arial, Helvetica, sans-serif;
-}
+.modal-body ul { margin-left: 2rem; }
+.modal-body li { margin: 0.5rem 0; }
 
 .mission-text {
   font-size: 1.3rem;
@@ -625,7 +568,8 @@ html::-webkit-scrollbar-thumb {
   transform: scale(1.05);
   box-shadow: 0 0 40px var(--NuclearGlow3);
 }
-/* ====================== SCROLL BAR =========================*/
+
+/* ====================== MODAL SCROLL BAR =========================*/
 .modal-content::-webkit-scrollbar {
   width: 15px;
   height: 14px;
@@ -648,186 +592,110 @@ html::-webkit-scrollbar-thumb {
     #00ffff 20%,
     #67FEBD 25%
   );
-  border-radius: 8px;          
-  border: 2px solid #000000;
-  box-shadow:
-    0 0 10px #ff69b4aa,
-    0 0 20px #c71585aa,
-    inset 0 0 6px #ffffff33;
-  background-size: 300% 300%;    
-  filter: hue-rotate(0deg);
-  animation: 
-    hueCycle 18s linear infinite,    
-    neonFlow 8s ease-in-out infinite alternate; 
+  border-radius: 8px;
+  border: 1px solid #000000;
+  background-size: 300% 300%;
+  animation:
+    hueCycle 18s linear infinite,
+    neonFlow 8s ease-in-out infinite alternate;
 }
 
-
-
-@keyframes hueCycle {
-  0%   { filter: hue-rotate(0deg) brightness(1.1) saturate(1.3); }
-  25%  { filter: hue-rotate(90deg) brightness(1.3) saturate(1.6); }
-  50%  { filter: hue-rotate(180deg) brightness(1.4) saturate(1.8); }
-  75%  { filter: hue-rotate(270deg) brightness(1.2) saturate(1.5); }
-  100% { filter: hue-rotate(360deg) brightness(1.1) saturate(1.3); }
+/* ============================ BACK TO TOP & KO-FI ============================ */
+#scroll-top, #kofi-float {
+  position: fixed;
+  bottom: 15px;
+  z-index: 1000;
+  cursor: pointer;
 }
 
-@keyframes neonFlow {
-  0%   { background-position: 0% 50%; }
-  100% { background-position: 300% 50%; }
+#scroll-top { right: 15px; width: 35px; height: 45px; }
+#kofi-float { left: 15px; }
+
+#scroll-top .button-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
+#scroll-top img {
+  width: 35px;
+  height: 45px;
+  transition: transform 0.3s ease;
+  animation: hue-shift-slow 8s linear infinite;
+}
 
+#scroll-top:hover img {
+  transform: scale(1.1);
+  animation: hue-shift-fast 3s linear infinite;
+}
 
-/* ============================ RAINBOW BACK TO TOP ============================ */
-        #scroll-top {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            z-index: 1000;
-            cursor: pointer;
-            width: 35px;
-            height: 45px;
-            border-radius: 50%;
-        }
+#scroll-top .arrow-overlay {
+  position: absolute;
+  top: 80%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3.5rem;
+  font-family: 'GothNerd';
+  color: rgb(0, 0, 0);
+  pointer-events: none;
+  user-select: none;
+  z-index: 1001;
+}
 
-        #scroll-top .button-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+#kofi-float img {
+  width: 58px;
+  height: auto;
+  transition: transform 0.3s ease;
+}
 
-        #scroll-top img {
-            width: 35px;
-            height: 45px;
-            transition: transform 0.3s ease;
-            animation: hue-shift-slow 8s linear infinite;
-        }
+#kofi-float:hover img { transform: scale(1.1); }
 
-  
-        #scroll-top:hover img {
-            transform: scale(1.5);
-            animation: hue-shift-fast 3s linear infinite;
-        }
+.hearts {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  pointer-events: none;
+  overflow: hidden;
+}
 
+.heart {
+  position: absolute;
+  bottom: 50px;
+  left: 30px;
+  font-size: 16px;
+  animation: float-up 3s infinite ease-in;
+  opacity: 0;
+}
 
-        @keyframes hue-shift-slow {
-            0%   { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
+#kofi-float .hearts .heart { display: none; }
+#kofi-float:hover .hearts .heart {
+  display: block;
+  animation-delay: var(--delay);
+}
 
-        @keyframes hue-shift-fast {
-            0%   { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
- 
-        #scroll-top .arrow-overlay {
-            position: absolute;
-            top: 80%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 3.5rem;
-            font-family: 'GothNerd';
-            color: rgb(0,0,0); 
-            pointer-events: none; 
-            user-select: none;
-            z-index: 1001;
-
-        }
-/* ============================ TIP JAR ============================ */
-        #kofi-float {
-            position: fixed;
-            bottom: 15px;
-            left: 15px;
-            z-index: 1000;
-            cursor: pointer;
-        }
-
-        #kofi-float img {
-            width: 64px; 
-            height: auto;
-            transition: transform 0.3s ease;
-        }
-
-        #kofi-float:hover img {
-            transform: scale(1.1); 
-        }
-
-        
-        .hearts {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 150px;
-            pointer-events: none; 
-            overflow: hidden;
-  
-        }
-
-       
-        .heart {
-            position: absolute;
-            bottom: 50px;
-            left: 30px;
-            font-size: 16px;
-            animation: float-up 3s infinite ease-in;
-            opacity: 0;
-        }
-
-        @keyframes float-up {
-            0% {
-                transform: translateY(0) translateX(0) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-120px) translateX(var(--drift)) rotate(45deg);
-                opacity: 0;
-            }
-        }
-
-        
-        #kofi-float .hearts .heart {
-            display: none;
-        }
-
-        
-        #kofi-float:hover .hearts .heart {
-            display: block;
-            animation-delay: var(--delay);
-        }
-
-/* ============================ BACK TO TOP BUTTON ============================ */
 .floating-back-to-top {
   position: fixed;
   bottom: 80px;
   right: 20px;
-  background: #000;
-  color: var(--NuclearFuscia);
-  border: 3px solid var(--NuclearFuscia);
-  width: 50px;  
-  height: 50px; 
-  font-family: 'GothNerd', sans-serif;
-  font-size: 20px;
+  background: transparent;
+  border: none;
+  width: 50px;
+  height: 50px;
   cursor: pointer;
   z-index: 99999;
-  box-shadow: 0 0 30px var(--NuclearFuscia);
   border-radius: 50%;
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px);
-  transition: all 0.4s ease;
-  animation: pulseGlow 2s infinite;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0; 
+  padding: 0;
+  transition: all 0.4s ease, transform 0.3s ease;
+  animation: hue-shift-slow 8s linear infinite;
 }
 
 .floating-back-to-top.visible {
@@ -836,23 +704,22 @@ html::-webkit-scrollbar-thumb {
   transform: translateY(0);
 }
 
-.floating-back-to-top:hover {
-  background: var(--NuclearFuscia);
-  color: #000;
-  transform: translateY(0) scale(1.1);
-  box-shadow: 0 0 50px var(--NuclearFuscia);
-}
+.floating-back-to-top:hover { transform: scale(1.07); }
 
 /* ============================ RESPONSIVE ============================ */
+@media screen and (max-width: 1024px) {
+  .waves { display: none !important; }
+  .background-gradient {
+    background: linear-gradient(to bottom, #320156 10%, #47017a 55%, var(--HiggsHotPink) 90%, var(--OptimalOrange) 99%);
+  }
+}
+
 @media (max-width: 768px) {
   .modal-content {
     margin: 10px;
     max-height: 95vh;
   }
-
-  .modal-title {
-    font-size: 1.3rem;
-  }
+  .modal-title { font-size: 1.3rem; }
 }
 
 /* ============================ UTILITY CLASSES ============================ */

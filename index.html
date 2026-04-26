@@ -35,15 +35,19 @@
   }
 
   .hero-modal-content {
-    background: linear-gradient(135deg, var(--BosonBlue), var(--Black));
-    border: 3px solid var(--VortexViolet);
-    box-shadow: 0 0 50px var(--VortexGlow3);
-    border-radius: 20px;
-    max-width: 900px;
-    width: 100%;
-    max-height: 75vh;
-    overflow-y: auto;
-    animation: modalSlideIn 0.4s ease;
+      background: var(--modal);
+      backdrop-filter: blur(50px);
+      -webkit-backdrop-filter: blur(50px);
+      border: 1px solid rgba(196, 181, 253, 0.15);
+      box-shadow:
+        0 25px 60px -15px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: modalSlideIn 0.4s ease;
   }
 
   @keyframes modalSlideIn {
@@ -76,24 +80,28 @@
   }
 
   .hero-modal-close {
-    background: var(--RadiationRed);
-    color: var(--ParticlePink);
-    border: 2px solid var(--ParticlePink);
+    background: transparent;
+    color: var(--LaserRed);
+    border: 1px solid var(--LaserRed);
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
-    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
   }
 
   .hero-modal-close:hover {
-    background: var(--ParticlePink);
-    color: var(--BosonBlue);
-    transform: rotate(90deg) scale(1.1);
-    box-shadow: 0 0 20px var(--ParticleGlow3);
+    background: var(--LaserRed);
+    color: var(--modal);
+    transform: rotate(360deg);
+    box-shadow: 0 0 20px var(--HiggsHotPink);
+    border: 1px solid var(--HiggsHotPink);
   }
 
   .hero-modal-body {
@@ -206,7 +214,7 @@
     top: -20px;
     left: -20px;
     background: rgba(0, 0, 0, 0.6);
-    border: 2px solid var(--HiggsHotPink);
+    border: 1px solid var(--HiggsHotPink);
     border-radius: 50px;
     padding: 4px 9px;
     color: #FFC7FF;
@@ -225,7 +233,7 @@
     top: -20px;
     right: -20px;
     background: rgba(0, 0, 0, 0.6);
-    border: 2px solid var(--HiggsHotPink);
+    border: 1px solid var(--HiggsHotPink);
     border-radius: 50px;
     padding: 2px 6px;
     color: #FFC7FF;
@@ -295,8 +303,7 @@
 
 
   .attack-card:hover {
-    transform: scale(1.03) translateY(-4px);
-    box-shadow: 0 0 40px var(--HiggsHotPink);
+    transform: scale(1.01) translateY(-4px);
   }
 
   .attack-card::before {
