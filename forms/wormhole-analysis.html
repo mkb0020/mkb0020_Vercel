@@ -399,6 +399,8 @@
       color: #bbb;
       font-size: 0.88rem;
       line-height: 1.5;
+      text-align: center;
+      align-items: center;
     }
 
     .insight-stat {
@@ -1764,7 +1766,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
     insightDiv.innerHTML = blurbParts.length
       ? `<div class="ttk-insight-blurb">
-           <div class="insight-title" style="font-family:'SpaceLetters'; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.5rem;">🧠 What the TTK is saying</div>
+           <div class="insight-title" style="font-family:'SpaceLetters'; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.5rem;">🧠 TTK INSIGHTS</div>
            <div style="color:#bbb; font-size:0.88rem; line-height:1.6;">${blurbParts.join('<br><br>')}</div>
          </div>`
       : '';
