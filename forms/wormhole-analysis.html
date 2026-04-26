@@ -1544,13 +1544,13 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     container.innerHTML = Object.entries(result.ttk_by_type).map(([type, data]) => {
       const { color, emoji } = getTTKStatus(type, data.avg_ttk);
       const t = TTK_TARGETS[type];
-      const targetStr = t ? `<span style="color:#555; font-size:0.75rem;">(target: ${t.min}–${t.max}s)</span>` : '';
+      const targetStr = t ? `<span style="color:#9090C0; font-size:0.75rem;">(target: ${t.min}–${t.max}s)</span>` : '';
       const name = ENEMY_DISPLAY_NAMES[type] || type;
       const n    = data.sample_count;
       return `
         <div style="display:flex; justify-content:space-between; align-items:center;
                     padding:0.6rem 0.2rem; border-bottom:1px solid rgba(255,255,255,0.07);">
-          <span style="color:#aaa; font-size:0.95rem;">${name} <span style="color:#444; font-size:0.8rem;">(n=${n})</span></span>
+          <span style="color:#DBE2E9; font-size:0.95rem;">${name} <span style="color:#9090C0; font-size:0.8rem;">(n=${n})</span></span>
           <span style="font-family:'SpaceLetters'; font-size:1.1rem; color:${color};">
             ${data.avg_ttk.toFixed(2)}s ${emoji} ${targetStr}
           </span>
@@ -1588,8 +1588,8 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
         datasets: [{
           label: 'Enemies on Screen',
           data:  result.density,
-          borderColor:     '#ff00cc',
-          backgroundColor: 'rgba(255, 0, 204, 0.1)',
+          borderColor:     '#c71585',
+          backgroundColor: 'rgba(199,21,133, 0.1)',
           fill:    true,
           tension: 0.2,
           pointRadius:      1,
@@ -1630,20 +1630,20 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       <div style="margin-top:1.2rem; display:flex; flex-wrap:wrap; gap:1.5rem;
                   justify-content:center; text-align:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:1rem;">
         <div class="stat">
-          <h2 style="color:#ff4466; font-family:'SpaceLetters';">${result.damage_rate.toFixed(3)}</h2>
+          <h2 style="color:#ff0000; font-family:'SpaceLetters';">${result.damage_rate.toFixed(3)}</h2>
           <p>Damage Rate (hits/s)</p>
         </div>
-        <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">+</div>
+        <div class="stat" style="font-size:1.5rem; color:#9090C0; align-self:center;">+</div>
         <div class="stat">
-          <h2 style="color:#ff00cc; font-family:'SpaceLetters';">${result.avg_density.toFixed(2)}</h2>
+          <h2 style="color:#c71585; font-family:'SpaceLetters';">${result.avg_density.toFixed(2)}</h2>
           <p>Average Enemy Density</p>
         </div>
-        <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">−</div>
+        <div class="stat" style="font-size:1.5rem; color:#9090C0; align-self:center;">−</div>
         <div class="stat">
-          <h2 style="color:#00ff88; font-family:'SpaceLetters';">${result.healing_rate.toFixed(3)}</h2>
+          <h2 style="color:#58E84C; font-family:'SpaceLetters';">${result.healing_rate.toFixed(3)}</h2>
           <p>Healing Rate (heals/s)</p>
         </div>
-        <div class="stat" style="font-size:1.5rem; color:#555; align-self:center;">=</div>
+        <div class="stat" style="font-size:1.5rem; color:#9090C0; align-self:center;">=</div>
         <div class="stat">
           <h2 style="color:${pressureColor}; font-family:'SpaceLetters';">${p.toFixed(3)}</h2>
           <p>Pressure Score</p>
