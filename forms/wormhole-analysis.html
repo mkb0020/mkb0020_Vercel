@@ -1935,6 +1935,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
   // ── CONFIG LEADERBOARD ───────────────────────────────────────────────────────
   let _selectedConfigHash = null;
+  const _configDataMap = {};  
 
   function renderConfigLeaderboard(configs) {
     const container = document.getElementById('configLeaderboard');
@@ -1943,7 +1944,9 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       return;
     }
 
-    const medals = ['🥇', '🥈', '🥉'];
+    configs.forEach(c => { _configDataMap[c.config_hash] = c; });
+
+    const medals   = ['🥇', '🥈', '🥉'];
     const numClass = ['gold', 'silver', 'bronze'];
 
     container.innerHTML = configs.map((c, i) => {
@@ -1951,8 +1954,9 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       const medalEmoji = medals[i] || '';
       const numCls     = numClass[i] || '';
       const label      = `Config ${c.config_hash.slice(0, 6).toUpperCase()}`;
+      const h          = c.config_hash;
       return `
-        <div class="cfg-rank-row" data-hash="${c.config_hash}" onclick="selectConfigFromLeaderboard('${c.config_hash}', ${JSON.stringify(c).replace(/'/g, "&#39;")})">
+        <div class="cfg-rank-row" data-hash="${h}" onclick="selectConfigFromLeaderboard('${h}')">
           <div class="cfg-rank-num ${numCls}">${medalEmoji || '#' + c.rank}</div>
           <div style="font-family:'SpaceLetters'; font-size:0.78rem; color:#9090C0; flex-shrink:0;">${label}</div>
           <div class="cfg-rank-stats">
@@ -1973,12 +1977,14 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
               <p>Sessions</p>
             </div>
           </div>
-          <button class="cfg-view-btn" onclick="event.stopPropagation(); selectConfigFromLeaderboard('${c.config_hash}', ${JSON.stringify(c).replace(/'/g, "&#39;")})">View Config ▾</button>
+          <button class="cfg-view-btn" onclick="event.stopPropagation(); selectConfigFromLeaderboard('${h}')">View Config ▾</button>
         </div>`;
     }).join('');
   }
 
-  function selectConfigFromLeaderboard(hash, configData) {
+  function selectConfigFromLeaderboard(hash) {
+    const configData = _configDataMap[hash];
+    if (!configData) return;
     _selectedConfigHash = hash;
     _lastConfigRaw = configData.config;
 
@@ -2243,7 +2249,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     if (e.target.value) loadTTK(e.target.value, false);
   });
 
-  // ── ENEMY DENSITY  ──────────────────────────────────────
+  // ── ENEMY DENSITY — mode-aware wrapper ──────────────────────────────────────
   async function loadEnemyDensityModed(value, mode, wave) {
     if (mode === 'config') {
       await loadEnemyDensity(null, value);
