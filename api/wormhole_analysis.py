@@ -10,6 +10,68 @@ DB_URL = os.environ.get("DATABASE_URL")
 wormhole_analysis_bp = Blueprint('wormhole_analysis', __name__)
 
 
+# ─── CONFIG HASH ──────────────────────────────────────────────────────────────
+_CFG_PARTS = [
+    'COALESCE("COSMIC_PRISM_HEAL_AMOUNT"::text,\'N\')',
+    'COALESCE("ENEMIES_SPAWN_INTERVAL_MIN"::text,\'N\')',
+    'COALESCE("ENEMIES_SPAWN_INTERVAL_MAX"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_BASIC_HEALTH"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_BASIC_LASER_INTERVAL"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_BASIC_COMBAT_DURATION"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FAST_HEALTH"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FAST_LASER_INTERVAL"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FAST_COMBAT_DURATION"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_TANK_HEALTH"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_TANK_LASER_INTERVAL"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_TANK_COMBAT_DURATION"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_ZIGZAG_HEALTH"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_ZIGZAG_LASER_INTERVAL"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_ZIGZAG_COMBAT_DURATION"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FLIMFLAM_HEALTH"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FLIMFLAM_LASER_INTERVAL"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FLIMFLAM_COMBAT_DURATION"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FLIMFLAM_PRISM_FIRST_DELAY_MIN"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FLIMFLAM_PRISM_FIRST_DELAY_MAX"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FLIMFLAM_PRISM_COOLDOWN_MIN"::text,\'N\')',
+    'COALESCE("ENEMIES_TYPES_FLIMFLAM_PRISM_COOLDOWN_MAX"::text,\'N\')',
+    'COALESCE("SLIME_ATTACK_FIRST_ATTACK_MIN"::text,\'N\')',
+    'COALESCE("SLIME_ATTACK_FIRST_ATTACK_MAX"::text,\'N\')',
+    'COALESCE("SLIME_ATTACK_REPEAT_INTERVAL"::text,\'N\')',
+    'COALESCE("FRACTAL_CASCADE_FIRST_DELAY_MIN"::text,\'N\')',
+    'COALESCE("FRACTAL_CASCADE_FIRST_DELAY_MAX"::text,\'N\')',
+    'COALESCE("FRACTAL_CASCADE_COOLDOWN_MIN"::text,\'N\')',
+    'COALESCE("FRACTAL_CASCADE_COOLDOWN_MAX"::text,\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave1_types",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave1_weights",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave1_maxEnemies"::text,\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave2_types",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave2_weights",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave2_maxEnemies"::text,\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave3_types",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave3_weights",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave3_maxEnemies"::text,\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave4_types",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave4_weights",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave4_maxEnemies"::text,\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave5_types",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave5_weights",\'N\')',
+    'COALESCE("WAVE_CONFIGS_wave5_maxEnemies"::text,\'N\')',
+]
+CONFIG_HASH_EXPR = "MD5(CONCAT(" + ",'|',".join(_CFG_PARTS) + "))"
+
+
+def _get_config_sessions(cur, config_hash):
+    """Returns all session ISO keys whose config snapshot matches the given hash."""
+    cur.execute(f"""
+        SELECT to_char("generatedAt" AT TIME ZONE 'UTC',
+                       'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
+        FROM wormhole_session_summary
+        WHERE {CONFIG_HASH_EXPR} = %s
+        ORDER BY "generatedAt" DESC
+    """, (config_hash,))
+    return [row[0] for row in cur.fetchall()]
+
+
 @wormhole_analysis_bp.route('/api/wormhole/upload', methods=['POST'])
 def upload_session():
     try:
@@ -534,6 +596,120 @@ def get_sessions():
         ]
         return jsonify({"success": True, "sessions": sessions})
 
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@wormhole_analysis_bp.route('/api/wormhole/configs', methods=['GET'])
+def get_configs():
+    """Returns all distinct config groups ranked by avg waves cleared, with full config snapshot."""
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    WITH hashed AS (
+                        SELECT *, {CONFIG_HASH_EXPR} AS cfg_hash
+                        FROM wormhole_session_summary
+                    )
+                    SELECT
+                        cfg_hash,
+                        COUNT(*)                                                              AS session_count,
+                        ROUND(AVG("waveCleared"::float)::numeric, 2)                         AS avg_waves_cleared,
+                        ROUND(AVG(CASE WHEN "gameBeaten" THEN 1.0 ELSE 0.0 END)::numeric, 3) AS win_rate,
+                        MAX("waveCleared")                                                    AS max_waves_cleared,
+                        MAX(to_char("generatedAt" AT TIME ZONE 'UTC',
+                                    'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))                        AS latest_session,
+                        MIN("COSMIC_PRISM_HEAL_AMOUNT"),
+                        MIN("ENEMIES_SPAWN_INTERVAL_MIN"), MIN("ENEMIES_SPAWN_INTERVAL_MAX"),
+                        MIN("ENEMIES_TYPES_BASIC_HEALTH"),    MIN("ENEMIES_TYPES_BASIC_LASER_INTERVAL"),    MIN("ENEMIES_TYPES_BASIC_COMBAT_DURATION"),
+                        MIN("ENEMIES_TYPES_FAST_HEALTH"),     MIN("ENEMIES_TYPES_FAST_LASER_INTERVAL"),     MIN("ENEMIES_TYPES_FAST_COMBAT_DURATION"),
+                        MIN("ENEMIES_TYPES_TANK_HEALTH"),     MIN("ENEMIES_TYPES_TANK_LASER_INTERVAL"),     MIN("ENEMIES_TYPES_TANK_COMBAT_DURATION"),
+                        MIN("ENEMIES_TYPES_ZIGZAG_HEALTH"),   MIN("ENEMIES_TYPES_ZIGZAG_LASER_INTERVAL"),   MIN("ENEMIES_TYPES_ZIGZAG_COMBAT_DURATION"),
+                        MIN("ENEMIES_TYPES_FLIMFLAM_HEALTH"), MIN("ENEMIES_TYPES_FLIMFLAM_LASER_INTERVAL"), MIN("ENEMIES_TYPES_FLIMFLAM_COMBAT_DURATION"),
+                        MIN("ENEMIES_TYPES_FLIMFLAM_PRISM_FIRST_DELAY_MIN"), MIN("ENEMIES_TYPES_FLIMFLAM_PRISM_FIRST_DELAY_MAX"),
+                        MIN("ENEMIES_TYPES_FLIMFLAM_PRISM_COOLDOWN_MIN"),    MIN("ENEMIES_TYPES_FLIMFLAM_PRISM_COOLDOWN_MAX"),
+                        MIN("SLIME_ATTACK_FIRST_ATTACK_MIN"), MIN("SLIME_ATTACK_FIRST_ATTACK_MAX"), MIN("SLIME_ATTACK_REPEAT_INTERVAL"),
+                        MIN("FRACTAL_CASCADE_FIRST_DELAY_MIN"), MIN("FRACTAL_CASCADE_FIRST_DELAY_MAX"),
+                        MIN("FRACTAL_CASCADE_COOLDOWN_MIN"),    MIN("FRACTAL_CASCADE_COOLDOWN_MAX"),
+                        MIN("WAVE_CONFIGS_wave1_types"), MIN("WAVE_CONFIGS_wave1_weights"), MIN("WAVE_CONFIGS_wave1_maxEnemies"),
+                        MIN("WAVE_CONFIGS_wave2_types"), MIN("WAVE_CONFIGS_wave2_weights"), MIN("WAVE_CONFIGS_wave2_maxEnemies"),
+                        MIN("WAVE_CONFIGS_wave3_types"), MIN("WAVE_CONFIGS_wave3_weights"), MIN("WAVE_CONFIGS_wave3_maxEnemies"),
+                        MIN("WAVE_CONFIGS_wave4_types"), MIN("WAVE_CONFIGS_wave4_weights"), MIN("WAVE_CONFIGS_wave4_maxEnemies"),
+                        MIN("WAVE_CONFIGS_wave5_types"), MIN("WAVE_CONFIGS_wave5_weights"), MIN("WAVE_CONFIGS_wave5_maxEnemies")
+                    FROM hashed
+                    GROUP BY cfg_hash
+                    ORDER BY avg_waves_cleared DESC NULLS LAST, session_count DESC
+                """)
+                rows = cur.fetchall()
+
+        def val(v):
+            return float(v) if v is not None else None
+
+        configs = []
+        for i, row in enumerate(rows):
+            configs.append({
+                "config_hash":       row[0],
+                "session_count":     int(row[1]),
+                "avg_waves_cleared": float(row[2]) if row[2] is not None else 0.0,
+                "win_rate":          float(row[3]) if row[3] is not None else 0.0,
+                "max_waves_cleared": int(row[4]) if row[4] is not None else 0,
+                "latest_session":    row[5],
+                "rank":              i + 1,
+                "config": {
+                    "COSMIC_PRISM": { "HEAL_AMOUNT": val(row[6]) },
+                    "ENEMIES": {
+                        "SPAWN_INTERVAL_MIN": val(row[7]),
+                        "SPAWN_INTERVAL_MAX": val(row[8]),
+                        "TYPES": {
+                            "BASIC":    { "HEALTH": val(row[9]),  "LASER_INTERVAL": val(row[10]), "COMBAT_DURATION": val(row[11]) },
+                            "FAST":     { "HEALTH": val(row[12]), "LASER_INTERVAL": val(row[13]), "COMBAT_DURATION": val(row[14]) },
+                            "TANK":     { "HEALTH": val(row[15]), "LASER_INTERVAL": val(row[16]), "COMBAT_DURATION": val(row[17]) },
+                            "ZIGZAG":   { "HEALTH": val(row[18]), "LASER_INTERVAL": val(row[19]), "COMBAT_DURATION": val(row[20]) },
+                            "FLIMFLAM": {
+                                "HEALTH":                val(row[21]), "LASER_INTERVAL": val(row[22]), "COMBAT_DURATION": val(row[23]),
+                                "PRISM_FIRST_DELAY_MIN": val(row[24]), "PRISM_FIRST_DELAY_MAX": val(row[25]),
+                                "PRISM_COOLDOWN_MIN":    val(row[26]), "PRISM_COOLDOWN_MAX":     val(row[27])
+                            }
+                        }
+                    },
+                    "SLIME_ATTACK": {
+                        "FIRST_ATTACK_MIN": val(row[28]), "FIRST_ATTACK_MAX": val(row[29]),
+                        "REPEAT_INTERVAL":  val(row[30])
+                    },
+                    "FRACTAL_CASCADE": {
+                        "FIRST_DELAY_MIN": val(row[31]), "FIRST_DELAY_MAX": val(row[32]),
+                        "COOLDOWN_MIN":    val(row[33]), "COOLDOWN_MAX":    val(row[34])
+                    },
+                    "WAVE_CONFIGS": [
+                        { "types": row[35], "weights": row[36], "maxEnemies": row[37] },
+                        { "types": row[38], "weights": row[39], "maxEnemies": row[40] },
+                        { "types": row[41], "weights": row[42], "maxEnemies": row[43] },
+                        { "types": row[44], "weights": row[45], "maxEnemies": row[46] },
+                        { "types": row[47], "weights": row[48], "maxEnemies": row[49] },
+                    ]
+                }
+            })
+
+        return jsonify({"success": True, "configs": configs})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@wormhole_analysis_bp.route('/api/wormhole/config-aggregate', methods=['GET'])
+def get_config_aggregate():
+    """Returns aggregate stats for all sessions sharing a config hash.
+    Used by cards (damage spikes, TTK, density, insights) when in config-average mode."""
+    config_hash = request.args.get("config")
+    if not config_hash:
+        return jsonify({"success": False, "error": "Missing config param"}), 400
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                sessions = _get_config_sessions(cur, config_hash)
+        if not sessions:
+            return jsonify({"success": False, "error": "No sessions found for this config"}), 404
+        return jsonify({"success": True, "sessions": sessions, "count": len(sessions)})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -1256,39 +1432,60 @@ def get_insights():
 
 @wormhole_analysis_bp.route('/api/wormhole/time-to-kill', methods=['GET'])
 def get_time_to_kill():
-    """Per-enemy-type avg TTK for a specific session, derived by pairing spawn/kill events."""
-    session_key = request.args.get("session")
-    if not session_key:
-        return jsonify({"success": False, "error": "Missing session param"}), 400
+    """Per-enemy-type avg TTK for a specific session or all sessions sharing a config hash."""
+    session_key  = request.args.get("session")
+    config_hash  = request.args.get("config")
+    if not session_key and not config_hash:
+        return jsonify({"success": False, "error": "Missing session or config param"}), 400
     try:
         with psycopg.connect(DB_URL) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
-                    SELECT "generatedAt"
-                    FROM wormhole_session_summary
-                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
-                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
-                """, (session_key,))
-                row = cur.fetchone()
-                if not row:
-                    return jsonify({"success": False, "error": "Session not found"}), 404
-
-                cur.execute("""
-                    SELECT
-                        s."enemyType",
-                        AVG(EXTRACT(EPOCH FROM (k."time" - s."time"))) AS avg_ttk_sec,
-                        COUNT(*) AS sample_count
-                    FROM wormhole_events s
-                    JOIN wormhole_events k
-                      ON  k."session"  = s."session"
-                      AND k."enemyId"  = s."enemyId"
-                      AND k."type"     = 'enemy_killed'
-                      AND s."type"     = 'enemy_spawn'
-                    WHERE s."session" = %s
-                      AND s."enemyType" IS NOT NULL
-                    GROUP BY s."enemyType"
-                    ORDER BY s."enemyType"
-                """, (session_key,))
+                if config_hash:
+                    sessions = _get_config_sessions(cur, config_hash)
+                    if not sessions:
+                        return jsonify({"success": False, "error": "No sessions found for this config"}), 404
+                    cur.execute("""
+                        SELECT
+                            s."enemyType",
+                            AVG(EXTRACT(EPOCH FROM (k."time" - s."time"))) AS avg_ttk_sec,
+                            COUNT(*) AS sample_count
+                        FROM wormhole_events s
+                        JOIN wormhole_events k
+                          ON  k."session"  = s."session"
+                          AND k."enemyId"  = s."enemyId"
+                          AND k."type"     = 'enemy_killed'
+                          AND s."type"     = 'enemy_spawn'
+                        WHERE s."session" = ANY(%s)
+                          AND s."enemyType" IS NOT NULL
+                        GROUP BY s."enemyType"
+                        ORDER BY s."enemyType"
+                    """, (sessions,))
+                else:
+                    cur.execute("""
+                        SELECT "generatedAt"
+                        FROM wormhole_session_summary
+                        WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                      'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                    """, (session_key,))
+                    row = cur.fetchone()
+                    if not row:
+                        return jsonify({"success": False, "error": "Session not found"}), 404
+                    cur.execute("""
+                        SELECT
+                            s."enemyType",
+                            AVG(EXTRACT(EPOCH FROM (k."time" - s."time"))) AS avg_ttk_sec,
+                            COUNT(*) AS sample_count
+                        FROM wormhole_events s
+                        JOIN wormhole_events k
+                          ON  k."session"  = s."session"
+                          AND k."enemyId"  = s."enemyId"
+                          AND k."type"     = 'enemy_killed'
+                          AND s."type"     = 'enemy_spawn'
+                        WHERE s."session" = %s
+                          AND s."enemyType" IS NOT NULL
+                        GROUP BY s."enemyType"
+                        ORDER BY s."enemyType"
+                    """, (session_key,))
                 ttk_rows = cur.fetchall()
 
         ttk_by_type = {}
@@ -1299,13 +1496,370 @@ def get_time_to_kill():
                     "sample_count": int(count)
                 }
 
-        return jsonify({"success": True, "session": session_key, "ttk_by_type": ttk_by_type})
+        return jsonify({"success": True, "session": session_key, "config": config_hash, "ttk_by_type": ttk_by_type})
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 @wormhole_analysis_bp.route('/api/wormhole/enemy-density', methods=['GET'])
 def get_enemy_density():
+    """Enemy count on screen over time, plus pressure score.
+    Accepts ?session=<key> for a single session, or ?config=<hash> to average across all
+    sessions sharing that config (density is averaged bucket-by-bucket in 1s windows)."""
+    session_key = request.args.get("session")
+    config_hash = request.args.get("config")
+    if not session_key and not config_hash:
+        return jsonify({"success": False, "error": "Missing session or config param"}), 400
+
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                if config_hash:
+                    sessions = _get_config_sessions(cur, config_hash)
+                    if not sessions:
+                        return jsonify({"success": False, "error": "No sessions found for this config"}), 404
+
+                    cur.execute(f"""
+                        SELECT SUM("playerDamageCount"), SUM("hpHealCount"), COUNT(*)
+                        FROM wormhole_session_summary
+                        WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                      'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = ANY(%s)
+                    """, (sessions,))
+                    agg = cur.fetchone()
+                    total_damage_count = float(agg[0] or 0)
+                    total_heal_count   = float(agg[1] or 0)
+                    n_sessions         = int(agg[2] or 1)
+
+
+                    cur.execute("""
+                        SELECT
+                            s."session",
+                            EXTRACT(EPOCH FROM (e."time" - s."generatedAt")) AS elapsed,
+                            e."type"
+                        FROM wormhole_events e
+                        JOIN wormhole_session_summary s
+                          ON e."session"::timestamptz = s."generatedAt"
+                        WHERE e."session" = ANY(%s)
+                          AND e."type" IN ('enemy_spawn', 'enemy_killed')
+                        ORDER BY e."session", e."time" ASC
+                    """, (sessions,))
+                    all_event_rows = cur.fetchall()
+
+                    cur.execute("""
+                        SELECT "session", EXTRACT(EPOCH FROM (MAX("time") - MIN("time")))
+                        FROM wormhole_events
+                        WHERE "session" = ANY(%s)
+                        GROUP BY "session"
+                    """, (sessions,))
+                    dur_map = {r[0]: float(r[1] or 1) for r in cur.fetchall()}
+
+                    from collections import defaultdict
+                    session_buckets = {}  
+                    from itertools import groupby
+                    from operator import itemgetter
+
+                    current_session = None
+                    count = 0
+                    session_timeline = []
+
+                    for row in all_event_rows:
+                        sess, elapsed, etype = row[0], float(row[1]), row[2]
+                        if sess != current_session:
+                            if current_session is not None:
+                                buckets = {}
+                                for pt in session_timeline:
+                                    b = int(pt[0])
+                                    buckets[b] = pt[1]
+                                session_buckets[current_session] = buckets
+                            current_session = sess
+                            count = 0
+                            session_timeline = []
+                        if etype == 'enemy_spawn':
+                            count += 1
+                        elif etype == 'enemy_killed':
+                            count = max(0, count - 1)
+                        session_timeline.append((elapsed, count))
+                    if current_session and session_timeline:
+                        buckets = {}
+                        for pt in session_timeline:
+                            b = int(pt[0])
+                            buckets[b] = pt[1]
+                        session_buckets[current_session] = buckets
+
+                    all_buckets = set()
+                    for b in session_buckets.values():
+                        all_buckets.update(b.keys())
+
+                    avg_duration = sum(dur_map.values()) / len(dur_map) if dur_map else 1.0
+                    density_timeline = []
+                    for b in sorted(all_buckets):
+                        vals = [sb[b] for sb in session_buckets.values() if b in sb]
+                        if vals:
+                            density_timeline.append({"x": float(b), "y": round(sum(vals) / len(vals), 2)})
+
+                    avg_density  = (sum(p["y"] for p in density_timeline) / len(density_timeline)) if density_timeline else 0.0
+                    damage_rate  = (total_damage_count / n_sessions) / avg_duration
+                    healing_rate = (total_heal_count   / n_sessions) / avg_duration
+                    pressure     = round(damage_rate + avg_density - healing_rate, 3)
+
+                    return jsonify({
+                        "success":        True,
+                        "config":         config_hash,
+                        "session_count":  n_sessions,
+                        "density":        density_timeline,
+                        "avg_density":    round(avg_density, 2),
+                        "damage_rate":    round(damage_rate, 4),
+                        "healing_rate":   round(healing_rate, 4),
+                        "pressure_score": pressure,
+                        "duration":       round(avg_duration, 1)
+                    })
+
+                else:
+                    cur.execute("""
+                        SELECT "generatedAt", "playerDamageCount", "hpHealCount"
+                        FROM wormhole_session_summary
+                        WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                      'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                    """, (session_key,))
+                    row = cur.fetchone()
+                    if not row:
+                        return jsonify({"success": False, "error": "Session not found"}), 404
+                    generated_at, player_damage_count, hp_heal_count = row
+
+                    cur.execute("""
+                        SELECT EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed, "type"
+                        FROM wormhole_events
+                        WHERE "session" = %s AND "type" IN ('enemy_spawn', 'enemy_killed')
+                        ORDER BY "time" ASC
+                    """, (generated_at, session_key))
+                    event_rows = cur.fetchall()
+
+                    cur.execute("""
+                        SELECT EXTRACT(EPOCH FROM (MAX("time") - MIN("time")))
+                        FROM wormhole_events WHERE "session" = %s
+                    """, (session_key,))
+                    dur_row  = cur.fetchone()
+                    duration = float(dur_row[0] or 1) if dur_row and dur_row[0] else 1.0
+
+                density_timeline = []
+                count = 0
+                for elapsed, event_type in event_rows:
+                    if event_type == 'enemy_spawn':
+                        count += 1
+                    elif event_type == 'enemy_killed':
+                        count = max(0, count - 1)
+                    density_timeline.append({"x": round(float(elapsed), 2), "y": count})
+
+                avg_density  = (sum(p["y"] for p in density_timeline) / len(density_timeline)) if density_timeline else 0.0
+                damage_rate  = float(player_damage_count or 0) / duration
+                healing_rate = float(hp_heal_count or 0) / duration
+                pressure     = round(damage_rate + avg_density - healing_rate, 3)
+
+                return jsonify({
+                    "success":        True,
+                    "session":        session_key,
+                    "density":        density_timeline,
+                    "avg_density":    round(avg_density, 2),
+                    "damage_rate":    round(damage_rate, 4),
+                    "healing_rate":   round(healing_rate, 4),
+                    "pressure_score": pressure,
+                    "duration":       round(duration, 1)
+                })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    """Enemy count on screen over time for a specific session, plus a pressure score."""
+    session_key = request.args.get("session")
+    if not session_key:
+        return jsonify({"success": False, "error": "Missing session param"}), 400
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT "generatedAt", "playerDamageCount", "hpHealCount"
+                    FROM wormhole_session_summary
+                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                """, (session_key,))
+                row = cur.fetchone()
+                if not row:
+                    return jsonify({"success": False, "error": "Session not found"}), 404
+                generated_at, player_damage_count, hp_heal_count = row
+
+                cur.execute("""
+                    SELECT
+                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed,
+                        "type"
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                      AND "type" IN ('enemy_spawn', 'enemy_killed')
+                    ORDER BY "time" ASC
+                """, (generated_at, session_key))
+                event_rows = cur.fetchall()
+
+                cur.execute("""
+                    SELECT EXTRACT(EPOCH FROM (MAX("time") - MIN("time")))
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                """, (session_key,))
+                dur_row = cur.fetchone()
+                duration = float(dur_row[0] or 1) if dur_row and dur_row[0] else 1.0
+
+        density_timeline = []
+        count = 0
+        for elapsed, event_type in event_rows:
+            if event_type == 'enemy_spawn':
+                count += 1
+            elif event_type == 'enemy_killed':
+                count = max(0, count - 1)
+            density_timeline.append({"x": round(float(elapsed), 2), "y": count})
+
+        avg_density   = (sum(p["y"] for p in density_timeline) / len(density_timeline)) if density_timeline else 0.0
+        damage_rate   = float(player_damage_count or 0) / duration
+        healing_rate  = float(hp_heal_count or 0) / duration
+        pressure      = round(damage_rate + avg_density - healing_rate, 3)
+
+        return jsonify({
+            "success":        True,
+            "session":        session_key,
+            "density":        density_timeline,
+            "avg_density":    round(avg_density, 2),
+            "damage_rate":    round(damage_rate, 4),
+            "healing_rate":   round(healing_rate, 4),
+            "pressure_score": pressure,
+            "duration":       round(duration, 1)
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    """Enemy count on screen over time for a specific session, plus a pressure score."""
+    session_key = request.args.get("session")
+    if not session_key:
+        return jsonify({"success": False, "error": "Missing session param"}), 400
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT "generatedAt", "playerDamageCount", "hpHealCount"
+                    FROM wormhole_session_summary
+                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                """, (session_key,))
+                row = cur.fetchone()
+                if not row:
+                    return jsonify({"success": False, "error": "Session not found"}), 404
+                generated_at, player_damage_count, hp_heal_count = row
+
+                cur.execute("""
+                    SELECT
+                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed,
+                        "type"
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                      AND "type" IN ('enemy_spawn', 'enemy_killed')
+                    ORDER BY "time" ASC
+                """, (generated_at, session_key))
+                event_rows = cur.fetchall()
+
+                cur.execute("""
+                    SELECT EXTRACT(EPOCH FROM (MAX("time") - MIN("time")))
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                """, (session_key,))
+                dur_row = cur.fetchone()
+                duration = float(dur_row[0] or 1) if dur_row and dur_row[0] else 1.0
+
+        density_timeline = []
+        count = 0
+        for elapsed, event_type in event_rows:
+            if event_type == 'enemy_spawn':
+                count += 1
+            elif event_type == 'enemy_killed':
+                count = max(0, count - 1)
+            density_timeline.append({"x": round(float(elapsed), 2), "y": count})
+
+        avg_density   = (sum(p["y"] for p in density_timeline) / len(density_timeline)) if density_timeline else 0.0
+        damage_rate   = float(player_damage_count or 0) / duration
+        healing_rate  = float(hp_heal_count or 0) / duration
+        pressure      = round(damage_rate + avg_density - healing_rate, 3)
+
+        return jsonify({
+            "success":        True,
+            "session":        session_key,
+            "density":        density_timeline,
+            "avg_density":    round(avg_density, 2),
+            "damage_rate":    round(damage_rate, 4),
+            "healing_rate":   round(healing_rate, 4),
+            "pressure_score": pressure,
+            "duration":       round(duration, 1)
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    """Enemy count on screen over time for a specific session, plus a pressure score."""
+    session_key = request.args.get("session")
+    if not session_key:
+        return jsonify({"success": False, "error": "Missing session param"}), 400
+    try:
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT "generatedAt", "playerDamageCount", "hpHealCount"
+                    FROM wormhole_session_summary
+                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+                """, (session_key,))
+                row = cur.fetchone()
+                if not row:
+                    return jsonify({"success": False, "error": "Session not found"}), 404
+                generated_at, player_damage_count, hp_heal_count = row
+
+                cur.execute("""
+                    SELECT
+                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed,
+                        "type"
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                      AND "type" IN ('enemy_spawn', 'enemy_killed')
+                    ORDER BY "time" ASC
+                """, (generated_at, session_key))
+                event_rows = cur.fetchall()
+
+                cur.execute("""
+                    SELECT EXTRACT(EPOCH FROM (MAX("time") - MIN("time")))
+                    FROM wormhole_events
+                    WHERE "session" = %s
+                """, (session_key,))
+                dur_row = cur.fetchone()
+                duration = float(dur_row[0] or 1) if dur_row and dur_row[0] else 1.0
+
+        density_timeline = []
+        count = 0
+        for elapsed, event_type in event_rows:
+            if event_type == 'enemy_spawn':
+                count += 1
+            elif event_type == 'enemy_killed':
+                count = max(0, count - 1)
+            density_timeline.append({"x": round(float(elapsed), 2), "y": count})
+
+        avg_density   = (sum(p["y"] for p in density_timeline) / len(density_timeline)) if density_timeline else 0.0
+        damage_rate   = float(player_damage_count or 0) / duration
+        healing_rate  = float(hp_heal_count or 0) / duration
+        pressure      = round(damage_rate + avg_density - healing_rate, 3)
+
+        return jsonify({
+            "success":        True,
+            "session":        session_key,
+            "density":        density_timeline,
+            "avg_density":    round(avg_density, 2),
+            "damage_rate":    round(damage_rate, 4),
+            "healing_rate":   round(healing_rate, 4),
+            "pressure_score": pressure,
+            "duration":       round(duration, 1)
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
     """Enemy count on screen over time for a specific session, plus a pressure score."""
     session_key = request.args.get("session")
     if not session_key:

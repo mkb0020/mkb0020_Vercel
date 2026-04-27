@@ -429,7 +429,92 @@
     }
     #configSessionSelect option { background: #1a0030; }
 
-    .config-copy-btn {
+    /* ── CONFIG-MODE SELECTS (shared by all cards that support it) ── */
+    .config-select {
+      background: rgba(38, 0, 75, 0.8);
+      border: 1px solid #7b00ff65;
+      color: var(--MutedGray);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    .config-select option { background: #1a0030; }
+
+    .mode-toggle {
+      display: inline-flex;
+      border: 1px solid rgba(123,0,255,0.45);
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .mode-toggle button {
+      background: none;
+      border: none;
+      padding: 0.3rem 0.8rem;
+      font-family: 'SpaceLetters';
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: var(--MutedGray);
+      transition: background 0.2s, color 0.2s;
+    }
+    .mode-toggle button.active {
+      background: rgba(123,0,255,0.3);
+      color: #bcf7f7;
+    }
+    .mode-toggle button:not(.active):hover { background: rgba(255,255,255,0.05); }
+
+    /* Config Inspector leaderboard */
+    .cfg-rank-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.7rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid rgba(144,144,192,0.15);
+      background: rgba(255,255,255,0.03);
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .cfg-rank-row:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,221,255,0.25); }
+    .cfg-rank-row.selected { background: rgba(123,0,255,0.18); border-color: rgba(0,255,255,0.4); }
+    .cfg-rank-num {
+      font-family: 'SpaceLetters';
+      font-size: 1.1rem;
+      color: #9090C0;
+      min-width: 1.6rem;
+      text-align: center;
+    }
+    .cfg-rank-num.gold   { color: #FFD700; }
+    .cfg-rank-num.silver { color: #C0C0C0; }
+    .cfg-rank-num.bronze { color: #CD7F32; }
+    .cfg-rank-stats { display: flex; gap: 1.2rem; flex-wrap: wrap; flex: 1; }
+    .cfg-rank-stat  { text-align: center; }
+    .cfg-rank-stat h4 { margin: 0; font-family: 'SpaceLetters'; font-size: 0.95rem; }
+    .cfg-rank-stat p  { margin: 0; font-size: 0.68rem; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+    .cfg-view-btn {
+      position: relative; overflow: hidden;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #7b00ff75;
+      padding: 0.3rem 0.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-family: 'SpaceLetters';
+      color: var(--BohrsBabyBlue);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .cfg-view-btn:hover {
+      border-color: rgba(0,221,255,0.35);
+      box-shadow: 0 0 20px rgba(0,200,255,0.1);
+    }
+    .config-copy-btn{
       position: relative;
       overflow: hidden;
       background: rgba(255, 255, 255, 0.05);
@@ -895,9 +980,18 @@
     <div class="card" id="damageSpikes"> <!-- DAMAGE SPIKES + SPECIAL ATTACKS -->
       <div class="header-grid">
         <div class="header-col"><h3>💥 Damage &amp; Special Attacks</h3></div>
-        <div class="header-col"><select id="sessionSelect" style="width:100%; margin-bottom:1rem;">
-          <option value="">Loading sessions…</option>
-        </select></div>
+        <div class="header-col" style="display:flex; flex-direction:column; gap:0.4rem; align-items:flex-end;">
+          <div class="mode-toggle">
+            <button class="active" data-card="spikes" data-mode="session">Session</button>
+            <button data-card="spikes" data-mode="config">Config Avg</button>
+          </div>
+          <select id="sessionSelect" style="width:100%;">
+            <option value="">Loading sessions…</option>
+          </select>
+          <select id="spikesConfigSelect" class="config-select" style="display:none;">
+            <option value="">Loading configs…</option>
+          </select>
+        </div>
       </div>
         <canvas id="damageSpikeChart"></canvas>
         <p id="damageSpikeEmpty" style="color:#aaa; text-align:center; display:none;">
@@ -908,9 +1002,16 @@
     <div class="card" id="ttk-card"> <!-- TIME TO KILL -->
       <div class="header-grid">
         <div class="header-col"><h3>⏱️ Time To Kill</h3></div>
-        <div class="header-col">
-          <select id="ttkSessionSelect">
+        <div class="header-col" style="display:flex; flex-direction:column; gap:0.4rem; align-items:flex-end;">
+          <div class="mode-toggle">
+            <button class="active" data-card="ttk" data-mode="session">Session</button>
+            <button data-card="ttk" data-mode="config">Config Avg</button>
+          </div>
+          <select id="ttkSessionSelect" style="width:100%;">
             <option value="">Loading sessions…</option>
+          </select>
+          <select id="ttkConfigSelect" class="config-select" style="display:none;">
+            <option value="">Loading configs…</option>
           </select>
         </div>
       </div>
@@ -922,17 +1023,26 @@
     <div class="card" id="density-card"> <!-- ENEMY DENSITY -->
       <div class="header-grid">
         <div class="header-col"><h3>👾 Enemy Density</h3></div>
-        <div class="header-col" style="display:flex; gap:0.6rem; flex-wrap:wrap; justify-content:flex-end;">
-          <select id="densitySessionSelect">
-            <option value="">Loading sessions…</option>
-          </select>
-          <select id="densityWaveSelect">
-            <option value="1">Wave 1</option>
-            <option value="2">Wave 2</option>
-            <option value="3">Wave 3</option>
-            <option value="4">Wave 4</option>
-            <option value="5">Wave 5</option>
-          </select>
+        <div class="header-col" style="display:flex; flex-direction:column; gap:0.4rem; align-items:flex-end;">
+          <div class="mode-toggle">
+            <button class="active" data-card="density" data-mode="session">Session</button>
+            <button data-card="density" data-mode="config">Config Avg</button>
+          </div>
+          <div style="display:flex; gap:0.6rem; flex-wrap:wrap; justify-content:flex-end; width:100%;">
+            <select id="densitySessionSelect" style="flex:1; min-width:140px;">
+              <option value="">Loading sessions…</option>
+            </select>
+            <select id="densityConfigSelect" class="config-select" style="flex:1; min-width:140px; display:none;">
+              <option value="">Loading configs…</option>
+            </select>
+            <select id="densityWaveSelect">
+              <option value="1">Wave 1</option>
+              <option value="2">Wave 2</option>
+              <option value="3">Wave 3</option>
+              <option value="4">Wave 4</option>
+              <option value="5">Wave 5</option>
+            </select>
+          </div>
         </div>
       </div>
       <canvas id="densityChart"></canvas>
@@ -990,9 +1100,18 @@
     <div class="card" id="insights-card"> <!-- INSIGHTS -->
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:0.5rem;">
         <h3 style="margin:0;">⚖️ Insights</h3>
-        <select id="insightsSessionSelect">
-          <option value="">Loading sessions…</option>
-        </select>
+        <div style="display:flex; flex-direction:column; gap:0.4rem; align-items:flex-end;">
+          <div class="mode-toggle">
+            <button class="active" data-card="insights" data-mode="session">Session</button>
+            <button data-card="insights" data-mode="config">Config Avg</button>
+          </div>
+          <select id="insightsSessionSelect">
+            <option value="">Loading sessions…</option>
+          </select>
+          <select id="insightsConfigSelect" class="config-select" style="display:none;">
+            <option value="">Loading configs…</option>
+          </select>
+        </div>
       </div>
       <div id="insightsStatsBar" style="display:none; flex-wrap:wrap; gap:1.5rem; margin-bottom:1.4rem;
            padding:0.9rem 1.2rem; background:rgba(255,255,255,0.04); border-radius:10px;
@@ -1005,14 +1124,23 @@
       <div class="header-grid" style="align-items:center;">
         <div class="header-col"><h3>🔧 Config</h3></div>
         <div class="header-col" style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
-          <!--<button class="config-copy-btn" id="configCopyBtn" style="display:none;" onclick="copyConfigToClipboard()">📋 Copy Config</button>-->
-          <select id="configSessionSelect">
-            <option value="">— Select a session —</option>
-          </select>
+          <button class="config-copy-btn" id="configCopyBtn" style="display:none;" onclick="copyConfigToClipboard()">📋 Copy Config</button>
         </div>
       </div>
-      <div id="configBody">
-        <p id="configPlaceholder">Select a session above to inspect its config snapshot.</p>
+
+      <div id="configLeaderboard" style="margin-bottom:1.4rem;">
+        <p style="color:#888; font-size:0.9rem; text-align:center; padding:1rem 0;">Loading configs…</p>
+      </div>
+
+      <div id="configDetailPanel" style="display:none;">
+        <div style="height:1px; background:rgba(144,144,192,0.2); margin-bottom:1.2rem;"></div>
+        <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem; flex-wrap:wrap;">
+          <span id="configDetailTitle" style="font-family:'SpaceLetters'; font-size:0.85rem; color:#9090C0; text-transform:uppercase;"></span>
+          <button class="config-copy-btn" id="configCopyBtn2" onclick="copyConfigToClipboard()" style="font-size:0.75rem; padding:0.25rem 0.7rem;">📋 Copy Config JSON</button>
+        </div>
+        <div id="configBody">
+          <p id="configPlaceholder" style="color:#555; font-size:0.9rem; text-align:center; padding:2rem 0;">Select a config above to inspect it.</p>
+        </div>
       </div>
     </div>
 
@@ -1701,14 +1829,14 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     const result = await res.json();
     if (!result.success) return;
 
-    const optionsHTML = result.sessions.map(s => {
+    const sessionOptionsHTML = result.sessions.map(s => {
       const beaten = s.gameBeaten ? '🏆' : '💀';
       return `<option value="${s.key}">${beaten} ${s.label}  —  Wave ${s.waveCleared ?? '?'} cleared</option>`;
     }).join('');
 
-    ['sessionSelect', 'ttkSessionSelect', 'densitySessionSelect', 'insightsSessionSelect', 'configSessionSelect'].forEach(id => {
+    ['sessionSelect', 'ttkSessionSelect', 'densitySessionSelect', 'insightsSessionSelect'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = optionsHTML;
+      if (el) el.innerHTML = sessionOptionsHTML;
     });
 
     if (result.sessions.length) {
@@ -1719,6 +1847,190 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       loadDensityInsight(firstKey, document.getElementById('densityWaveSelect').value || '1');
       loadInsights(firstKey);
     }
+
+    await populateConfigDropdowns();
+  }
+
+  // ── CONFIG MODE STATE ────────────────────────────────────────────────────────
+  const cardMode = { spikes: 'session', ttk: 'session', density: 'session', insights: 'session' };
+
+  function setupModeToggles() {
+    document.querySelectorAll('.mode-toggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card = btn.dataset.card;
+        const mode = btn.dataset.mode;
+        cardMode[card] = mode;
+
+        btn.closest('.mode-toggle').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const sessionSelMap = { spikes: 'sessionSelect', ttk: 'ttkSessionSelect', density: 'densitySessionSelect', insights: 'insightsSessionSelect' };
+        const configSelMap  = { spikes: 'spikesConfigSelect', ttk: 'ttkConfigSelect', density: 'densityConfigSelect', insights: 'insightsConfigSelect' };
+
+        const sessEl = document.getElementById(sessionSelMap[card]);
+        const cfgEl  = document.getElementById(configSelMap[card]);
+        if (sessEl) sessEl.style.display = mode === 'session' ? '' : 'none';
+        if (cfgEl)  cfgEl.style.display  = mode === 'config'  ? '' : 'none';
+
+        if (mode === 'session') {
+          const key = sessEl?.value;
+          if (key) triggerCardLoad(card, 'session', key);
+        } else {
+          const hash = cfgEl?.value;
+          if (hash) triggerCardLoad(card, 'config', hash);
+        }
+      });
+    });
+  }
+
+  function triggerCardLoad(card, mode, value) {
+    if (card === 'spikes') {
+      if (mode === 'session') loadDamageSpikes(value);
+      else loadDamageSpikes(null, value);
+    } else if (card === 'ttk') {
+      loadTTK(value, mode === 'config');
+    } else if (card === 'density') {
+      const wave = document.getElementById('densityWaveSelect').value || '1';
+      loadEnemyDensityModed(value, mode, wave);
+    } else if (card === 'insights') {
+      if (mode === 'session') loadInsights(value);
+      else loadInsightsForConfig(value);
+    }
+  }
+
+  async function populateConfigDropdowns() {
+    const res    = await fetch('/api/wormhole/configs');
+    const result = await res.json();
+    if (!result.success) return;
+
+    const configs = result.configs;
+
+    const configOptionsHTML = configs.map((c, i) => {
+      const winPct = (c.win_rate * 100).toFixed(0);
+      const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${c.rank}`;
+      return `<option value="${c.config_hash}">${medal} Avg ${c.avg_waves_cleared} waves  |  ${winPct}% win  |  n=${c.session_count}</option>`;
+    }).join('');
+
+    ['spikesConfigSelect', 'ttkConfigSelect', 'densityConfigSelect', 'insightsConfigSelect'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = configOptionsHTML;
+    });
+
+    document.getElementById('spikesConfigSelect')?.addEventListener('change', e => {
+      if (e.target.value) loadDamageSpikes(null, e.target.value);
+    });
+    document.getElementById('ttkConfigSelect')?.addEventListener('change', e => {
+      if (e.target.value) loadTTK(e.target.value, true);
+    });
+    document.getElementById('densityConfigSelect')?.addEventListener('change', e => {
+      const wave = document.getElementById('densityWaveSelect').value || '1';
+      if (e.target.value) loadEnemyDensityModed(e.target.value, 'config', wave);
+    });
+    document.getElementById('insightsConfigSelect')?.addEventListener('change', e => {
+      if (e.target.value) loadInsightsForConfig(e.target.value);
+    });
+
+    renderConfigLeaderboard(configs);
+  }
+
+  // ── CONFIG LEADERBOARD ───────────────────────────────────────────────────────
+  let _selectedConfigHash = null;
+
+  function renderConfigLeaderboard(configs) {
+    const container = document.getElementById('configLeaderboard');
+    if (!configs.length) {
+      container.innerHTML = '<p style="color:#888; font-size:0.9rem; text-align:center;">No config data yet.</p>';
+      return;
+    }
+
+    const medals = ['🥇', '🥈', '🥉'];
+    const numClass = ['gold', 'silver', 'bronze'];
+
+    container.innerHTML = configs.map((c, i) => {
+      const winPct     = (c.win_rate * 100).toFixed(0);
+      const medalEmoji = medals[i] || '';
+      const numCls     = numClass[i] || '';
+      const label      = `Config ${c.config_hash.slice(0, 6).toUpperCase()}`;
+      return `
+        <div class="cfg-rank-row" data-hash="${c.config_hash}" onclick="selectConfigFromLeaderboard('${c.config_hash}', ${JSON.stringify(c).replace(/'/g, "&#39;")})">
+          <div class="cfg-rank-num ${numCls}">${medalEmoji || '#' + c.rank}</div>
+          <div style="font-family:'SpaceLetters'; font-size:0.78rem; color:#9090C0; flex-shrink:0;">${label}</div>
+          <div class="cfg-rank-stats">
+            <div class="cfg-rank-stat">
+              <h4 style="color:#00ffff;">${c.avg_waves_cleared.toFixed(2)}</h4>
+              <p>Avg Waves</p>
+            </div>
+            <div class="cfg-rank-stat">
+              <h4 style="color:${winPct >= 80 && winPct <= 95 ? '#58E84C' : '#ff6200'};">${winPct}%</h4>
+              <p>Win Rate</p>
+            </div>
+            <div class="cfg-rank-stat">
+              <h4 style="color:#c4b5fd;">${c.max_waves_cleared}</h4>
+              <p>Best Run</p>
+            </div>
+            <div class="cfg-rank-stat">
+              <h4 style="color:#9090C0;">${c.session_count}</h4>
+              <p>Sessions</p>
+            </div>
+          </div>
+          <button class="cfg-view-btn" onclick="event.stopPropagation(); selectConfigFromLeaderboard('${c.config_hash}', ${JSON.stringify(c).replace(/'/g, "&#39;")})">View Config ▾</button>
+        </div>`;
+    }).join('');
+  }
+
+  function selectConfigFromLeaderboard(hash, configData) {
+    _selectedConfigHash = hash;
+    _lastConfigRaw = configData.config;
+
+    document.querySelectorAll('.cfg-rank-row').forEach(r => {
+      r.classList.toggle('selected', r.dataset.hash === hash);
+    });
+
+    const panel = document.getElementById('configDetailPanel');
+    const title = document.getElementById('configDetailTitle');
+    panel.style.display = 'block';
+    title.textContent = `Config ${hash.slice(0, 6).toUpperCase()}  ·  ${configData.session_count} session${configData.session_count !== 1 ? 's' : ''}  ·  Avg ${configData.avg_waves_cleared.toFixed(2)} waves  ·  ${(configData.win_rate * 100).toFixed(0)}% win rate`;
+
+    const body = document.getElementById('configBody');
+    const c    = configData.config;
+
+    const html = [
+      renderConfigGroup('💎 Cosmic Prism', cfgCell('Heal Amount', c.COSMIC_PRISM.HEAL_AMOUNT, 'HP')),
+      renderConfigGroup('👾 Enemy Spawning', [
+        cfgCell('Spawn Interval Min', c.ENEMIES.SPAWN_INTERVAL_MIN, 's'),
+        cfgCell('Spawn Interval Max', c.ENEMIES.SPAWN_INTERVAL_MAX, 's'),
+      ].join('')),
+      ...Object.entries(c.ENEMIES.TYPES).map(([key, t]) => {
+        const name   = ENEMY_DISPLAY[key] || key;
+        const extras = key === 'FLIMFLAM' ? [
+          cfgCell('Prism First Delay Min', t.PRISM_FIRST_DELAY_MIN, 'ms'),
+          cfgCell('Prism First Delay Max', t.PRISM_FIRST_DELAY_MAX, 'ms'),
+          cfgCell('Prism Cooldown Min',    t.PRISM_COOLDOWN_MIN,    'ms'),
+          cfgCell('Prism Cooldown Max',    t.PRISM_COOLDOWN_MAX,    'ms'),
+        ] : [];
+        return renderConfigGroup(`🦑 ${name}`, [
+          cfgCell('Health',          t.HEALTH),
+          cfgCell('Laser Interval',  t.LASER_INTERVAL, 'ms'),
+          cfgCell('Combat Duration', t.COMBAT_DURATION, 'ms'),
+          ...extras
+        ].join(''));
+      }),
+      renderConfigGroup('Slime Attack', [
+        cfgCell('First Attack Min', c.SLIME_ATTACK.FIRST_ATTACK_MIN, 'ms'),
+        cfgCell('First Attack Max', c.SLIME_ATTACK.FIRST_ATTACK_MAX, 'ms'),
+        cfgCell('Repeat Interval',  c.SLIME_ATTACK.REPEAT_INTERVAL,  'ms'),
+      ].join('')),
+      renderConfigGroup('Fractal Cascade', [
+        cfgCell('First Delay Min', c.FRACTAL_CASCADE.FIRST_DELAY_MIN, 'ms'),
+        cfgCell('First Delay Max', c.FRACTAL_CASCADE.FIRST_DELAY_MAX, 'ms'),
+        cfgCell('Cooldown Min',    c.FRACTAL_CASCADE.COOLDOWN_MIN,    'ms'),
+        cfgCell('Cooldown Max',    c.FRACTAL_CASCADE.COOLDOWN_MAX,    'ms'),
+      ].join('')),
+      renderWaveConfigs(c.WAVE_CONFIGS),
+    ].join('');
+
+    body.innerHTML = html;
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   async function loadDamageSpikes(sessionKey) {
@@ -1842,8 +2154,9 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     return { color: '#FF0000', emoji: '🛑' };
   }
 
-  async function loadTTK(sessionKey) {
-    const res    = await fetch(`/api/wormhole/time-to-kill?session=${encodeURIComponent(sessionKey)}`);
+  async function loadTTK(keyOrHash, isConfig = false) {
+    const param = isConfig ? `config=${encodeURIComponent(keyOrHash)}` : `session=${encodeURIComponent(keyOrHash)}`;
+    const res    = await fetch(`/api/wormhole/time-to-kill?${param}`);
     const result = await res.json();
     const container  = document.getElementById('ttkResults');
     const empty      = document.getElementById('ttkEmpty');
@@ -1927,14 +2240,29 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
   }
 
   document.getElementById('ttkSessionSelect').addEventListener('change', e => {
-    if (e.target.value) loadTTK(e.target.value);
+    if (e.target.value) loadTTK(e.target.value, false);
   });
+
+  // ── ENEMY DENSITY  ──────────────────────────────────────
+  async function loadEnemyDensityModed(value, mode, wave) {
+    if (mode === 'config') {
+      await loadEnemyDensity(null, value);
+      document.getElementById('densityInsight').innerHTML =
+        '<p style="color:#555; font-size:0.85rem; text-align:center; margin-top:0.5rem;">Wave insight not available in config-avg mode.</p>';
+    } else {
+      await loadEnemyDensity(value);
+      await loadDensityInsight(value, wave);
+    }
+  }
 
   // ── ENEMY DENSITY 
   let densityChart;
 
-  async function loadEnemyDensity(sessionKey) {
-    const res    = await fetch(`/api/wormhole/enemy-density?session=${encodeURIComponent(sessionKey)}`);
+  async function loadEnemyDensity(sessionKey, configHash = null) {
+    const param = configHash
+      ? `config=${encodeURIComponent(configHash)}`
+      : `session=${encodeURIComponent(sessionKey)}`;
+    const res    = await fetch(`/api/wormhole/enemy-density?${param}`);
     const result = await res.json();
     if (!result.success) { console.error(result.error); return; }
 
@@ -2101,9 +2429,88 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
   });
 
   document.getElementById('densityWaveSelect').addEventListener('change', e => {
-    const session = document.getElementById('densitySessionSelect').value;
-    if (session) loadDensityInsight(session, e.target.value);
+    const mode = cardMode['density'];
+    if (mode === 'config') {
+      const hash = document.getElementById('densityConfigSelect').value;
+      if (hash) loadEnemyDensityModed(hash, 'config', e.target.value);
+    } else {
+      const session = document.getElementById('densitySessionSelect').value;
+      if (session) loadDensityInsight(session, e.target.value);
+    }
   });
+
+  // ── INSIGHTS CONFIG AVG ──────────────────────────────────────────────────────
+  async function loadInsightsForConfig(configHash) {
+    const container = document.getElementById('insights');
+    const statsBar  = document.getElementById('insightsStatsBar');
+    container.innerHTML = '<p style="color:#888; font-size:0.9rem;">Fetching sessions for this config…</p>';
+    statsBar.style.display = 'none';
+
+    const aggRes = await fetch(`/api/wormhole/config-aggregate?config=${encodeURIComponent(configHash)}`);
+    const aggData = await aggRes.json();
+    if (!aggData.success || !aggData.sessions?.length) {
+      container.innerHTML = '<p style="color:#888; font-size:0.9rem;">No sessions found for this config.</p>';
+      return;
+    }
+
+    const allInsightResponses = await Promise.all(
+      aggData.sessions.map(s =>
+        fetch(`/api/wormhole/hp-insights?session=${encodeURIComponent(s)}`).then(r => r.json())
+      )
+    );
+
+    const valid = allInsightResponses.filter(r => r.success && r.stats && Object.keys(r.stats).length);
+    if (!valid.length) {
+      container.innerHTML = '<p style="color:#888; font-size:0.9rem;">No HP data for this config.</p>';
+      return;
+    }
+
+    const keys = ['death_count','spike_count','mega_spike_count','overall_slope',
+                  'early_avg_hp','late_avg_hp','damage_events','heal_events','duration'];
+    const avgStats = {};
+    keys.forEach(k => {
+      const vals = valid.map(r => r.stats[k]).filter(v => v !== undefined && v !== null);
+      avgStats[k] = vals.length ? Math.round((vals.reduce((a,b) => a+b, 0) / vals.length) * 100) / 100 : 0;
+    });
+
+    const slopeColor = Math.abs(avgStats.overall_slope) < 0.03 ? '#ff6200'
+                     : avgStats.overall_slope < -0.4           ? '#FF6060'
+                     :                                           '#58E84C';
+    statsBar.style.display = 'flex';
+    statsBar.innerHTML = `
+      <div class="insight-stat"><h4 style="color:#ff0000;">${avgStats.death_count.toFixed(1)}</h4><p>Avg Deaths</p></div>
+      <div class="insight-stat"><h4 style="color:#ff8c42;">${avgStats.spike_count.toFixed(1)}</h4><p>Avg Dmg Spikes</p></div>
+      <div class="insight-stat"><h4 style="color:#cc44ff;">${avgStats.mega_spike_count.toFixed(1)}</h4><p>Avg Mega Spikes</p></div>
+      <div class="insight-stat"><h4 style="color:${slopeColor};">${avgStats.overall_slope > 0 ? '+' : ''}${avgStats.overall_slope}</h4><p>Avg HP/s Trend</p></div>
+      <div class="insight-stat"><h4 style="color:#00ffff;">${avgStats.early_avg_hp.toFixed(1)} → ${avgStats.late_avg_hp.toFixed(1)}</h4><p>Avg HP (early → late)</p></div>
+      <div class="insight-stat"><h4 style="color:#58E84C;">${avgStats.damage_events.toFixed(0)} / ${avgStats.heal_events.toFixed(0)}</h4><p>Avg Dmg / Heal Events</p></div>
+      <div class="insight-stat"><h4 style="color:#aaa;">${avgStats.duration.toFixed(0)}s</h4><p>Avg Duration</p></div>
+      <div class="insight-stat"><h4 style="color:#9090C0;">${valid.length}</h4><p>Sessions in Avg</p></div>`;
+
+    const allInsights = valid.flatMap(r => r.insights || []);
+    const byCategory = {};
+    allInsights.forEach(ins => {
+      if (!byCategory[ins.category]) byCategory[ins.category] = [];
+      byCategory[ins.category].push(ins);
+    });
+
+    const ORDER = ['deaths','spikes','trend','escalation','balance','pacing'];
+    const SEVERITY = { critical: 2, warning: 1, ok: 0 };
+    const summary = ORDER.map(cat => {
+      const group = byCategory[cat];
+      if (!group?.length) return null;
+      return group.sort((a, b) => (SEVERITY[b.status] || 0) - (SEVERITY[a.status] || 0))[0];
+    }).filter(Boolean);
+
+    container.innerHTML = summary.map(ins => `
+      <div class="insight-item ${ins.status}">
+        <div class="insight-icon">${ins.icon}</div>
+        <div>
+          <div class="insight-title">${ins.title}</div>
+          <div class="insight-message">${ins.message}</div>
+        </div>
+      </div>`).join('') || '<p style="color:#888; font-size:0.9rem;">No insight data.</p>';
+  }
 
 
   let healthKillChart;
@@ -2325,8 +2732,8 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     });
   }
 
-  document.getElementById('configSessionSelect').addEventListener('change', e => {
-    loadConfigInspector(e.target.value);
+  document.getElementById('insightsSessionSelect').addEventListener('change', e => {
+    if (e.target.value) loadInsights(e.target.value);
   });
 
   async function loadDashboard() {
@@ -2337,6 +2744,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     await loadWaveAnalysis();
     await populateSessionDropdown();
     await loadHealthKillRatio();
+    setupModeToggles();
   }
 
   loadDashboard();
