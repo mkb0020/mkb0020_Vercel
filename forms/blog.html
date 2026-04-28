@@ -6,6 +6,34 @@
     <link rel="stylesheet" href="/static/css/styles.css">
     <title>Data XP Blog</title>
     <style>
+        .modal-card {
+        background: linear-gradient(135deg, 
+            rgba(66, 4, 107, 0.4), 
+            rgba(60, 2, 131, 0.4));
+        border: 1px solid rgba(144, 144, 192, 0.105);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        backdrop-filter: blur(50px);
+        box-shadow: 
+            0 20px 50px -15px rgba(131,12,222, 0.201),
+            inset 0 1px 0 rgba(255, 255, 255, 0.135);
+        }
+
+        .modal-card h3 {
+        color: var(--ParticlePink);
+        }
+
+        .modal-card strong {
+        color: var(--ParticlePink);
+        }
+
+        .tagline {
+            font-family: 'SpaceLetters' !important;
+            color: var(--BohrsBabyBlue);
+            font-size: 1.1rem;
+        }
+
         .title {
             text-align: center;
             font-size: 2.4rem;
@@ -196,13 +224,36 @@
 
     <div id="helpModal" class="modal">
         <div class="modal-content">
-        <div class="modal-header">
-            <h1 class="modal-title">DATA XP</h1>
-            <button class="modal-close" id="closeModal">X</button>
-        </div>
-        <div class="modal-body">
-            <p>PLACEHOLDER</p>
-        </div>
+            <div class="modal-header">
+                <h1 class="modal-title">DATA XP</h1>
+                <button class="modal-close" id="closeModal">X</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-card"><h3>About Data XP</h3>
+                    <p><strong>Data XP</strong> is a blog about learning how indie games actually succeed — through data, experimentation, and real-world testing.</p>
+                    <p>I’m a solo indie developer exploring what works (and what doesn’t) in game development and marketing. Instead of guessing, I use publicly available data, market analysis, and hands-on experiments to understand how games grow, get discovered, and reach players.</p>
+                    <p>  I approach indie game development from a data-first, experimental perspective. Rather than relying on long-time gaming experience, I focus on analyzing real market trends and testing ideas through small experiments and personal projects.</p>
+                    <p>Each post is part research, part experiment, and part personal dev log. I break down trends in games, test ideas in real projects, and share what happens when theory meets reality.  </p>
+                </div>
+                <div class="modal-card"><h3>What you'll find here</h3>
+                    <ul>
+                        <li><strong>Market analysis</strong> — trends, patterns, and what’s actually selling in indie games</li>
+                        <li><strong>Experiments</strong> — testing ideas in real projects and documenting results</li>
+                        <li><strong>Dev insights</strong> — lessons learned from building and iterating</li>
+                        <li><strong>Data breakdowns</strong> — turning messy information into clear takeaways</li>
+                    </ul>
+                </div>
+                <div class="modal-card"><h3>The idea</h3>
+                    <p>Think of this as earning XP:</p>
+                    <ul>
+                        <li>analyzing the game market</li>
+                        <li>testing ideas in real builds</li>
+                        <li>learning from what works (and what fails)</li>
+                    </ul>
+                    <p>This isn’t just theory — it’s a quest to turn data into experience, and experience into better games.</p>
+                </div>
+                <div class="modal-card"><p class="tagline">Side quests, experiments, and boss fights included.</p></div>
+            </div>
         </div>
     </div>
 
