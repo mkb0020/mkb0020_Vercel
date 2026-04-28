@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <title>Data XP – Blog for indie game devs</title>
+    <style>
+        .blog-container {
+            display: flex;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .main-post {
+            flex: 3;
+            background: linear-gradient(135deg, 
+                rgba(46, 2, 75, 0.4), 
+                rgba(32, 0, 71, 0.4));
+            border: 1px solid rgba(144,144,192, 0.5);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(50px);
+            box-shadow: 
+                0 20px 50px -15px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .sidebar {
+            flex: 1;
+            background: linear-gradient(135deg, 
+                rgba(46, 2, 75, 0.4), 
+                rgba(32, 0, 71, 0.4));
+            border: 1px solid rgba(144,144,192, 0.5);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(50px);
+            box-shadow: 
+                0 20px 50px -15px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            height: fit-content;
+        }
+        .sidebar h3 {
+            color: var(--BohrsBabyBlue);
+            font-family: 'GothNerd', monospace;
+            margin-top: 0;
+        }
+        .post-list {
+            list-style: none;
+            padding: 0;
+        }
+        .post-list li {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(165, 90, 255, 0.3);
+            padding-bottom: 0.5rem;
+        }
+        .post-list a {
+            color: var(--CoolGray);
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: block;
+        }
+        .post-list a:hover {
+            color: var(--AquaAura);
+        }
+        .post-date {
+            font-size: 0.8rem;
+            color: var(--MutedGray);
+            display: block;
+            margin-top: 0.25rem;
+        }
+        .blog-post-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, var(--ParticlePink), var(--OrbitalOrange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .blog-post-meta {
+            color: var(--MutedGray);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .blog-content {
+            line-height: 1.7;
+            font-size: 1.1rem;
+        }
+        .blog-content h2, .blog-content h3 {
+            color: var(--AlphaAqua);
+        }
+        .blog-content pre {
+            background: rgba(0,0,0,0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--MutedGray);
+        }
+        @media (max-width: 768px) {
+            .blog-container { flex-direction: column; }
+            .main-post { order: 1; }
+            .sidebar { order: 2; }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="waves">
+        <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+        <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/> <!-- DARK PURPLE-ISH BLUE-->
+        </svg>
+        <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+        <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+        </svg>
+    <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+        <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/> <!-- COOL-TONED PURPLE -->
+    </svg>
+    <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+        <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>  <!-- DARK PURPLE-ISH BLUE-->
+    </svg>
+        <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+        <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/> <!--LIGHT HOT PINK -->
+        </svg>
+    <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+        <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/> <!-- DARK HOT PINK -->
+    </svg>
+    </div>
+    <div class="dreamy-overlay"> </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-container">
+        <div class="left-dropdown">
+            <button class="menu-trigger" aria-label="Menu">
+            <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
+            </button>
+            <div class="left-menu">
+            <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+            <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+            <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+            <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+            <div class="social-links">
+                <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
+                <img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+                </a>
+                <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
+                <img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+                </a>
+                <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
+                <img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon">
+                </a>
+                <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
+                <img src="../static/images/github-icon.png" alt="GitHub" class="social-icon">
+                </a>
+                <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
+                <img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
+                </a>
+            </div>
+            </div>
+        </div>
+
+        <a href="https://mkb0020.github.io">
+            <div class="logo">♡ mkb0020</div>
+        </a>
+
+        <div class="help-dropdown">
+            <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+            <div class="question-mark">?</div>
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu">
+            <button id="openMainHelp">About</button>
+            <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+            </div>
+        </div>
+        </div>
+    </nav>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title">DATA XP</h1>
+            <button class="modal-close" id="closeModal">X</button>
+        </div>
+        <div class="modal-body">
+            <p>PLACEHOLDER</p>
+        </div>
+        </div>
+    </div>
+
+    <div class="blog-container">
+        <div class="main-post" id="mainPost">
+            <div class="loading">Loading latest post...</div>
+        </div>
+        <div class="sidebar">
+            <h3>ARCHIVE</h3>
+            <ul class="post-list" id="postList">
+                <li>Loading posts...</li>
+            </ul>
+        </div>
+    </div>
+
+    
+  <div id="kofi-float">
+    <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+      <img src="/../static/images/tipjar.png" alt="Support me on Ko-fi">
+      <div class="hearts">
+        <div class="heart" style="--delay: 0s; --drift: -20px;">❤️</div>
+        <div class="heart" style="--delay: 0.5s; --drift: 15px;">💖</div>
+        <div class="heart" style="--delay: 1s; --drift: -10px;">💕</div>
+        <div class="heart" style="--delay: 1.5s; --drift: 20px;">❤️</div>
+        <div class="heart" style="--delay: 2s; --drift: -15px;">💗</div>
+        <div class="heart" style="--delay: 2.5s; --drift: 10px;">💖</div>
+      </div>
+    </a>
+  </div>
+
+  <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+    <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+      <img src="/static/images/top.png" alt="Scroll to top">
+    </a>
+  </div>
+
+  <script src="/static/js/KittyCore.js"></script>
+
+    <script>
+        let allPosts = [];
+
+        async function loadAllPosts() {
+            try {
+                const res = await fetch('/api/blog-posts');
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                allPosts = data.posts;
+                renderSidebar();
+                if (allPosts.length > 0) {
+                    loadPostById(allPosts[0].id);
+                } else {
+                    document.getElementById('mainPost').innerHTML = '<div class="loading">No posts yet. Check back soon!</div>';
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('postList').innerHTML = '<li>Error loading posts</li>';
+            }
+        }
+
+        function renderSidebar() {
+            const listEl = document.getElementById('postList');
+            if (!allPosts.length) {
+                listEl.innerHTML = '<li>No posts yet</li>';
+                return;
+            }
+            listEl.innerHTML = allPosts.map(post => `
+                <li>
+                    <a onclick="loadPostById(${post.id})">
+                        ${escapeHtml(post.title)}
+                        <span class="post-date">${formatDate(post.created_at)}</span>
+                    </a>
+                </li>
+            `).join('');
+        }
+
+        async function loadPostById(postId) {
+            try {
+                const res = await fetch(`/api/blog-posts/${postId}`);
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                const post = data.post;
+                let contentHtml = post.content;
+                if (typeof marked !== 'undefined') {
+                    contentHtml = marked.parse(post.content);
+                }
+                document.getElementById('mainPost').innerHTML = `
+                    <h1 class="blog-post-title">${escapeHtml(post.title)}</h1>
+                    <div class="blog-post-meta">📅 ${formatDate(post.created_at)}</div>
+                    <div class="blog-content">${contentHtml}</div>
+                `;
+            } catch (err) {
+                document.getElementById('mainPost').innerHTML = `<div class="loading">Failed to load post: ${err.message}</div>`;
+            }
+        }
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadAllPosts();
+    </script>
+</body>
+</html>

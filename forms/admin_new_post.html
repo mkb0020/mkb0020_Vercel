@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <title>Data XP – New Post</title>
+    <style>
+        .admin-container {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            border: 1px solid var(--ProtonPurple);
+        }
+        textarea { min-height: 400px; font-family: monospace; }
+        .message { margin-top: 1rem; padding: 0.75rem; border-radius: 8px; }
+        .success { background: rgba(0,255,0,0.2); border: 1px solid #0f0; }
+        .error { background: rgba(255,0,0,0.2); border: 1px solid #f00; }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h1>✍️ Write a new blog post</h1>
+        <form id="postForm">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="title" required maxlength="200">
+            </div>
+            <div class="form-group">
+                <label>Content (Markdown or HTML)</label>
+                <textarea id="content" required placeholder="Write your post here... You can use **markdown** or plain HTML."></textarea>
+                <small style="color: var(--MutedGray);">Supports Markdown (auto-converted) or raw HTML.</small>
+            </div>
+            <button type="submit" class="submit-btn">Publish Post</button>
+            <div id="msg"></div>
+        </form>
+    </div>
+
+    <script>
+        const ADMIN_SECRET = prompt("Enter admin secret key to continue:"); 
+
+        document.getElementById('postForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+            if (!title || !content) {
+                showMsg("Both title and content are required", "error");
+                return;
+            }
+
+            const submitBtn = e.target.querySelector('button');
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Posting...";
+
+            try {
+                const res = await fetch('/api/blog-posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Secret': ADMIN_SECRET
+                    },
+                    body: JSON.stringify({ title, content })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showMsg("✅ Post published! You can view it on /blog", "success");
+                    document.getElementById('postForm').reset();
+                } else {
+                    showMsg("❌ Error: " + data.error, "error");
+                }
+            } catch (err) {
+                showMsg("Network error: " + err.message, "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Publish Post";
+            }
+        });
+
+        function showMsg(text, type) {
+            const div = document.getElementById('msg');
+            div.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => div.innerHTML = "", 5000);
+        }
+    </script>
+</body>
+</html>

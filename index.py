@@ -1,4 +1,4 @@
-# Updated 4/22/26
+# Updated 4/28/26
 from flask import Flask, send_from_directory
 from api.comments import comments_bp
 from api.submitGameFeedback import feedback_bp
@@ -8,7 +8,8 @@ from api.wormholeFeedback import wormhole_feedback_bp
 from api.leaderboard import leaderboard_bp  
 from api.wormhole_analysis import wormhole_analysis_bp 
 from api.scores import scores_bp
-from flask_cors import CORS            
+from flask_cors import CORS      
+from api.blog import blog_bp       
 
 app = Flask(__name__, static_folder='static', template_folder='forms')
 CORS(app)
@@ -20,7 +21,9 @@ app.register_blueprint(tester_signup_bp)
 app.register_blueprint(wormhole_feedback_bp)
 app.register_blueprint(leaderboard_bp)        
 app.register_blueprint(scores_bp)      
-app.register_blueprint(wormhole_analysis_bp)       
+app.register_blueprint(wormhole_analysis_bp)   
+app.register_blueprint(blog_bp)
+
 
 
 @app.route('/')
@@ -58,6 +61,14 @@ def leaderboard_page():
 @app.route('/wormhole-analysis')
 def wormhole_analysis_page():
     return send_from_directory('forms', 'wormhole-analysis.html')
+
+@app.route('/blog')
+def blog_page():
+    return send_from_directory('forms', 'blog.html')
+
+@app.route('/admin/new')
+def admin_new_post_page():
+    return send_from_directory('forms', 'admin_new_post.html')
 
 if __name__ == '__main__':
     app.run()
