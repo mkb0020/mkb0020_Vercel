@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <title>AI Arena</title>
+    <style>
+        .page-container {
+            max-width: 1100px;
+            margin: 3rem auto 5rem;
+            padding: 0 1.2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-family: 'GothNerd';
+            color: var(--ParticlePink);
+            font-size: 2.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .page-header p {
+            color: var(--BohrsBabyBlue);
+            font-family: 'SpaceLetters';
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Progress bar */
+        .progress-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+            font-family: 'SpaceLetters';
+            font-size: 0.8rem;
+            color: rgba(160,160,204,0.7);
+        }
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(144,144,192,0.15);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7b00ff, var(--ParticlePink));
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        /* Prompt display */
+        .prompt-card {
+            background: linear-gradient(135deg,
+                rgba(46, 2, 75, 0.45),
+                rgba(32, 0, 71, 0.45));
+            border: 1px solid rgba(144, 144, 192, 0.4);
+            border-radius: 14px;
+            backdrop-filter: blur(50px);
+            box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.08);
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .prompt-label {
+            font-family: 'SpaceLetters';
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            color: rgba(160,160,204,0.6);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .prompt-text {
+            font-size: 1.1rem;
+            color: #f0e6ff;
+            line-height: 1.6;
+        }
+
+        /* Arena grid */
+        .arena-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 680px) {
+            .arena-grid { grid-template-columns: 1fr; }
+        }
+
+        .response-card {
+            background: linear-gradient(135deg,
+                rgba(46, 2, 75, 0.45),
+                rgba(32, 0, 71, 0.45));
+            border: 1px solid rgba(144,144,192,0.35);
+            border-radius: 14px;
+            backdrop-filter: blur(50px);
+            box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.08);
+            padding: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .response-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .response-card.card-a::before {
+            background: radial-gradient(ellipse at top left, rgba(103,254,189,0.06), transparent 60%);
+        }
+
+        .response-card.card-b::before {
+            background: radial-gradient(ellipse at top right, rgba(255,105,180,0.06), transparent 60%);
+        }
+
+        .response-card:hover::before { opacity: 1; }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+        }
+
+        .card-badge {
+            font-family: 'GothNerd';
+            font-size: 1.3rem;
+            padding: 2px 16px;
+            border-radius: 20px;
+        }
+
+        .badge-a { background: rgba(103,254,189,0.12); border: 1px solid rgba(103,254,189,0.35); color: #67fea0; }
+        .badge-b { background: rgba(255,105,180,0.12); border: 1px solid rgba(255,105,180,0.35); color: var(--ParticlePink); }
+
+        .response-body {
+            flex: 1;
+            font-size: 0.97rem;
+            line-height: 1.75;
+            color: rgba(240,230,255,0.9);
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-bottom: 1.5rem;
+            max-height: 420px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(144,144,192,0.3) transparent;
+        }
+
+        .vote-btn {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 10px;
+            font-family: 'SpaceLetters';
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .vote-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.25s;
+        }
+        .vote-btn:hover::before { left: 100%; }
+
+        .vote-btn-a {
+            background: rgba(103,254,189,0.08);
+            border: 1px solid rgba(103,254,189,0.35);
+            color: #67fea0;
+        }
+        .vote-btn-a:hover {
+            background: rgba(103,254,189,0.15);
+            box-shadow: 0 0 24px rgba(103,254,189,0.2);
+        }
+
+        .vote-btn-b {
+            background: rgba(255,105,180,0.08);
+            border: 1px solid rgba(255,105,180,0.35);
+            color: var(--ParticlePink);
+        }
+        .vote-btn-b:hover {
+            background: rgba(255,105,180,0.15);
+            box-shadow: 0 0 24px rgba(255,105,180,0.2);
+        }
+
+        .vote-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results overlay after voting */
+        .results-overlay {
+            display: none;
+            background: linear-gradient(135deg,
+                rgba(46, 2, 75, 0.6),
+                rgba(32, 0, 71, 0.6));
+            border: 1px solid rgba(144,144,192,0.4);
+            border-radius: 14px;
+            backdrop-filter: blur(50px);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-overlay.visible { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .results-title {
+            font-family: 'GothNerd';
+            color: var(--ParticlePink);
+            font-size: 1.6rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .vote-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            max-width: 420px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .vote-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-family: 'SpaceLetters';
+            font-size: 0.85rem;
+        }
+
+        .vote-bar-label { width: 24px; text-align: right; }
+        .vote-bar-track {
+            flex: 1;
+            height: 10px;
+            background: rgba(144,144,192,0.15);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .vote-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s cubic-bezier(.25,.8,.25,1);
+        }
+        .fill-a { background: linear-gradient(90deg, #67fea0, #00c896); }
+        .fill-b { background: linear-gradient(90deg, #c71585, var(--ParticlePink)); }
+        .vote-bar-pct { width: 36px; color: rgba(160,160,204,0.7); font-size: 0.8rem; }
+
+        .next-btn {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #7b00ff75;
+            padding: 0.6rem 2.4rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'SpaceLetters';
+            color: var(--BohrsBabyBlue);
+            transition: all 0.2s;
+            box-shadow: 0 0 18px rgba(140,60,255,0.15);
+        }
+        .next-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.2s;
+        }
+        .next-btn:hover::before { left: 100%; }
+        .next-btn:hover {
+            border-color: rgba(0,221,255,0.32);
+            box-shadow: 0 0 30px rgba(0,200,255,0.1), 0 0 60px rgba(140,60,255,0.15);
+        }
+
+        /* Empty / loading states */
+        .state-card {
+            background: linear-gradient(135deg,
+                rgba(46, 2, 75, 0.45),
+                rgba(32, 0, 71, 0.45));
+            border: 1px solid rgba(144, 144, 192, 0.4);
+            border-radius: 14px;
+            backdrop-filter: blur(50px);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .state-card p {
+            font-family: 'SpaceLetters';
+            color: rgba(160,160,204,0.7);
+            margin-bottom: 1.2rem;
+            font-size: 0.95rem;
+        }
+        .state-card a {
+            color: var(--ParticlePink);
+            font-family: 'SpaceLetters';
+            font-size: 0.9rem;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,105,180,0.3);
+        }
+        .state-card a:hover { border-color: var(--ParticlePink); }
+
+        /* winner highlight */
+        .response-card.winner {
+            border-color: rgba(103,254,189,0.5);
+            box-shadow: 0 0 30px rgba(103,254,189,0.1);
+        }
+        .response-card.loser { opacity: 0.55; }
+
+        /* footer */
+        footer {
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: var(--glass4);
+            backdrop-filter: blur(30px);
+        }
+        footer p { font-size: 0.7rem; color: #c4b5fd; font-family: 'SpaceLetters'; letter-spacing: 0.1em; }
+        footer a { color: var(--AlphaAqua); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="waves">
+        <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+        <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/>
+        </svg>
+        <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/>
+        </svg>
+        <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+    </div>
+    <div class="dreamy-overlay"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="left-dropdown">
+                <button class="menu-trigger" aria-label="Menu">
+                    <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
+                </button>
+                <div class="left-menu">
+                    <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+                    <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+                    <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+                    <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+                    <div class="social-links">
+                        <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube"><img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon"></a>
+                        <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn"><img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon"></a>
+                        <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud"><img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon"></a>
+                        <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub"><img src="../static/images/github-icon.png" alt="GitHub" class="social-icon"></a>
+                        <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io"><img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon"></a>
+                    </div>
+                </div>
+            </div>
+            <a href="https://mkb0020.github.io">
+                <div class="logo">♡ mkb0020</div>
+            </a>
+            <div class="help-dropdown">
+                <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+                    <div class="question-mark">?</div>
+                </button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>⚔ AI ARENA</h1>
+            <p>Click <a href="https://mkb0020.vercel.app/response-input">here</a> to submit a prompt / responses</p>
+        </div>
+
+        <div id="loading-state" class="state-card">
+            <p>Loading battles...</p>
+        </div>
+
+        <div id="empty-state" class="state-card" style="display:none;">
+            <p>No response pairs in the Arena yet.</p>
+            <a href="/response-input">Submit some responses to get started →</a>
+        </div>
+
+        <div id="arena" style="display:none;">
+            <div class="progress-bar-wrap">
+                <span id="progress-label">1 of ?</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+                </div>
+                <span id="pair-id-label"></span>
+            </div>
+
+            <div class="prompt-card">
+                <div class="prompt-label">Prompt</div>
+                <div class="prompt-text" id="prompt-text"></div>
+            </div>
+
+            <div class="arena-grid" id="arena-grid">
+                <div class="response-card card-a" id="card-a">
+                    <div class="card-header">
+                        <span class="card-badge badge-a">Response A</span>
+                    </div>
+                    <div class="response-body" id="body-a"></div>
+                    <button class="vote-btn vote-btn-a" id="vote-a" onclick="submitVote('a')">
+                        ✦ Prefer A
+                    </button>
+                </div>
+                <div class="response-card card-b" id="card-b">
+                    <div class="card-header">
+                        <span class="card-badge badge-b">Response B</span>
+                    </div>
+                    <div class="response-body" id="body-b"></div>
+                    <button class="vote-btn vote-btn-b" id="vote-b" onclick="submitVote('b')">
+                        ✦ Prefer B
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-overlay" id="results">
+                <div class="results-title" id="results-title"></div>
+                <div class="vote-bars">
+                    <div class="vote-bar-row">
+                        <span class="vote-bar-label" style="color:#67fea0">A</span>
+                        <div class="vote-bar-track">
+                            <div class="vote-bar-fill fill-a" id="bar-a" style="width:0%"></div>
+                        </div>
+                        <span class="vote-bar-pct" id="pct-a">0%</span>
+                    </div>
+                    <div class="vote-bar-row">
+                        <span class="vote-bar-label" style="color:var(--ParticlePink)">B</span>
+                        <div class="vote-bar-track">
+                            <div class="vote-bar-fill fill-b" id="bar-b" style="width:0%"></div>
+                        </div>
+                        <span class="vote-bar-pct" id="pct-b">0%</span>
+                    </div>
+                </div>
+                <button class="next-btn" onclick="nextPair()">Next Battle →</button>
+            </div>
+        </div>
+    </div>
+
+    <footer><p>&copy; 2026 mkb0020. All Rights Reserved.</p></footer>
+
+    <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+        <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+            <img src="/static/images/top.png" alt="Scroll to top">
+        </a>
+    </div>
+
+    <script src="/static/js/KittyCore.js"></script>
+    <script>
+        const API_BASE = '';
+
+        let pairs   = [];
+        let current = 0;
+
+        async function loadPairs() {
+            try {
+                const res  = await fetch(`${API_BASE}/api/responses?limit=50`);
+                const data = await res.json();
+
+                document.getElementById('loading-state').style.display = 'none';
+
+                if (!data.success || !data.data.length) {
+                    document.getElementById('empty-state').style.display = 'block';
+                    return;
+                }
+
+                pairs = data.data.sort(() => Math.random() - 0.5);
+                current = 0;
+
+                document.getElementById('arena').style.display = 'block';
+                showPair();
+
+            } catch (e) {
+                document.getElementById('loading-state').innerHTML =
+                    `<p>Could not connect to the API. Check your backend.</p>`;
+            }
+        }
+
+        function showPair() {
+            const pair = pairs[current];
+
+            document.getElementById('results').classList.remove('visible');
+            document.getElementById('card-a').classList.remove('winner','loser');
+            document.getElementById('card-b').classList.remove('winner','loser');
+            document.getElementById('vote-a').disabled = false;
+            document.getElementById('vote-b').disabled = false;
+
+            document.getElementById('prompt-text').textContent = pair.prompt;
+            document.getElementById('body-a').textContent      = pair.response_a;
+            document.getElementById('body-b').textContent      = pair.response_b;
+            document.getElementById('pair-id-label').textContent = `#${pair.id}`;
+
+            const pct = Math.round((current / pairs.length) * 100);
+            document.getElementById('progress-label').textContent = `${current + 1} of ${pairs.length}`;
+            document.getElementById('progress-fill').style.width  = `${pct}%`;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function submitVote(choice) {
+            const pair = pairs[current];
+
+            document.getElementById('vote-a').disabled = true;
+            document.getElementById('vote-b').disabled = true;
+
+            if (choice === 'a') {
+                document.getElementById('card-a').classList.add('winner');
+                document.getElementById('card-b').classList.add('loser');
+            } else {
+                document.getElementById('card-b').classList.add('winner');
+                document.getElementById('card-a').classList.add('loser');
+            }
+
+            try {
+                await fetch(`${API_BASE}/api/compare`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ response_pair_id: pair.id, preferred: choice })
+                });
+            } catch (e) {
+            }
+
+            showResults(pair.id, choice);
+        }
+
+        async function showResults(pairId, voted) {
+            let votesA = 0, votesB = 0, total = 1;
+
+            try {
+                const res  = await fetch(`${API_BASE}/api/compare/stats/${pairId}`);
+                const data = await res.json();
+                if (data.success) {
+                    votesA = data.votes_a;
+                    votesB = data.votes_b;
+                    total  = data.total || 1;
+                }
+            } catch (e) { /* show local-only result */ }
+
+            const pctA = Math.round((votesA / total) * 100);
+            const pctB = 100 - pctA;
+
+            document.getElementById('results-title').textContent =
+                voted === 'a' ? '✦ You chose Response A' : '✦ You chose Response B';
+
+            setTimeout(() => {
+                document.getElementById('bar-a').style.width = `${pctA}%`;
+                document.getElementById('bar-b').style.width = `${pctB}%`;
+                document.getElementById('pct-a').textContent = `${pctA}%`;
+                document.getElementById('pct-b').textContent = `${pctB}%`;
+            }, 80);
+
+            document.getElementById('results').classList.add('visible');
+
+            setTimeout(() => {
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 200);
+        }
+
+        function nextPair() {
+            current++;
+            if (current >= pairs.length) {
+                document.getElementById('arena').style.display = 'none';
+                document.getElementById('empty-state').style.display  = 'block';
+                document.getElementById('empty-state').innerHTML = `
+                    <p>You've voted on everything in the Arena! 🎉</p>
+                    <a href="/response-input">Submit more responses →</a>
+                `;
+                return;
+            }
+            showPair();
+        }
+
+        loadPairs();
+    </script>
+</body>
+</html>

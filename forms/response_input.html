@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <title>AI Dopamine – Submit Responses</title>
+    <style>
+        .page-container {
+            max-width: 960px;
+            margin: 3rem auto 5rem;
+            padding: 0 1.2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .page-header h1 {
+            font-family: 'GothNerd';
+            color: var(--ParticlePink);
+            font-size: 2.8rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .page-header p {
+            color: var(--BohrsBabyBlue);
+            font-family: 'SpaceLetters';
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg,
+                rgba(46, 2, 75, 0.45),
+                rgba(32, 0, 71, 0.45));
+            border: 1px solid rgba(144, 144, 192, 0.5);
+            border-radius: 16px;
+            backdrop-filter: blur(50px);
+            box-shadow:
+                0 20px 50px -15px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            padding: 2.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-label {
+            font-family: 'SpaceLetters';
+            color: var(--BohrsBabyBlue);
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-size: 1.05rem;
+            color: var(--BohrsBabyBlue);
+            font-family: 'SpaceLetters';
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(20, 10, 40, 0.6);
+            border: 1px solid rgba(144, 144, 192, 0.4);
+            border-radius: 12px;
+            color: #f0e6ff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--CoolGray);
+            box-shadow: 0 0 0 3px rgba(103, 254, 189, 0.15),
+                        inset 0 2px 12px rgba(0, 0, 0, 0.4);
+            background: rgba(30, 15, 55, 0.8);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a0a0cc' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+
+        select option {
+            background: #1a0a2e;
+        }
+
+        .response-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+
+        @media (max-width: 640px) {
+            .response-grid { grid-template-columns: 1fr; }
+        }
+
+        .response-col {
+            position: relative;
+        }
+
+        .response-col .badge {
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            font-family: 'GothNerd';
+            font-size: 1rem;
+            padding: 2px 14px;
+            border-radius: 20px;
+            z-index: 1;
+        }
+
+        .badge-a {
+            background: rgba(103, 254, 189, 0.15);
+            border: 1px solid rgba(103, 254, 189, 0.4);
+            color: #67fea0;
+        }
+
+        .badge-b {
+            background: rgba(255, 105, 180, 0.15);
+            border: 1px solid rgba(255, 105, 180, 0.4);
+            color: var(--ParticlePink);
+        }
+
+        .response-col textarea {
+            min-height: 280px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.93rem;
+            line-height: 1.6;
+            resize: vertical;
+            padding-top: 20px;
+        }
+
+        textarea#prompt {
+            min-height: 90px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.78rem;
+            color: rgba(160, 160, 204, 0.6);
+            font-family: 'SpaceLetters';
+            margin-top: 4px;
+        }
+
+        .char-count.warning { color: #f4a261; }
+        .char-count.danger  { color: #e63946; }
+
+        .submit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .hint {
+            font-family: 'SpaceLetters';
+            font-size: 0.82rem;
+            color: rgba(160, 160, 204, 0.6);
+        }
+
+        .submit-btn {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #7b00ff75;
+            padding: 0.5rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-family: 'SpaceLetters';
+            color: var(--BohrsBabyBlue);
+            transition: border-color 0.2s, box-shadow 0.2s, color 0.2s, transform 0.15s;
+            box-shadow: 0 0 18px rgba(140, 60, 255, 0.15);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.2s;
+        }
+
+        .submit-btn:hover::before { left: 100%; }
+
+        .submit-btn:hover, .submit-btn:focus {
+            border-color: rgba(0, 221, 255, 0.32);
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.1), 0 0 60px rgba(140, 60, 255, 0.15);
+            outline: none;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 1.2rem;
+            padding: 0.9rem 1.1rem;
+            border-radius: 8px;
+            font-family: 'SpaceLetters';
+            font-size: 0.95rem;
+        }
+        .success { background: rgba(0, 255, 100, 0.1); border: 1px solid rgba(0,255,100,0.3); color: #6fffaa; }
+        .error   { background: rgba(255, 50, 50, 0.1);  border: 1px solid rgba(255,50,50,0.3);  color: #ff8888; }
+
+        /* Recent submissions preview */
+        .recent-header {
+            font-family: 'GothNerd';
+            color: var(--ParticlePink);
+            font-size: 1.4rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .pair-card {
+            background: rgba(20, 10, 40, 0.5);
+            border: 1px solid rgba(144, 144, 192, 0.25);
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 0.8rem;
+            transition: border-color 0.2s;
+        }
+
+        .pair-card:hover {
+            border-color: rgba(144, 144, 192, 0.5);
+        }
+
+        .pair-prompt {
+            font-family: 'SpaceLetters';
+            font-size: 0.88rem;
+            color: rgba(240, 230, 255, 0.9);
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pair-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: rgba(160, 160, 204, 0.6);
+            font-family: 'SpaceLetters';
+            align-items: center;
+        }
+
+        .pair-source {
+            background: rgba(103, 254, 189, 0.1);
+            border: 1px solid rgba(103, 254, 189, 0.2);
+            color: #67fea0;
+            padding: 1px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+
+        .go-arena-btn {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 0.7rem;
+            font-family: 'SpaceLetters';
+            font-size: 0.9rem;
+            color: var(--BohrsBabyBlue);
+            border: 1px solid rgba(144, 144, 192, 0.3);
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .go-arena-btn:hover {
+            border-color: var(--ParticlePink);
+            color: var(--ParticlePink);
+            background: rgba(255, 105, 180, 0.05);
+        }
+
+        /* footer */
+        footer {
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: var(--glass4);
+            backdrop-filter: blur(30px);
+        }
+        footer p {
+            font-size: 0.7rem;
+            color: #c4b5fd;
+            font-family: 'SpaceLetters';
+            letter-spacing: 0.1em;
+        }
+        footer a { color: var(--AlphaAqua); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="waves">
+        <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+        <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/>
+        </svg>
+        <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/>
+        </svg>
+        <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+    </div>
+    <div class="dreamy-overlay"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="left-dropdown">
+                <button class="menu-trigger" aria-label="Menu">
+                    <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
+                </button>
+                <div class="left-menu">
+                    <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+                    <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+                    <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+                    <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+                    <div class="social-links">
+                        <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube"><img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon"></a>
+                        <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn"><img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon"></a>
+                        <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud"><img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon"></a>
+                        <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub"><img src="../static/images/github-icon.png" alt="GitHub" class="social-icon"></a>
+                        <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io"><img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon"></a>
+                    </div>
+                </div>
+            </div>
+            <a href="https://mkb0020.github.io">
+                <div class="logo">♡ mkb0020</div>
+            </a>
+            <div class="help-dropdown">
+                <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+                    <div class="question-mark">?</div>
+                </button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>AI DOPAMINE</h1>
+            <p>Prompt and response input</p>
+            <p>Click <a href="https://mkb0020.vercel.app/arena">here</a> to go to the arena</p>
+        </div>
+
+        <div class="glass-card">
+            <div class="form-group">
+                <label for="prompt">PROMPT</label>
+                <textarea id="prompt" maxlength="2000" placeholder="What question or task did you give the AI?"></textarea>
+                <div class="char-count" id="prompt-count">0 / 2000</div>
+            </div>
+
+            <div class="form-group">
+                <label>RESPONSES</label>
+                <div class="response-grid">
+                    <div class="response-col">
+                        <span class="badge badge-a">A</span>
+                        <textarea id="response_a" maxlength="5000" placeholder="Paste Response A here..."></textarea>
+                        <div class="char-count" id="a-count">0 / 5000</div>
+                    </div>
+                    <div class="response-col">
+                        <span class="badge badge-b">B</span>
+                        <textarea id="response_b" maxlength="5000" placeholder="Paste Response B here..."></textarea>
+                        <div class="char-count" id="b-count">0 / 5000</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="source">SOURCE</label>
+                <select id="source">
+                    <option value="manual">Manual</option>
+                    <option value="gpt-4o">GPT-4o</option>
+                    <option value="claude">Claude</option>
+                    <option value="gemini">Gemini</option>
+                    <option value="mixed">Mixed models</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="submit-row">
+                <span class="hint">Both responses will be anonymized in the Arena</span>
+                <button class="submit-btn" id="submitBtn">Submit to Arena</button>
+            </div>
+            <div id="msg"></div>
+        </div>
+
+        <div class="glass-card">
+            <div class="recent-header">Recent Submissions</div>
+            <div id="recent-list">
+                <p style="font-family:'SpaceLetters'; color: rgba(160,160,204,0.5); font-size:0.85rem;">Loading...</p>
+            </div>
+            <a href="/arena" class="go-arena-btn">→ Go to the Arena to vote</a>
+        </div>
+    </div>
+
+    <footer><p>&copy; 2026 mkb0020. All Rights Reserved.</p></footer>
+
+    <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+        <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+            <img src="/static/images/top.png" alt="Scroll to top">
+        </a>
+    </div>
+
+    <script src="/static/js/KittyCore.js"></script>
+    <script>
+        const API_BASE = '';  
+
+        function setupCounter(textareaId, countId, max) {
+            const ta = document.getElementById(textareaId);
+            const el = document.getElementById(countId);
+            ta.addEventListener('input', () => {
+                const len = ta.value.length;
+                el.textContent = `${len} / ${max}`;
+                el.className = 'char-count' + (len > max * 0.9 ? ' warning' : '') + (len >= max ? ' danger' : '');
+            });
+        }
+        setupCounter('prompt',     'prompt-count', 2000);
+        setupCounter('response_a', 'a-count',      5000);
+        setupCounter('response_b', 'b-count',      5000);
+
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            const prompt     = document.getElementById('prompt').value.trim();
+            const response_a = document.getElementById('response_a').value.trim();
+            const response_b = document.getElementById('response_b').value.trim();
+            const source     = document.getElementById('source').value;
+
+            if (!prompt || !response_a || !response_b) {
+                showMsg('All three fields are required.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/responses`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, response_a, response_b, source })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showMsg(`✅ Submitted! Pair #${data.pair_id} is live in the Arena.`, 'success');
+                    document.getElementById('prompt').value = '';
+                    document.getElementById('response_a').value = '';
+                    document.getElementById('response_b').value = '';
+                    ['prompt-count','a-count','b-count'].forEach(id => {
+                        document.getElementById(id).textContent = document.getElementById(id).textContent.replace(/^\d+/, '0');
+                    });
+                    loadRecent();
+                } else {
+                    showMsg('❌ ' + data.error, 'error');
+                }
+            } catch (err) {
+                showMsg('Network error: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit to Arena';
+            }
+        });
+
+        async function loadRecent() {
+            try {
+                const res  = await fetch(`${API_BASE}/api/responses?limit=5`);
+                const data = await res.json();
+                const list = document.getElementById('recent-list');
+
+                if (!data.success || !data.data.length) {
+                    list.innerHTML = `<p style="font-family:'SpaceLetters'; color:rgba(160,160,204,0.5); font-size:0.85rem;">No submissions yet. Be the first!</p>`;
+                    return;
+                }
+
+                list.innerHTML = data.data.map(pair => `
+                    <div class="pair-card">
+                        <div class="pair-prompt">${escHtml(pair.prompt)}</div>
+                        <div class="pair-meta">
+                            <span>#${pair.id}</span>
+                            <span class="pair-source">${escHtml(pair.source || 'manual')}</span>
+                            <span>${new Date(pair.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                document.getElementById('recent-list').innerHTML =
+                    `<p style="font-family:'SpaceLetters'; color:rgba(255,100,100,0.6); font-size:0.85rem;">Could not load recent submissions.</p>`;
+            }
+        }
+
+        function escHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function showMsg(text, type) {
+            const div = document.getElementById('msg');
+            div.innerHTML = `<div class="message ${type}">${text}</div>`;
+            if (type === 'success') setTimeout(() => div.innerHTML = '', 6000);
+        }
+
+        loadRecent();
+    </script>
+</body>
+</html>
