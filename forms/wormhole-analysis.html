@@ -1907,7 +1907,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     const configOptionsHTML = configs.map((c, i) => {
       const winPct = (c.win_rate * 100).toFixed(0);
       const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${c.rank}`;
-      return `<option value="${c.config_hash}">${medal} Avg ${c.avg_waves_cleared} waves  |  ${winPct}% win  |  n=${c.session_count}</option>`;
+      return `<option value="${c.config_hash}">${medal} ${c.config_hash.slice(0, 6).toUpperCase()}  —  Avg ${c.avg_waves_cleared} waves  |  ${winPct}% win  |  n=${c.session_count}</option>`;
     }).join('');
 
     ['spikesConfigSelect', 'ttkConfigSelect', 'densityConfigSelect', 'insightsConfigSelect'].forEach(id => {
@@ -2038,8 +2038,11 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  async function loadDamageSpikes(sessionKey) {
-    const res    = await fetch(`/api/wormhole/damage-spikes?session=${encodeURIComponent(sessionKey)}`);
+  async function loadDamageSpikes(sessionKey, configHash = null) {
+    const param  = configHash
+      ? `config=${encodeURIComponent(configHash)}`
+      : `session=${encodeURIComponent(sessionKey)}`;
+    const res    = await fetch(`/api/wormhole/damage-spikes?${param}`);
     const result = await res.json();
     if (!result.success) { console.error(result.error); return; }
 
@@ -2248,7 +2251,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     if (e.target.value) loadTTK(e.target.value, false);
   });
 
-  // ── ENEMY DENSITY — mode-aware wrapper ──────────────────────────────────────
+  // ── ENEMY DENSITY  ──────────────────────────────────────
   async function loadEnemyDensityModed(value, mode, wave) {
     if (mode === 'config') {
       await loadEnemyDensity(null, value);
@@ -2275,6 +2278,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     if (densityChart) densityChart.destroy();
 
     if (!result.density.length) {
+      if (densityChart) { densityChart.destroy(); densityChart = null; }
       document.getElementById('pressureScore').innerHTML =
         '<p style="color:#aaa; text-align:center;">No density data for this session.</p>';
       return;

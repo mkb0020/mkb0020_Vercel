@@ -807,68 +807,114 @@ def get_session_config():
 
 @wormhole_analysis_bp.route('/api/wormhole/damage-spikes', methods=['GET'])
 def get_damage_spikes():
-    """HP timeline + special attack timestamps for one session."""
+    """HP timeline + special attack timestamps for one session, or config-averaged across sessions."""
     session_key = request.args.get("session")
-    if not session_key:
-        return jsonify({"success": False, "error": "Missing session param"}), 400
+    config_hash = request.args.get("config")
+    if not session_key and not config_hash:
+        return jsonify({"success": False, "error": "Missing session or config param"}), 400
+
+    ATTACK_TYPES = ('fractal_cascade_attack', 'slime_attack', 'ocular_prism_attack')
+
+    def _fetch_session_data(cur, sess):
+        """Return (hp_timeline, attack_dict) for a single session key."""
+        cur.execute("""
+            SELECT "generatedAt"
+            FROM wormhole_session_summary
+            WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
+                          'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
+        """, (sess,))
+        row = cur.fetchone()
+        if not row:
+            return None, None
+        generated_at = row[0]
+
+        cur.execute("""
+            SELECT EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed, "hp"
+            FROM wormhole_events
+            WHERE "session" = %s AND "hp" IS NOT NULL
+            ORDER BY "time" ASC
+        """, (generated_at, sess))
+        hp_rows = cur.fetchall()
+
+        cur.execute("""
+            SELECT "type", EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed
+            FROM wormhole_events
+            WHERE "session" = %s
+              AND "type" IN ('fractal_cascade_attack', 'slime_attack', 'ocular_prism_attack')
+            ORDER BY "time" ASC
+        """, (generated_at, sess))
+        attack_rows = cur.fetchall()
+
+        timeline = [
+            (round(float(r[0]), 2), int(r[1]))
+            for r in hp_rows if r[0] is not None
+        ]
+        attacks = {t: [] for t in ATTACK_TYPES}
+        for event_type, elapsed in attack_rows:
+            if elapsed is not None and event_type in attacks:
+                attacks[event_type].append(round(float(elapsed), 2))
+
+        return timeline, attacks
 
     try:
         with psycopg.connect(DB_URL) as conn:
             with conn.cursor() as cur:
 
-                cur.execute("""
-                    SELECT "generatedAt"
-                    FROM wormhole_session_summary
-                    WHERE to_char("generatedAt" AT TIME ZONE 'UTC',
-                                  'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') = %s
-                """, (session_key,))
-                row = cur.fetchone()
-                if not row:
-                    return jsonify({"success": False, "error": "Session not found"}), 404
-                generated_at = row[0]
+                # ── CONFIG-AVERAGE MODE ──────────────────────────────────────
+                if config_hash:
+                    sessions = _get_config_sessions(cur, config_hash)
+                    if not sessions:
+                        return jsonify({"success": False, "error": "No sessions found for this config"}), 404
 
-                cur.execute("""
-                    SELECT
-                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed,
-                        "hp"
-                    FROM wormhole_events
-                    WHERE "session" = %s
-                      AND "hp" IS NOT NULL
-                    ORDER BY "time" ASC
-                """, (generated_at, session_key))
-                hp_rows = cur.fetchall()
+                    from collections import defaultdict
+                    buckets   = defaultdict(list)   
+                    all_attacks = {t: [] for t in ATTACK_TYPES}
 
-                cur.execute("""
-                    SELECT
-                        "type",
-                        EXTRACT(EPOCH FROM ("time" - %s)) AS elapsed
-                    FROM wormhole_events
-                    WHERE "session" = %s
-                      AND "type" IN (
-                            'fractal_cascade_attack',
-                            'slime_attack',
-                            'ocular_prism_attack'
-                          )
-                    ORDER BY "time" ASC
-                """, (generated_at, session_key))
-                attack_rows = cur.fetchall()
+                    for sess in sessions:
+                        timeline, atks = _fetch_session_data(cur, sess)
+                        if not timeline:
+                            continue
+                        for elapsed, hp in timeline:
+                            buckets[int(elapsed)].append(hp)
+                        for t in ATTACK_TYPES:
+                            all_attacks[t].extend(atks.get(t, []))
 
-        hp_data = [
-            {"x": round(float(r[0]), 2), "y": int(r[1])}
-            for r in hp_rows if r[0] is not None
-        ]
+                    if not buckets:
+                        return jsonify({
+                            "success": True, "session": None, "config": config_hash,
+                            "hp": [], "attacks": {t: [] for t in ATTACK_TYPES}
+                        })
 
-        attacks = {"fractal_cascade_attack": [], "slime_attack": [], "ocular_prism_attack": []}
-        for event_type, elapsed in attack_rows:
-            if elapsed is not None and event_type in attacks:
-                attacks[event_type].append(round(float(elapsed), 2))
+                    max_bucket = max(buckets.keys())
+                    hp_data = [
+                        {"x": float(t), "y": round(sum(buckets[t]) / len(buckets[t]), 1)}
+                        for t in range(0, max_bucket + 1)
+                        if t in buckets
+                    ]
 
-        return jsonify({
-            "success":  True,
-            "session":  session_key,
-            "hp":       hp_data,
-            "attacks":  attacks
-        })
+                    return jsonify({
+                        "success": True,
+                        "session": None,
+                        "config":  config_hash,
+                        "hp":      hp_data,
+                        "attacks": all_attacks
+                    })
+
+                # ── SINGLE-SESSION MODE ──────────────────────────────────────
+                else:
+                    timeline, attacks = _fetch_session_data(cur, session_key)
+                    if timeline is None:
+                        return jsonify({"success": False, "error": "Session not found"}), 404
+
+                    hp_data = [{"x": e, "y": hp} for e, hp in timeline]
+
+                    return jsonify({
+                        "success": True,
+                        "session": session_key,
+                        "config":  None,
+                        "hp":      hp_data,
+                        "attacks": attacks
+                    })
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
