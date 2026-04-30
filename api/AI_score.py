@@ -1,6 +1,6 @@
 import os
-import torch
-import numpy as np
+#import torch
+#import numpy as np
 from flask import Blueprint, request, jsonify
 from dotenv import load_dotenv
 
