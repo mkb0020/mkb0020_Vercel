@@ -727,3 +727,66 @@ html::-webkit-scrollbar-thumb {
   margin-top: 65px;
   padding: 20px;
 }
+
+
+/* ============================ FOOTER ============================ */
+footer {
+      padding: 1rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: var(--glass4);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+    }
+    footer p {
+      font-size: 0.7rem;
+      color: #c4b5fd;
+      font-family: 'SpaceLetters';
+      letter-spacing: 0.1em;
+    }
+    footer a { color: var(--AlphaAqua); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+
+/* ============================ BUTTON ============================ */
+    .glow-sweep {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #7b00ff75;
+            padding: 0.4rem 1rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: background 0.2s, border-color 0.2s;
+            font-family: 'SpaceLetters';
+            color: var(--BohrsBabyBlue);
+            transition: border-color 0.2s, box-shadow 0.2s, color 0.2s, transform 0.15s;
+            box-shadow: 0 0 18px rgba(140, 60, 255, 0.15);
+            -webkit-tap-highlight-color: transparent;
+            display: block;
+        }
+
+    .glow-sweep::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 50%; height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
+        transition: 0.2s;
+        }
+
+    .glow-sweep:hover::before,
+    .glow-sweep:focus::before {
+        left: 100%;
+        }
+
+    .glow-sweep:hover,
+    .glow-sweep:focus {
+        border-color: rgba(0, 221, 255, 0.32);
+        box-shadow: 0 0 30px rgba(0, 200, 255, 0.1), 0 0 60px rgba(140, 60, 255, 0.15);
+        outline: none;
+        }
+
+    .click {
+      cursor: pointer;
+    }

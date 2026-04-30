@@ -11,22 +11,26 @@ from api.scores import scores_bp
 from api.blog import blog_bp
 from api.responses import responses_bp      # AI Dopamine: A/B response pairs
 from api.compare import compare_bp          # AI Dopamine: preference votes
+from api.AI_score import score_bp
+
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder='static', template_folder='forms')
 CORS(app)
 
-app.register_blueprint(comments_bp)
-app.register_blueprint(feedback_bp)
-app.register_blueprint(support_bp)
-app.register_blueprint(tester_signup_bp)
-app.register_blueprint(wormhole_feedback_bp)
-app.register_blueprint(leaderboard_bp)
-app.register_blueprint(scores_bp)
-app.register_blueprint(wormhole_analysis_bp)
-app.register_blueprint(blog_bp)
-app.register_blueprint(responses_bp)       # AI Dopamine
-app.register_blueprint(compare_bp)         # AI Dopamine
+app.register_blueprint(comments_bp)             # GENERAL
+app.register_blueprint(feedback_bp)             # CATastrophe2
+app.register_blueprint(support_bp)              # GENERAL
+app.register_blueprint(tester_signup_bp)        # CATastrophe2
+app.register_blueprint(wormhole_feedback_bp)    # WORMHOLES ALL THE WAY DOWN
+app.register_blueprint(leaderboard_bp)          # WORMHOLES ALL THE WAY DOWN
+app.register_blueprint(scores_bp)               # WORMHOLES ALL THE WAY DOWN
+app.register_blueprint(wormhole_analysis_bp)    # WORMHOLES ALL THE WAY DOWN
+app.register_blueprint(blog_bp)                 # BLOG
+app.register_blueprint(responses_bp)            # AI DOPAMINE
+app.register_blueprint(compare_bp)              # AI DOPAMINE
+app.register_blueprint(score_bp)                # AI DOPAMINE
+ 
 
 
 @app.route('/')
@@ -80,6 +84,14 @@ def response_input_page():
 @app.route('/arena')
 def arena_page():
     return send_from_directory('forms', 'arena.html')
+
+@app.route('/ai-dopamine')
+def ai_dopamine_page():
+    return send_from_directory('forms', 'ai-dopamine.html')
+
+@app.route('/scorer')
+def scorer_page():
+    return send_from_directory('forms', 'scorer.html')
 
 if __name__ == '__main__':
     app.run()

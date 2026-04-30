@@ -4,345 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/ai-dopamine-styles.css">
     <title>AI Arena</title>
-    <style>
-        .page-container {
-            max-width: 1100px;
-            margin: 3rem auto 5rem;
-            padding: 0 1.2rem;
-        }
 
-        .page-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-            font-family: 'GothNerd';
-            color: var(--ParticlePink);
-            font-size: 2.8rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .page-header p {
-            color: var(--BohrsBabyBlue);
-            font-family: 'SpaceLetters';
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        /* Progress bar */
-        .progress-bar-wrap {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            margin-bottom: 2rem;
-            font-family: 'SpaceLetters';
-            font-size: 0.8rem;
-            color: rgba(160,160,204,0.7);
-        }
-        .progress-bar {
-            flex: 1;
-            height: 4px;
-            background: rgba(144,144,192,0.15);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #7b00ff, var(--ParticlePink));
-            border-radius: 10px;
-            transition: width 0.4s ease;
-        }
-
-        /* Prompt display */
-        .prompt-card {
-            background: linear-gradient(135deg,
-                rgba(46, 2, 75, 0.45),
-                rgba(32, 0, 71, 0.45));
-            border: 1px solid rgba(144, 144, 192, 0.4);
-            border-radius: 14px;
-            backdrop-filter: blur(50px);
-            box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5),
-                        inset 0 1px 0 rgba(255,255,255,0.08);
-            padding: 1.5rem 2rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .prompt-label {
-            font-family: 'SpaceLetters';
-            font-size: 0.75rem;
-            letter-spacing: 0.15em;
-            color: rgba(160,160,204,0.6);
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-        }
-
-        .prompt-text {
-            font-size: 1.1rem;
-            color: #f0e6ff;
-            line-height: 1.6;
-        }
-
-        /* Arena grid */
-        .arena-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.2rem;
-            margin-bottom: 1.5rem;
-        }
-
-        @media (max-width: 680px) {
-            .arena-grid { grid-template-columns: 1fr; }
-        }
-
-        .response-card {
-            background: linear-gradient(135deg,
-                rgba(46, 2, 75, 0.45),
-                rgba(32, 0, 71, 0.45));
-            border: 1px solid rgba(144,144,192,0.35);
-            border-radius: 14px;
-            backdrop-filter: blur(50px);
-            box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5),
-                        inset 0 1px 0 rgba(255,255,255,0.08);
-            padding: 1.8rem;
-            display: flex;
-            flex-direction: column;
-            transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
-            cursor: default;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .response-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-
-        .response-card.card-a::before {
-            background: radial-gradient(ellipse at top left, rgba(103,254,189,0.06), transparent 60%);
-        }
-
-        .response-card.card-b::before {
-            background: radial-gradient(ellipse at top right, rgba(255,105,180,0.06), transparent 60%);
-        }
-
-        .response-card:hover::before { opacity: 1; }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.2rem;
-        }
-
-        .card-badge {
-            font-family: 'GothNerd';
-            font-size: 1.3rem;
-            padding: 2px 16px;
-            border-radius: 20px;
-        }
-
-        .badge-a { background: rgba(103,254,189,0.12); border: 1px solid rgba(103,254,189,0.35); color: #67fea0; }
-        .badge-b { background: rgba(255,105,180,0.12); border: 1px solid rgba(255,105,180,0.35); color: var(--ParticlePink); }
-
-        .response-body {
-            flex: 1;
-            font-size: 0.97rem;
-            line-height: 1.75;
-            color: rgba(240,230,255,0.9);
-            white-space: pre-wrap;
-            word-break: break-word;
-            margin-bottom: 1.5rem;
-            max-height: 420px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(144,144,192,0.3) transparent;
-        }
-
-        .vote-btn {
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 10px;
-            font-family: 'SpaceLetters';
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .vote-btn::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 50%; height: 100%;
-            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: 0.25s;
-        }
-        .vote-btn:hover::before { left: 100%; }
-
-        .vote-btn-a {
-            background: rgba(103,254,189,0.08);
-            border: 1px solid rgba(103,254,189,0.35);
-            color: #67fea0;
-        }
-        .vote-btn-a:hover {
-            background: rgba(103,254,189,0.15);
-            box-shadow: 0 0 24px rgba(103,254,189,0.2);
-        }
-
-        .vote-btn-b {
-            background: rgba(255,105,180,0.08);
-            border: 1px solid rgba(255,105,180,0.35);
-            color: var(--ParticlePink);
-        }
-        .vote-btn-b:hover {
-            background: rgba(255,105,180,0.15);
-            box-shadow: 0 0 24px rgba(255,105,180,0.2);
-        }
-
-        .vote-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Results overlay after voting */
-        .results-overlay {
-            display: none;
-            background: linear-gradient(135deg,
-                rgba(46, 2, 75, 0.6),
-                rgba(32, 0, 71, 0.6));
-            border: 1px solid rgba(144,144,192,0.4);
-            border-radius: 14px;
-            backdrop-filter: blur(50px);
-            padding: 2rem;
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .results-overlay.visible { display: block; animation: fadeIn 0.4s ease; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-        .results-title {
-            font-family: 'GothNerd';
-            color: var(--ParticlePink);
-            font-size: 1.6rem;
-            margin-bottom: 1.2rem;
-        }
-
-        .vote-bars {
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            max-width: 420px;
-            margin: 0 auto 1.5rem;
-        }
-
-        .vote-bar-row {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            font-family: 'SpaceLetters';
-            font-size: 0.85rem;
-        }
-
-        .vote-bar-label { width: 24px; text-align: right; }
-        .vote-bar-track {
-            flex: 1;
-            height: 10px;
-            background: rgba(144,144,192,0.15);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .vote-bar-fill {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.8s cubic-bezier(.25,.8,.25,1);
-        }
-        .fill-a { background: linear-gradient(90deg, #67fea0, #00c896); }
-        .fill-b { background: linear-gradient(90deg, #c71585, var(--ParticlePink)); }
-        .vote-bar-pct { width: 36px; color: rgba(160,160,204,0.7); font-size: 0.8rem; }
-
-        .next-btn {
-            position: relative;
-            overflow: hidden;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid #7b00ff75;
-            padding: 0.6rem 2.4rem;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-family: 'SpaceLetters';
-            color: var(--BohrsBabyBlue);
-            transition: all 0.2s;
-            box-shadow: 0 0 18px rgba(140,60,255,0.15);
-        }
-        .next-btn::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 50%; height: 100%;
-            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: 0.2s;
-        }
-        .next-btn:hover::before { left: 100%; }
-        .next-btn:hover {
-            border-color: rgba(0,221,255,0.32);
-            box-shadow: 0 0 30px rgba(0,200,255,0.1), 0 0 60px rgba(140,60,255,0.15);
-        }
-
-        /* Empty / loading states */
-        .state-card {
-            background: linear-gradient(135deg,
-                rgba(46, 2, 75, 0.45),
-                rgba(32, 0, 71, 0.45));
-            border: 1px solid rgba(144, 144, 192, 0.4);
-            border-radius: 14px;
-            backdrop-filter: blur(50px);
-            padding: 3rem 2rem;
-            text-align: center;
-        }
-        .state-card p {
-            font-family: 'SpaceLetters';
-            color: rgba(160,160,204,0.7);
-            margin-bottom: 1.2rem;
-            font-size: 0.95rem;
-        }
-        .state-card a {
-            color: var(--ParticlePink);
-            font-family: 'SpaceLetters';
-            font-size: 0.9rem;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(255,105,180,0.3);
-        }
-        .state-card a:hover { border-color: var(--ParticlePink); }
-
-        /* winner highlight */
-        .response-card.winner {
-            border-color: rgba(103,254,189,0.5);
-            box-shadow: 0 0 30px rgba(103,254,189,0.1);
-        }
-        .response-card.loser { opacity: 0.55; }
-
-        /* footer */
-        footer {
-            padding: 1rem;
-            text-align: center;
-            border-top: 1px solid var(--border);
-            background: var(--glass4);
-            backdrop-filter: blur(30px);
-        }
-        footer p { font-size: 0.7rem; color: #c4b5fd; font-family: 'SpaceLetters'; letter-spacing: 0.1em; }
-        footer a { color: var(--AlphaAqua); text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
-    </style>
 </head>
 <body>
     <div class="background-gradient"></div>
@@ -402,10 +66,16 @@
         </div>
     </nav>
 
+    <div class="dopamine-nav">
+        <a href="https://mkb0020.vercel.app/ai-dopamine" class="glow-sweep"> ABOUT </a>
+        <a href="https://mkb0020.vercel.app/response-input" class="glow-sweep"> SUBMIT PROMPTS </a>
+        <div class=" glow-sweep dopamine-nav-current" style="font-size: 0.9rem"> AI ARENA </div>
+        <a href="https://mkb0020.vercel.app/scorer" class="glow-sweep"> REWARD SCORER </a>
+    </div>    
+
     <div class="page-container">
         <div class="page-header">
-            <h1>⚔ AI ARENA</h1>
-            <p>Click <a href="https://mkb0020.vercel.app/response-input">here</a> to submit a prompt / responses</p>
+            <h1>⚔ AI ARENA ⚔</h1>
         </div>
 
         <div id="loading-state" class="state-card">
@@ -475,15 +145,30 @@
         </div>
     </div>
 
-    <footer><p>&copy; 2026 mkb0020. All Rights Reserved.</p></footer>
+    <footer><p>&copy; 2026 mkb0020. All Rights Reserved.</p> </footer>
+
+    <div id="kofi-float">
+        <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+        <img src="/../static/images/tipjar.png" alt="Support me on Ko-fi">
+        <div class="hearts">
+            <div class="heart" style="--delay: 0s; --drift: -20px;">❤️</div>
+            <div class="heart" style="--delay: 0.5s; --drift: 15px;">💖</div>
+            <div class="heart" style="--delay: 1s; --drift: -10px;">💕</div>
+            <div class="heart" style="--delay: 1.5s; --drift: 20px;">❤️</div>
+            <div class="heart" style="--delay: 2s; --drift: -15px;">💗</div>
+            <div class="heart" style="--delay: 2.5s; --drift: 10px;">💖</div>
+        </div>
+        </a>
+    </div>
 
     <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
         <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
-            <img src="/static/images/top.png" alt="Scroll to top">
+        <img src="/static/images/top.png" alt="Scroll to top">
         </a>
     </div>
 
     <script src="/static/js/KittyCore.js"></script>
+
     <script>
         const API_BASE = '';
 

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/ai-dopamine-styles.css">
+    <title>AI Dopamine – Reward Scorer</title>
+
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="waves">
+        <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+        <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/>
+        </svg>
+        <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/>
+        </svg>
+        <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+    </div>
+    <div class="dreamy-overlay"></div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="left-dropdown">
+                <button class="menu-trigger" aria-label="Menu">
+                    <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
+                </button>
+                <div class="left-menu">
+                    <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+                    <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+                    <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+                    <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+                    <div class="social-links">
+                        <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube"><img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon"></a>
+                        <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn"><img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon"></a>
+                        <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud"><img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon"></a>
+                        <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub"><img src="../static/images/github-icon.png" alt="GitHub" class="social-icon"></a>
+                        <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io"><img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon"></a>
+                    </div>
+                </div>
+            </div>
+            <a href="https://mkb0020.github.io">
+                <div class="logo">♡ mkb0020</div>
+            </a>
+            <div class="help-dropdown">
+                <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+                    <div class="question-mark">?</div>
+                </button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dopamine-nav">
+        <a href="https://mkb0020.vercel.app/ai-dopamine" class="glow-sweep"> ABOUT </a>
+        <a href="https://mkb0020.vercel.app/response-input" class="glow-sweep"> SUBMIT PROMPTS </a>
+        <a href="https://mkb0020.vercel.app/arena" class="glow-sweep"> AI ARENA </a>
+        <div class=" glow-sweep dopamine-nav-current" style="font-size: 0.9rem"> REWARD SCORER </div>
+    </div>    
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>REWARD SCORER</h1>
+            <p>Paste up to 5 responses and let the reward model rank them</p>
+        </div>
+
+        <div class="status-header">
+            <div class="status-pill not-ready" id="status-pill">
+                <div class="status-dot"></div>
+                <span id="status-text">Checking model...</span>
+            </div>
+        </div>
+
+        <!-- INPUT FORM -->
+        <div class="dopamine-card">
+            <div style="margin-bottom: 1.8rem;">
+                <label for="prompt">PROMPT</label>
+                <textarea id="prompt" maxlength="2000" placeholder="What question or task are you scoring responses for?"></textarea>
+            </div>
+
+            <div>
+                <div class="responses-label-row">
+                    <label style="margin:0">RESPONSES</label>
+                    <button class="add-btn" id="add-slot-btn" onclick="addSlot()">+ Add response</button>
+                </div>
+                <div id="slots-container"></div>
+            </div>
+
+            <div class="submit-row">
+                <button class="submit-btn" id="score-btn" onclick="runScorer()">Score Responses</button>
+            </div>
+            <div id="error-box"></div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="results-section dopamine-card" id="results-section">
+            <div class="results-heading">Rankings</div>
+            <div id="results-list"></div>
+        </div>
+    </div>
+
+    <footer><p>&copy; 2026 mkb0020. All Rights Reserved.</p> </footer>
+
+    <div id="kofi-float">
+        <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+        <img src="/../static/images/tipjar.png" alt="Support me on Ko-fi">
+        <div class="hearts">
+            <div class="heart" style="--delay: 0s; --drift: -20px;">❤️</div>
+            <div class="heart" style="--delay: 0.5s; --drift: 15px;">💖</div>
+            <div class="heart" style="--delay: 1s; --drift: -10px;">💕</div>
+            <div class="heart" style="--delay: 1.5s; --drift: 20px;">❤️</div>
+            <div class="heart" style="--delay: 2s; --drift: -15px;">💗</div>
+            <div class="heart" style="--delay: 2.5s; --drift: 10px;">💖</div>
+        </div>
+        </a>
+    </div>
+
+    <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+        <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+        <img src="/static/images/top.png" alt="Scroll to top">
+        </a>
+    </div>
+
+    <script src="/static/js/KittyCore.js"></script>
+
+    <script>
+        const API_BASE   = '';
+        const MAX_SLOTS  = 5;
+        const SLOT_COLORS = ['#67fea0', '#ff69b4', '#7b9fff', '#ffaa55', '#c084fc'];
+        const SLOT_LABELS = ['A','B','C','D','E'];
+
+        let slotCount = 0;
+
+        async function checkStatus() {
+            try {
+                const res  = await fetch(`${API_BASE}/api/score/status`);
+                const data = await res.json();
+                const pill = document.getElementById('status-pill');
+                const text = document.getElementById('status-text');
+
+                if (data.model_ready) {
+                    pill.className = 'status-pill ready';
+                    text.textContent = 'Reward model loaded and ready';
+                } else {
+                    pill.className = 'status-pill not-ready';
+                    text.textContent = 'No trained model yet — run train.py first';
+                    document.getElementById('score-btn').disabled = true;
+                }
+            } catch (e) {
+                document.getElementById('status-text').textContent = 'Could not reach API';
+            }
+        }
+
+        function addSlot() {
+            if (slotCount >= MAX_SLOTS) return;
+
+            const idx   = slotCount;
+            const color = SLOT_COLORS[idx];
+            const label = SLOT_LABELS[idx];
+
+            const slot = document.createElement('div');
+            slot.className = 'response-slot';
+            slot.id = `slot-${idx}`;
+            slot.innerHTML = `
+                <div class="slot-label" style="background:${color}22; border:1px solid ${color}55; color:${color}">${label}</div>
+                <textarea placeholder="Paste response ${label} here..." maxlength="5000"></textarea>
+                ${idx > 1 ? `<button class="remove-slot" onclick="removeSlot(${idx})" title="Remove">×</button>` : '<div style="width:24px"></div>'}
+            `;
+
+            document.getElementById('slots-container').appendChild(slot);
+            slotCount++;
+
+            if (slotCount >= MAX_SLOTS) {
+                document.getElementById('add-slot-btn').style.display = 'none';
+            }
+        }
+
+        function removeSlot(idx) {
+            const slot = document.getElementById(`slot-${idx}`);
+            if (slot) {
+                slot.style.animation = 'none';
+                slot.style.opacity   = '0';
+                slot.style.transform = 'translateY(-6px)';
+                slot.style.transition = 'all 0.15s ease';
+                setTimeout(() => slot.remove(), 150);
+            }
+            slotCount--;
+            document.getElementById('add-slot-btn').style.display = '';
+        }
+
+        async function runScorer() {
+            const prompt = document.getElementById('prompt').value.trim();
+            if (!prompt) { showError('Prompt is required.'); return; }
+
+            const textareas  = document.querySelectorAll('#slots-container textarea');
+            const responses  = Array.from(textareas).map(t => t.value.trim()).filter(Boolean);
+
+            if (responses.length < 2) { showError('Add at least 2 responses to compare.'); return; }
+
+            clearError();
+            const btn = document.getElementById('score-btn');
+            btn.disabled    = true;
+            btn.textContent = 'Scoring...';
+
+            try {
+                const res  = await fetch(`${API_BASE}/api/score`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, responses })
+                });
+                const data = await res.json();
+
+                if (!data.success) { showError(data.error); return; }
+                renderResults(data.results);
+
+            } catch (e) {
+                showError('Network error: ' + e.message);
+            } finally {
+                btn.disabled    = false;
+                btn.textContent = 'Score Responses';
+            }
+        }
+
+        function renderResults(results) {
+            const section = document.getElementById('results-section');
+            const list    = document.getElementById('results-list');
+
+            const barColors = [
+                'linear-gradient(90deg, #67fea0, #00c896)',
+                'linear-gradient(90deg, #c71585, #ff69b4)',
+                'linear-gradient(90deg, #4a7fff, #7b9fff)',
+                'linear-gradient(90deg, #e67e22, #ffaa55)',
+                'linear-gradient(90deg, #8b5cf6, #c084fc)',
+            ];
+
+            list.innerHTML = results.map((item, i) => `
+                <div class="result-card ${item.rank === 1 ? 'rank-1' : ''}">
+                    <div class="result-top-row">
+                        <div style="display:flex; align-items:center; gap:0.6rem;">
+                            <span class="result-rank" style="color:${SLOT_COLORS[i]}">#${item.rank}</span>
+                            ${item.rank === 1 ? '<span class="winner-badge">⭐ top pick</span>' : ''}
+                        </div>
+                        <div class="result-score-wrap">
+                            <span class="score-num" style="color:${SLOT_COLORS[i]}">${Math.round(item.score * 100)}</span>
+                            <div class="score-bar-track">
+                                <div class="score-bar-fill" id="bar-${i}" style="background:${barColors[i]}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="result-response-text">${escHtml(item.response)}</div>
+                </div>
+            `).join('');
+
+            section.classList.add('visible');
+
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    results.forEach((item, i) => {
+                        const bar = document.getElementById(`bar-${i}`);
+                        if (bar) bar.style.width = `${Math.round(item.score * 100)}%`;
+                    });
+                }, 60);
+            });
+
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function showError(msg) {
+            document.getElementById('error-box').innerHTML =
+                `<div class="error-msg">❌ ${msg}</div>`;
+        }
+
+        function clearError() {
+            document.getElementById('error-box').innerHTML = '';
+        }
+
+        function escHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        checkStatus();
+        addSlot(); 
+        addSlot();
+    </script>
+</body>
+</html>
