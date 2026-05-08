@@ -120,11 +120,12 @@ class TrueDeltaPricing:
 
 # ----------------------------  DETAILS TAB FORMATTING ----------------------------
 class TrueDeltaDetailsFormat:
-    def __init__(self, filepath, sheet_name, total_months=None, remaining_months=None):
+    def __init__(self, filepath, sheet_name, total_months=None, remaining_months=None, billing_type="Prepaid"):
         self.filepath = filepath
         self.sheet_name = sheet_name
         self.total_months = total_months
         self.remaining_months = remaining_months
+        self.billing_type = billing_type.strip().lower()
         self.wb = load_workbook(filepath)
         self.ws = self.wb[sheet_name]
         self.HeaderColor = PatternFill(start_color="4B1395", end_color="4B1395", fill_type="solid")
@@ -231,10 +232,11 @@ class TrueDeltaDetailsFormat:
     def update_dynamic_headers(self):
         total_lbl     = f"{int(self.total_months)} months" if self.total_months is not None else "? months"
         remaining_lbl = f"{int(self.remaining_months)} months" if self.remaining_months is not None else "? months"
+        prorate_lbl   = "12 months\n(1 year)" if self.billing_type == "annual" else remaining_lbl
         self.ws["O1"].value = f"EXISTING\nNET PRICE\n({total_lbl})"
         self.ws["P1"].value = f"NEW\nNET PRICE\n({total_lbl})"
-        self.ws["Q1"].value = f"EXISTING\nPRORATE PRICE\n({remaining_lbl})"
-        self.ws["R1"].value = f"NEW\nPRORATE PRICE\n({remaining_lbl})"
+        self.ws["Q1"].value = f"EXISTING\nPRORATE PRICE\n({prorate_lbl})"
+        self.ws["R1"].value = f"NEW\nPRORATE PRICE\n({prorate_lbl})"
         self.ws["S1"].value = "ESTIMATED\nCREDIT"
         self.ws["T1"].value = "ESTIMATED\nINVOICE"
         self.ws["U1"].value = "TRUE DELTA\nNET COST"
@@ -636,8 +638,14 @@ class TrueDeltaColumns:
         UnitNP               = self.pricing_engine.get_UnitNP(PricingType, Percent, LineDiscount, UnitCost, UnitList)
         LineExistingNP       = ExistingQTY * UnitNP * EAduration
         LineNewNP            = NewQTY * UnitNP * EAduration
-        LineExistingProratedNP = (LineExistingNP / EAduration) * ProratedDuration if EAduration else 0
-        LineNewProratedNP    = (LineNewNP / EAduration) * ProratedDuration if EAduration else 0
+
+        billing_type = self.user_input.get("BillingType", "Prepaid").strip().lower()
+        if billing_type == "annual":
+            LineExistingProratedNP = ExistingQTY * UnitNP * 12
+            LineNewProratedNP      = NewQTY      * UnitNP * 12
+        else:
+            LineExistingProratedNP = (LineExistingNP / EAduration) * ProratedDuration if EAduration else 0
+            LineNewProratedNP      = (LineNewNP      / EAduration) * ProratedDuration if EAduration else 0
         Discount             = self.pricing_engine.get_discount(PricingType, Percent, LineDiscount, UnitCost, UnitList)
         ConsumptionStatus    = self.pricing_engine.get_consumption(TFqty, ExistingQTY, NewQTY, vsADD, vsRETURNED, TIER=TIER)
         LineCM               = self.pricing_engine.get_LineCM(TFqty, vsRETURNED, LineExistingProratedNP)
@@ -814,7 +822,8 @@ def process_truedelta():
         TrueDeltaDetailsFormat(
             tmp_path, tab2_name,
             total_months=summary_values[8],
-            remaining_months=summary_values[9]
+            remaining_months=summary_values[9],
+            billing_type=billing_type
         ).format()
 
         filtered_rows = [r for r in details_rows if (r.get("DELTA QTY") or 0) != 0]
