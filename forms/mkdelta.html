@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <title>MK Delta — True Delta Estimator</title>
+  <meta name="description" content="Generate formatted True Delta Estimates from subscription data." />
+
+  <style>
+    .page-content {
+      margin-top: 30px;
+      padding: 2rem 1rem;
+      min-height: calc(100vh - 80px);
+      position: relative;
+      z-index: 10;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    /* ---- PAGE TITLE ---- */
+    .page-title {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .page-title h1 {
+      font-family: 'Orbitron', 'Courier New', monospace;
+      font-size: 2.8rem;
+      background: linear-gradient(45deg, var(--NuclearFuscia), #00FFFF, var(--AquaAura));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+      animation: neonPulse 2s ease-in-out infinite alternate;
+    }
+
+    .page-title p {
+      color: var(--MutedGray);
+      font-size: 1.1rem;
+      font-family: Arial, sans-serif;
+    }
+
+    /* ---- CARD ---- */
+    .form-card {
+      background: linear-gradient(135deg,
+        rgba(63, 3, 104, 0.4),
+        rgba(52, 0, 116, 0.4));
+      backdrop-filter: blur(50px);
+      border-radius: 18px;
+      padding: 36px 40px;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 20px 50px -15px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle,
+        rgba(131, 12, 222, 0.12) 0%,
+        transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ---- SECTION DIVIDER ---- */
+    .section-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2rem;
+      text-transform: uppercase;
+      color: var(--AquaAura);
+      margin-bottom: 1.2rem;
+      margin-top: 1.8rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-label:first-child {
+      margin-top: 0;
+    }
+
+    /* ---- FORM GRID ---- */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem 1.6rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .form-grid.one-col {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-group label {
+      color: var(--AquaAura);
+      font-family: 'GothNerd', sans-serif;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08rem;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 0.75rem 1rem;
+      background: rgba(20, 0, 33, 0.25);
+      border: 1px solid var(--ProtonPurple);
+      border-radius: 8px;
+      color: var(--White);
+      font-size: 0.95rem;
+      font-family: Arial, sans-serif;
+      transition: all 0.3s ease;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .form-group select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300FFFF' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 2.5rem;
+    }
+
+    .form-group select option {
+      background: #1a003a;
+      color: white;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #00FFFF;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.25);
+      background: rgba(35, 4, 58, 0.4);
+    }
+
+    .form-group input::placeholder {
+      color: rgba(144, 144, 192, 0.5);
+    }
+
+    /* ---- PERCENT HINT ---- */
+    .input-hint {
+      font-size: 0.75rem;
+      color: rgba(144, 144, 192, 0.6);
+      margin-top: 0.2rem;
+      font-family: Arial, sans-serif;
+    }
+
+    /* ---- DROP ZONE ---- */
+    .drop-zone {
+      border: 2px dashed var(--ProtonPurple);
+      border-radius: 12px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(20, 0, 33, 0.2);
+      position: relative;
+      z-index: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: #00FFFF;
+      background: rgba(0, 255, 255, 0.05);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.15);
+    }
+
+    .drop-zone.has-file {
+      border-color: #67FEBD;
+      background: rgba(103, 254, 189, 0.05);
+    }
+
+    .drop-zone-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.8rem;
+      display: block;
+    }
+
+    .drop-zone-text {
+      color: var(--MutedGray);
+      font-family: Arial, sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .drop-zone-text strong {
+      color: var(--AquaAura);
+    }
+
+    .file-name-display {
+      margin-top: 0.8rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      color: #67FEBD;
+      letter-spacing: 0.05rem;
+      word-break: break-all;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    /* ---- SUBMIT ---- */
+    .submit-btn {
+      width: 100%;
+      padding: 1.1rem;
+      background: var(--glass);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(165, 90, 255, 0.4);
+      color: var(--CoolGray);
+      border-radius: 14px;
+      font-family: 'GothNerd', sans-serif;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1.8rem;
+      box-shadow:
+        0 10px 30px -10px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      z-index: 1;
+      letter-spacing: 0.05rem;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      background: rgba(131, 12, 222, 0.3);
+      border-color: #A55AFF;
+      color: #fff;
+      box-shadow:
+        0 0 30px rgba(165, 90, 255, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ---- STATUS / FEEDBACK ---- */
+    .status-box {
+      display: none;
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      font-family: Arial, sans-serif;
+      font-size: 0.92rem;
+      margin-top: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .status-box.loading {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: rgba(0, 255, 255, 0.07);
+      border: 1px solid rgba(0, 255, 255, 0.25);
+      color: #00FFFF;
+    }
+
+    .status-box.error {
+      display: block;
+      background: rgba(204, 0, 0, 0.15);
+      border: 1px solid rgba(204, 0, 0, 0.4);
+      color: #ff9a9e;
+    }
+
+    .status-box.success {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: rgba(103, 254, 189, 0.08);
+      border: 1px solid rgba(103, 254, 189, 0.3);
+      color: #67FEBD;
+    }
+
+    /* ---- SPINNER ---- */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0, 255, 255, 0.2);
+      border-top-color: #00FFFF;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+
+    .modal-card {
+            background: linear-gradient(135deg, 
+                rgba(66, 4, 107, 0.4), 
+                rgba(60, 2, 131, 0.4));
+            border: 1px solid rgba(144, 144, 192, 0.105);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(50px);
+            box-shadow: 
+                0 20px 50px -15px rgba(131,12,222, 0.201),
+                inset 0 1px 0 rgba(255, 255, 255, 0.135);
+            }
+
+    .modal-card h3 {
+        color: var(--ParticlePink);
+        }
+
+    .modal-card strong {
+        color: var(--ParticlePink);
+        }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-card {
+        padding: 24px 20px;
+      }
+      .page-title h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+    <div class="background-gradient"></div>
+    <div class="waves">
+        <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+        <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/>
+        </svg>
+        <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/>
+        </svg>
+        <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+    </div>
+    <div class="dreamy-overlay"></div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="left-dropdown">
+                <button class="menu-trigger" aria-label="Menu">
+                    <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
+                </button>
+                <div class="left-menu">
+                    <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+                    <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+                    <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+                    <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+                    <div class="social-links">
+                        <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube"><img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon"></a>
+                        <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn"><img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon"></a>
+                        <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud"><img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon"></a>
+                        <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub"><img src="../static/images/github-icon.png" alt="GitHub" class="social-icon"></a>
+                        <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io"><img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon"></a>
+                    </div>
+                </div>
+            </div>
+            <a href="https://mkb0020.github.io"><div class="logo">♡ mkb0020</div></a>
+            <div class="help-dropdown">
+                <button class="help-icon" id="helpBtn" aria-label="Help Menu"><div class="question-mark">?</div></button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <button id="openMainHelp">About</button>
+                    <button id="openGuide">How to Use</button>
+                    <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+  <div class="page-content">
+    <div class="container">
+
+      <div class="page-title">
+        <h1>TRUE-∆</h1>
+        <p><strong>License Agreement True-Up Pricing Demo</strong></p>
+      </div>
+
+      <div class="form-card">
+ 
+        <!-- TEMPLATE DOWNLOAD -->
+        <div class="template-bar">
+          <a href="/mkdelta/template" download class="glow-sweep template-btn" style="text-decoration: none; text-align: center;">
+            ⬇ DOWNLOAD EXAMPLE
+          </a>
+        </div>
+ 
+        <!-- FILE UPLOAD -->
+        <div class="section-label">Source File</div>
+        <div class="drop-zone glow-sweep" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <span class="drop-zone-icon">📂</span>
+          <div class="drop-zone-text">
+            <strong>Drop your .xlsx file here</strong><br>
+            or click to browse
+          </div>
+          <div class="file-name-display" id="fileNameDisplay"></div>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx" />
+ 
+        <div class="form-grid" style="margin-top: 2rem">
+          <div class="form-group">
+            <label for="userName">Your Name</label>
+            <input type="text" id="userName" placeholder="First Last" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="partnerName">Partner / Reseller</label>
+            <input type="text" id="partnerName" placeholder="Kratos Motors" autocomplete="off" />
+          </div>
+          <div class="form-group full-width">
+            <label for="partnerAcct">Partner Account Number</label>
+            <input type="text" id="partnerAcct" placeholder="ACC-000000" autocomplete="off" />
+          </div>
+        </div>
+ 
+        <!-- PRICING CONFIG -->
+        <div class="section-label">Pricing Configuration</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="billingType">Billing Type</label>
+            <select id="billingType">
+              <option value="Prepaid">Upfront</option>
+              <option value="Monthly">Monthly</option>
+              <option value="Quarterly">Quarterly</option>
+              <option value="Annual">Annual</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pricingType">Pricing Strategy</label>
+            <select id="pricingType">
+              <option value="Hold Back">Hold Back</option>
+              <option value="Markup">Markup</option>
+              <option value="Margin">Margin</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="percent">Percent (%)</label>
+            <input type="number" id="percent" placeholder="e.g. 15" min="0" max="100" step="0.01" />
+            <span class="input-hint">Enter as a whole number — e.g. 15 for 15%</span>
+          </div>
+        </div>
+ 
+        <div class="form-group full-width">
+        <label for="logoFile">Logo (optional — .png)</label>
+        <input type="file" id="logoFile" accept=".png"
+                style="padding: 0.6rem 1rem; cursor: pointer;" />
+        <span class="input-hint">Appears on the Summary tab. Leave blank to skip.</span>
+        </div>
+
+        <!-- SUBMIT -->
+        <button class="submit-btn glow-sweep" id="submitBtn" onclick="handleSubmit()">
+          ⚡ Generate Delta Estimate
+        </button>
+ 
+        <!-- STATUS -->
+        <div class="status-box loading" id="statusLoading">
+          <div class="spinner"></div>
+          <span>Processing your workbook — this may take a moment...</span>
+        </div>
+        <div class="status-box error" id="statusError"></div>
+        <div class="status-box success" id="statusSuccess">
+          <span>✅</span>
+          <span>Estimate generated — your download should start automatically.</span>
+        </div>
+ 
+      </div>
+    </div>
+  </div>
+ 
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title">TRUE-∆</h1>
+            <button class="modal-close" id="closeModal">X</button>
+        </div>
+            <div class="modal-body">
+                <div class="modal-card"><h3>Meet TRUE-∆</h3>
+                    <p>TRUE-∆ is a Python-powered automation system designed to generate annual True-Up cost estimates for XaaS-based license agreements—now with an interactive web interface for real-time testing and exploration.</p>
+                </div>
+                <div class="modal-card"><h3>BACKGROUND</h3>
+                    <p>In a previous role within IT distribution, I specialized in Cisco XaaS and Enterprise Agreement (EA) operations. At the time, subscription management lacked standardized processes, creating friction across quoting, reporting, and forecasting workflows.</p>
+                    <p>To address this, I began applying LEAN methodology and cross-functional collaboration to bring structure and consistency to complex subscription operations.</p>
+                    <p>One challenge stood out:
+                    <ul><li>Estimating True Forward (True-Up) costs was highly manual, error-prone, and difficult to scale.</li></ul></p>
+                    <p>Existing tools couldn’t properly interpret vendor report formats, and many stakeholders lacked visibility into how these calculations worked.</p>
+                </div>
+                <div class="modal-card"><h3>THE PROJECT</h3>
+                    <p>What started as a VBA macro prototype evolved into a fully reimagined system.</p>
+                    <p>TRUE-∆ was rebuilt in Python and expanded into a modular automation platform capable of:</p>
+                    <ul>
+                        <li><strong>Parsing structured report data</strong></li>
+                        <li><strong>Applying pricing and growth logic</strong></li>
+                        <li><strong>Generating consistent, repeatable True-Up estimates</strong></li>
+                    </ul>
+                    <p>The latest version introduces a web-based frontend, allowing users to:</p>
+                    <ul>
+                        <li><strong>Interact with the system in real time</strong></li>
+                        <li><strong>Test workflows directly in the browser</strong></li>
+                        <li><strong>Bridge frontend inputs with backend processing via APIs</strong></li>
+                    </ul>
+                </div>
+                <div class="modal-card"><h3>APPROACH</h3>
+                    <p>This project combines:</p>
+                    <ul>
+                        <li><strong>Automation engineering</strong> (Python, scripting, workflow design)</li>
+                        <li><strong>Full-stack integration</strong> (frontend + backend via APIs)</li>
+                        <li><strong>Process optimization</strong> (LEAN-inspired design)</li>
+                        <li><strong>Systems thinking</strong> (handling real-world variability and edge cases)</li>
+                    </ul>
+                </div>
+                <div class="modal-card"><h3>NOTES</h3>
+                    <p>This project combines:</p>
+                    <ul>
+                        <li><strong>Developed independently as a personal project</strong></li>
+                        <li><strong>Tested exclusively using synthetic / generated data</strong></li>
+                        <li><strong>No real customer, partner, distributor, or vendor data is used</strong></li>
+                        <li><strong>Inspired by real-world processes, but not affiliated with or endorsed by any company</strong></li>
+                        <li><strong>This is a demo / proof-of-concept, not a production financial tool</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="guideModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title">HOW TO USE</h1>
+                <button class="modal-close" id="closeGuide">X</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-card">
+                    <ul>
+                        <li><strong>1. Download Example Data:</strong> Click “Download Example” to get a pre-filled sample file.  You can use this as-is or modify the values to test different scenarios.</li>
+                        <li><strong>2. Upload File:</strong> Upload your completed file using the file upload section.</li>
+                        <li><strong>3. Enter Basic Information:</strong> Provide the following details: Your Name, Partner / Reseller Name, Internal Account Number</li>
+                        <li><strong>4. Configure Pricing Settings:</strong>
+                            <ul>
+                                <li>Billing Type (choose one): upfront, monthly, annual, quarterly</li>
+                                <li>Pricing Method (choose one): margin, markup, holdback</li>
+                                <li>Percentage Value: Enter as a whole number.  Example: 15 = 15%.  (Do not use decimals)</li>
+                            </ul>
+                        </li>
+                        <li><strong>5. (Optional) Upload a Logo:</strong> Upload a company logo to include in the generated output. (.png files supported).</li>
+                        <li><strong>6. Generate Estimate:</strong> Click “Generate Estimate” to process your data.  Your formatted and priced Excel (.xlsx) estimate file will automatically download to your device.</li>
+                    </ul>
+                </div>
+                <div class="modal-card">
+                    <p><strong>⚠️ Disclaimer:</strong> This tool is intended for demonstration and testing purposes only. All data should be considered non-production and results should not be used for real financial decisions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KO-FI FLOAT -->
+    <div id="kofi-float">
+        <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+            <img src="/../static/images/tipjar.png" alt="Support me on Ko-fi">
+            <div class="hearts">
+                <div class="heart" style="--delay:0s;--drift:-20px;">❤️</div>
+                <div class="heart" style="--delay:0.5s;--drift:15px;">💖</div>
+                <div class="heart" style="--delay:1s;--drift:-10px;">💕</div>
+                <div class="heart" style="--delay:1.5s;--drift:20px;">❤️</div>
+                <div class="heart" style="--delay:2s;--drift:-15px;">💗</div>
+                <div class="heart" style="--delay:2.5s;--drift:10px;">💖</div>
+            </div>
+        </a>
+    </div>
+
+    <div id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'});">
+        <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+            <img src="/static/images/top.png" alt="Scroll to top">
+        </a>
+    </div>
+
+  <script src="/static/js/KittyCore.js"></script>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    let selectedFile = null;
+ 
+    dropZone.addEventListener('dragover', (e) => { // DRAG AND DROP
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+ 
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('drag-over');
+    });
+ 
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) setFile(file);
+    });
+ 
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) setFile(fileInput.files[0]);
+    });
+ 
+    function setFile(file) {
+      if (!file.name.toLowerCase().endsWith('.xlsx')) {
+        showError('Only .xlsx files are supported.');
+        return;
+      }
+      selectedFile = file;
+      fileNameDisplay.textContent = file.name;
+      dropZone.classList.add('has-file');
+      clearStatus();
+    }
+ 
+    function clearStatus() { // STATUS HELPERS
+      document.getElementById('statusLoading').style.display = 'none';
+      document.getElementById('statusError').style.display = 'none';
+      document.getElementById('statusSuccess').style.display = 'none';
+    }
+ 
+    function showError(msg) {
+      clearStatus();
+      const el = document.getElementById('statusError');
+      el.textContent = '⚠️  ' + msg;
+      el.style.display = 'block';
+    }
+ 
+    async function handleSubmit() { // SUBMIT
+      clearStatus();
+ 
+      if (!selectedFile) {  //  VALIDATE 
+        showError('Please select an .xlsx file first.');
+        return;
+      }
+ 
+      const userName = document.getElementById('userName').value.trim();
+      const partnerName = document.getElementById('partnerName').value.trim();
+      const partnerAcct = document.getElementById('partnerAcct').value.trim();
+      const billingType = document.getElementById('billingType').value;
+      const pricingType = document.getElementById('pricingType').value;
+      const percent = document.getElementById('percent').value.trim();
+      const logoFile = document.getElementById('logoFile').files[0];
+            if (logoFile) formData.append('logo', logoFile);
+ 
+      if (!userName || !partnerName || !partnerAcct) {
+        showError('Name, Partner, and Partner Account Number are all required.');
+        return;
+      }
+      if (userName.split(' ').filter(p => p.length > 0).length < 2) {
+        showError('Please enter at least a first and last name.');
+        return;
+      }
+      if (percent === '' || isNaN(Number(percent)) || Number(percent) < 0 || Number(percent) > 100) {
+        showError('Percent must be a number between 0 and 100.');
+        return;
+      }
+ 
+      //  UI: LOADING STATE  
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      document.getElementById('statusLoading').style.display = 'flex';
+ 
+      //  BUILD FORM DATA 
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('userName', userName);
+      formData.append('partnerName', partnerName);
+      formData.append('partnerAcct', partnerAcct);
+      formData.append('billingType', billingType);
+      formData.append('pricingType', pricingType);
+      formData.append('percent', percent);
+ 
+      try {
+        const response = await fetch('/api/mkdelta', {
+          method: 'POST',
+          body: formData
+        });
+ 
+        if (!response.ok) {
+          let errMsg = 'An error occurred.';
+          try {
+            const errData = await response.json();
+            errMsg = errData.error || errMsg;
+          } catch (_) {}
+          showError(errMsg);
+          return;
+        }
+ 
+        // TRIGGER DOWNLOAD
+        const blob = await response.blob();
+        const contentDisposition = response.headers.get('Content-Disposition') || '';
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        const filename = match ? match[1] : 'DELTA_ESTIMATE.xlsx';
+ 
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+ 
+        clearStatus();
+        document.getElementById('statusSuccess').style.display = 'flex';
+ 
+      } catch (err) {
+        showError('Network error — could not reach the server. Please try again.');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        document.getElementById('statusLoading').style.display = 'none';
+      }
+    }
+  </script>
+ 
+</body>
+</html>

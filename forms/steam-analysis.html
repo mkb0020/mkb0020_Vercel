@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <title>Data XP</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+            }
+        body {
+            font-family: Arial, sans-serif;
+            color: white;
+            margin-top: 0px;
+            padding: 0 0;
+            }
+
+        .modal-card {
+            background: linear-gradient(135deg, 
+                rgba(66, 4, 107, 0.4), 
+                rgba(60, 2, 131, 0.4));
+            border: 1px solid rgba(144, 144, 192, 0.105);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(50px);
+            box-shadow: 
+                0 20px 50px -15px rgba(131,12,222, 0.201),
+                inset 0 1px 0 rgba(255, 255, 255, 0.135);
+            }
+
+        .modal-card h3 {
+        color: var(--ParticlePink);
+        }
+
+        .modal-card strong {
+        color: var(--ParticlePink);
+        }
+
+        .post-wrap {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1.2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+        }
+        .hero-eyebrow {
+            font-size: 0.8rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--BohrsBabyBlue, #7fffd4);
+            margin-bottom: 0.75rem;
+        }
+        .hero h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            line-height: 1.1;
+            background: linear-gradient(45deg, var(--ParticlePink, #ff69b4), var(--OrbitalOrange, #ff8c42));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 1rem;
+        }
+        .hero-meta {
+            color: var(--MutedGray, #888);
+            font-size: 0.88rem;
+            margin-bottom: 1.5rem;
+        }
+        .hero-summary {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--CoolGray, #ccc);
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat-pill {
+            background: linear-gradient(135deg,rgba(66,4,107,0.45),rgba(60,2,131,0.4));
+            border: 1px solid rgba(144,144,192,0.18);
+            border-radius: 14px;
+            padding: 1.1rem 0.9rem;
+            text-align: center;
+            backdrop-filter: blur(40px);
+            box-shadow: 0 8px 30px -10px rgba(131,12,222,0.25);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-pill:hover {
+            box-shadow: 0 14px 40px -10px rgba(131,12,222,0.4);
+        }
+        .stat-val {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.6rem;
+            background: linear-gradient(45deg, var(--AquaAura), var(--AquaAura));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+        .stat-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--BohrsBabyBlue);
+            margin-top: 0.3rem;
+            display: block;
+        }
+
+        .section-card {
+            background: linear-gradient(135deg,rgba(46,2,75,0.42),rgba(32,0,71,0.42));
+            border: 1px solid rgba(144,144,192,0.22);
+            border-radius: 18px;
+            padding: 2rem 1.8rem;
+            margin-bottom: 2.2rem;
+            backdrop-filter: blur(50px);
+            box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.08);
+            scroll-margin-top: 100px;
+        }
+        .section-tag {
+            display: inline-block;
+            font-size: 0.68rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--BohrsBabyBlue,#7fffd4);
+            border: 1px solid rgba(127,255,212,0.3);
+            border-radius: 20px;
+            padding: 0.4em 1.0em;
+            margin-bottom: 0.6rem;
+        }
+        .section-card h2 {
+            font-family: 'GothNerd', monospace;
+            font-size: 1.5rem;
+            background: linear-gradient(45deg, var(--AlphaAqua), var(--AlphaAqua));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0.2rem 0 0.8rem;
+        }
+        .section-card p {
+            color: var(--MutedGray,#ccc);
+            line-height: 1.7;
+            margin: 0.6rem 0;
+        }
+        .section-card strong {
+            color: var(--ParticlePink,#ff69b4);
+        }
+
+        .insight {
+            background: linear-gradient(135deg,rgba(131,12,222,0.18),rgba(255,105,180,0.1));
+            border-left: 3px solid var(--VortexViolet);
+            border-radius: 0 10px 10px 0;
+            padding: 0.9rem 1.1rem;
+            margin: 1.2rem 0 0;
+            font-size: 0.95rem;
+            color: var(--MutedGray,#ccc);
+        }
+        .insight::before {
+            content: '💡 ';
+            color: var(--ParticlePink,#ff69b4);
+            font-weight: 600;
+        }
+
+        .chart-wrap {
+            position: relative;
+            margin: 1.4rem 0 0.6rem;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.25);
+            padding: 1rem;
+        }
+        .chart-wrap canvas {
+            max-height: 360px;
+        }
+        .chart-wrap.tall canvas {
+            max-height: 460px;
+        }
+
+        .heatmap-wrap {
+            overflow-x: auto;
+            margin: 1.2rem 0;
+        }
+        .heatmap-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.78rem;
+        }
+        .heatmap-table th {
+            color: var(--BohrsBabyBlue,#7fffd4);
+            padding: 0.5rem 0.4rem;
+            font-family: monospace;
+            font-weight: normal;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .heatmap-table td {
+            padding: 0.45rem 0.4rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            transition: transform 0.15s;
+            cursor: default;
+        }
+        .heatmap-table td:hover { transform: scale(1); z-index: 1; position: relative; }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+        .data-table th {
+            color: var(--BohrsBabyBlue,#7fffd4);
+            text-align: left;
+            padding: 0.5rem 0.8rem;
+            border-bottom: 1px solid rgba(127,255,212,0.2);
+            font-family: 'GothNerd', monospace;
+            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+        }
+        .data-table td {
+            padding: 0.55rem 0.8rem;
+            color: var(--CoolGray,#ccc);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .data-table tr:hover td { background: rgba(255,105,180,0.06); }
+        .data-table .rank {
+            color: var(--ParticlePink);
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .bar-inline {
+            display: inline-block;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg,var(--ParticlePink,#ff69b4),var(--OrbitalOrange,#ff8c42));
+            vertical-align: middle;
+            margin-right: 6px;
+            transition: width 0.6s ease;
+        }
+
+        .cluster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.4rem 0;
+        }
+        .cluster-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(144,144,192,0.15);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .cluster-card h4 {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.85rem;
+            color: var(--ParticlePink,#ff69b4);
+            margin: 0 0 0.6rem;
+        }
+        .cluster-card .c-stat {
+            font-size: 0.78rem;
+            color: var(--MutedGray,#888);
+            margin: 0.25rem 0;
+        }
+        .cluster-card .c-stat span {
+            color: var(--CoolGray,#ccc);
+            float: right;
+        }
+
+        .gem-badge {
+            display: inline-block;
+            background: linear-gradient(45deg,rgba(131,12,222,0.4),rgba(255,105,180,0.3));
+            border: 1px solid rgba(255,105,180,0.3);
+            border-radius: 20px;
+            padding: 0.15em 0.6em;
+            font-size: 0.72rem;
+            color: var(--ParticlePink,#ff69b4);
+            margin-left: 4px;
+        }
+
+        .loading-screen {
+            text-align: center;
+            padding: 5rem 1rem;
+            color: var(--MutedGray,#888);
+        }
+        .loading-screen .spinner {
+            font-size: 2rem;
+            animation: spin 1.5s linear infinite;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-box {
+            background: rgba(255,60,60,0.1);
+            border: 1px solid rgba(255,60,60,0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            color: #ff8888;
+        }
+
+        .waterfall-note {
+            font-size: 0.78rem;
+            color: var(--MutedGray,#888);
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .top-game-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .top-game-row:last-child { border-bottom: none; }
+        .tg-rank {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            color: var(--ParticlePink,#ff69b4);
+            width: 28px;
+            flex-shrink: 0;
+        }
+        .tg-info { flex: 1; min-width: 0; }
+        .tg-name {
+            font-weight: 600;
+            color: var(--MutedGray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tg-sub {
+            font-size: 0.75rem;
+            color: var(--MutedGray,#888);
+        }
+        .tg-score {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--BohrsBabyBlue,#7fffd4);
+            flex-shrink: 0;
+        }
+
+        .ratio-ring {
+            display: inline-block;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--ParticlePink,#ff69b4) var(--pct, 0%),
+                rgba(255,255,255,0.1) var(--pct, 0%)
+            );
+            flex-shrink: 0;
+            position: relative;
+        }
+        .ratio-ring::after {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border-radius: 50%;
+            background: #1a0030;
+        }
+
+        .sources{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .cite-box {
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--modal);
+            padding: 10px 18px;
+            border-radius: 10px;
+            max-width: 600px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        .cite-header {
+            font-family: "SpaceLetters", sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: var(--AquaAura);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .cite-title {
+            font-size: 0.85rem;
+            color: var(--BohrsBabyBlue);
+            margin-bottom: 5px;
+            line-height: 1.4;
+            font-family: arial;
+        }
+
+        .cite-license {
+            font-size: 0.75rem;
+            color: var(--CoolGray);
+            margin-bottom: 5px;
+            font-family: arial;
+        }
+
+        .cite-link {
+        font-size: 0.8rem;
+        color: var(--AquaAura);
+        word-break: break-all;
+        text-decoration: none;
+        transition: color 0.2s ease;
+        }
+
+        .cite-link:hover {
+        color: var(--AlphaAqua);
+        text-decoration: underline;
+        }
+
+        .section-nav {
+            position: sticky;
+            top: 0px;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            padding: 0.7rem;
+            margin: 0 auto 2rem auto;
+            background: rgba(37, 0, 73, 0.65);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            border: 1px solid rgba(144,144,192, 0.3);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+        .section-nav a {
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #7b00ff37;
+            padding: 0.4rem 1.1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s, border-color 0.2s;
+            font-family: 'SpaceLetters', monospace;
+            color: var(--BohrsBabyBlue);
+            transition: border-color 0.2s, box-shadow 0.2s, color 0.2s, transform 0.15s;
+            box-shadow: 0 0 18px rgba(140, 60, 255, 0.15);
+            -webkit-tap-highlight-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-weight: 500;
+        }
+        .section-nav a::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
+            transition: 0.4s;
+        }
+        .section-nav a:hover::before,
+        .section-nav a:focus::before {
+            left: 100%;
+        }
+        .section-nav a:hover,
+        .section-nav a:focus {
+            border-color: rgba(0, 221, 255, 0.32);
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.1), 0 0 60px rgba(140, 60, 255, 0.15);
+            outline: none;
+            color: #ffffff;
+        }
+        .section-nav a.active {
+            background: rgba(123,0,255,0.3);
+            border-color: rgba(0, 221, 255, 0.65);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(0,200,255,0.3);
+        }
+        .analysis-sections {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .download-btn {
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 0rem;
+            margin-bottom: 2rem;
+            background: var(--glass4);
+        }
+
+        @media (max-width: 720px) {
+            .section-nav a { padding: 0.3rem 0.8rem; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="waves">
+        <svg id="wave1" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,350 Q500,150 1000,350 T2000,350 T3000,350 T4000,350 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave2" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,380 Q500,200 1000,380 T2000,380 T3000,380 T4000,380 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+        <svg id="wave3" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,320 Q500,180 1000,320 T2000,320 T3000,320 T4000,320 L4000,600 L0,600 Z" fill="#8a2be2" opacity="0.2"/>
+        </svg>
+        <svg id="wave4" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,400 Q500,250 1000,400 T2000,400 T3000,400 T4000,400 L4000,600 L0,600 Z" fill="#4b0082" opacity="0.5"/>
+        </svg>
+        <svg id="wave5" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,300 Q250,150 500,300 T1000,300 T1500,300 T2000,300 T2500,300 T3000,300 T3500,300 T4000,300 L4000,600 L0,600 Z" fill="#ff69b4" opacity="0.6"/>
+        </svg>
+        <svg id="wave6" viewBox="0 0 4000 600" preserveAspectRatio="none">
+            <path d="M0,420 Q500,300 1000,420 T2000,420 T3000,420 T4000,420 L4000,600 L0,600 Z" fill="#c71585" opacity="0.5"/>
+        </svg>
+    </div>
+    <div class="dreamy-overlay"></div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="left-dropdown">
+                <button class="menu-trigger" aria-label="Menu">
+                    <img src="../static/images/Niels2.png" alt="Menu" class="home-icon">
+                </button>
+                <div class="left-menu">
+                    <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+                    <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+                    <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+                    <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+                    <div class="social-links">
+                        <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube"><img src="../static/images/youtube-icon.png" alt="YouTube" class="social-icon"></a>
+                        <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn"><img src="../static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon"></a>
+                        <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud"><img src="../static/images/music-icon.png" alt="Soundcloud" class="social-icon"></a>
+                        <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub"><img src="../static/images/github-icon.png" alt="GitHub" class="social-icon"></a>
+                        <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io"><img src="../static/images/itchio-icon.png" alt="Itch.io" class="social-icon"></a>
+                    </div>
+                </div>
+            </div>
+            <a href="https://mkb0020.github.io"><div class="logo">♡ mkb0020</div></a>
+            <div class="help-dropdown">
+                <button class="help-icon" id="helpBtn" aria-label="Help Menu"><div class="question-mark">?</div></button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <button id="openMainHelp">About</button>
+                    <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero">
+        <h1>What Actually Makes<br>a Steam Game Succeed?</h1>
+        <div class="hero-eyebrow"><div class="hero-meta">📅 <span id="post-date"></span> &nbsp;·&nbsp; Data XP &nbsp;·&nbsp; Steam Analysis</div></div>
+    </div>
+
+    <!-- STAT PILLS-->
+    <div class="post-wrap">
+        <div class="stat-grid" id="statGrid">
+            <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Games Analyzed</span></div>
+            <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Median Price</span></div>
+            <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Avg Review Score</span></div>
+            <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Median Playtime</span></div>
+            <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Price Sweet Spot</span></div>
+            <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Top Genre</span></div>
+        </div>
+    </div>
+
+    <div id="dynamicNavAnchor"></div>
+
+    <div id="mainContent" class="loading-screen">
+        <div class="spinner">⚙️</div>
+        <p>Crunching the data...</p>
+    </div>
+
+    <div style="text-align:center; margin-top: 0px;">
+        <button onclick="downloadData()" class="download-btn glow-sweep">
+            ⬇️ Download Analysis Data
+        </button>
+    </div>
+
+
+    <footer>
+        <div class="sources">
+        <a class="cite-box glow-sweep" href="https://www.kaggle.com/datasets/waddahali/top-1000-steam-games-20242026/data" target="_blank">
+            <div class="cite-header">Data Source 1:</div>
+            <div class="cite-title">Top 1000 Steam Games (2024–2026) by <strong>Waddah Ali</strong> (Kaggle)</div>
+            <div class="cite-license">Licensed under CC BY-NC-SA 4.0</div>
+        </a>
+        <a class="cite-box glow-sweep" href="https://www.kaggle.com/datasets/patelris/steam-top-1495-games-dataset" target="_blank">
+            <div class="cite-header">Data Source 2:</div>
+            <div class="cite-title">Steam Top 1495 Games Dataset by <strong>Patelris</strong> (Kaggle)</div>
+            <div class="cite-license">Licensed under CC BY 4.0</div>
+        </a>
+        </div>
+    </footer>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title">ANALYSIS</h1>
+            <button class="modal-close" id="closeModal">X</button>
+        </div>
+            <div class="modal-body">
+                <div class="modal-card"><h3>ABOUT THIS ANALYSIS</h3>
+                    <p>This project explores what makes a Steam game *successful* using real-world data from the **Top 1000 Steam Games (2024–2026)** dataset. Instead of relying on opinions or trends, the analysis focuses on measurable signals like player engagement, review sentiment, pricing, and playtime.</p>
+                    <p>The data is processed using Python, with tools like Pandas and NumPy for transformation and Scikit-learn for clustering. Every chart and insight you see here is precomputed and served as static JSON, allowing the front-end to stay fast, lightweight, and purely focused on visualization.</p>
+                </div>
+                <div class="modal-card"><h3>WHAT WE'RE LOOKING AT</h3>
+                    <ul>
+                        <li><strong>Pricing trends</strong> — Is there a “sweet spot” for game pricing?</li>
+                        <li><strong>Player engagement</strong> — How playtime and reviews relate to success</li>
+                        <li><strong>Genre performance</strong> — Which types of games tend to perform best</li>
+                        <li><strong>Review sentiment</strong> — What high-rated games have in common</li>
+                        <li><strong>*Market segments</strong> — Clustering games into groups like “Budget Hits” or “Premium Titles”</li>
+                        <li><strong>Hidden gems</strong> — Games with strong quality signals that may be under the radar</li>
+                    </ul>
+                </div>
+                <div class="modal-card"><h3>HOW TO READ</h3>
+                    <p>Each visualization is designed to help answer a specific question about game success. Hover over charts to explore individual games, compare trends, and uncover patterns that aren’t obvious at first glance.</p>
+                </div>
+                <div class="modal-card"><h3>NOTES</h3>
+                    <ul>
+                        <li><strong>“Success”</strong> here is defined primarily through **player reviews, engagement, and popularity**, not revenue.</li>
+                        <li>Some values (like ownership ranges) are estimated and normalized for analysis.</li>
+                        <li><strong>Correlation does **not** imply causation</strong> — these insights highlight patterns, not guarantees.</li>
+                    </ul>
+                </div>
+                <div class="modal-card"><h3>SOURCES</h3>
+                            <a class="cite-box glow-sweep" style="margin-bottom: 1rem;" href="https://www.kaggle.com/datasets/waddahali/top-1000-steam-games-20242026/data" target="_blank">
+                                <div class="cite-header">Data Source 1:</div>
+                                <div class="cite-title">Top 1000 Steam Games (2024–2026) by <strong>Waddah Ali</strong> (Kaggle)</div>
+                                <div class="cite-license">Licensed under CC BY-NC-SA 4.0</div>
+                            </a>
+                            <a class="cite-box glow-sweep" style="margin-bottom: 1rem;" href="https://www.kaggle.com/datasets/patelris/steam-top-1495-games-dataset" target="_blank">
+                                <div class="cite-header">Data Source 2:</div>
+                                <div class="cite-title">Steam Top 1495 Games Dataset by <strong>Patelris</strong> (Kaggle)</div>
+                                <div class="cite-license">Licensed under CC BY 4.0</div>
+                            </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KO-FI FLOAT -->
+    <div id="kofi-float">
+        <a href="https://ko-fi.com/mkb0020" target="_blank" rel="noopener noreferrer">
+            <img src="/../static/images/tipjar.png" alt="Support me on Ko-fi">
+            <div class="hearts">
+                <div class="heart" style="--delay:0s;--drift:-20px;">❤️</div>
+                <div class="heart" style="--delay:0.5s;--drift:15px;">💖</div>
+                <div class="heart" style="--delay:1s;--drift:-10px;">💕</div>
+                <div class="heart" style="--delay:1.5s;--drift:20px;">❤️</div>
+                <div class="heart" style="--delay:2s;--drift:-15px;">💗</div>
+                <div class="heart" style="--delay:2.5s;--drift:10px;">💖</div>
+            </div>
+        </a>
+    </div>
+
+    <div id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'});">
+        <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+            <img src="/static/images/top.png" alt="Scroll to top">
+        </a>
+    </div>
+
+    <script src="/static/js/KittyCore.js"></script>
+
+    <script>
+    let GLOBAL_DATA = null;    
+    const DATA_URL = '/static/data/steam_analysis.json';
+
+    Chart.defaults.color = '#888';
+    Chart.defaults.font.family = 'monospace';
+    Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+
+    const PINK    = '#ff69b4';
+    const ORANGE  = '#ff8c42';
+    const AQUA    = '#7fffd4';
+    const BLUE    = '#00ced1';
+    const PURPLE  = '#a855f7';
+    const CLUSTER_COLORS = ['#ff69b4','#7fffd4','#ff8c42','#a855f7','#60a5fa'];
+
+    function downloadData(format = 'json') {
+        if (!GLOBAL_DATA) {
+            alert('Data not loaded yet!');
+            return;
+        }
+
+        let content, mimeType, filename;
+
+        if (format === 'txt') {
+            // Pretty readable debug format
+            content = `
+    === STEAM ANALYSIS DEBUG EXPORT ===
+
+    Generated: ${GLOBAL_DATA.meta.generated_at}
+    Games Analyzed: ${GLOBAL_DATA.meta.total_games}
+
+    --- SUMMARY ---
+    Median Price: $${GLOBAL_DATA.summary.median_price}
+    Avg Score: ${(GLOBAL_DATA.summary.avg_positive_ratio * 100).toFixed(2)}%
+    Median Playtime: ${GLOBAL_DATA.summary.median_playtime_h}h
+    Top Genre: ${GLOBAL_DATA.summary.top_genre}
+
+    --- TOP 10 GAMES ---
+    ${GLOBAL_DATA.top_games?.map((g, i) =>
+        `${i + 1}. ${g.name} | ${g.positive_ratio}% | ${g.positive} reviews`
+    ).join('\n') || 'N/A'}
+
+    --- CLUSTERS ---
+    ${GLOBAL_DATA.clusters?.cluster_summary?.map(c =>
+        `${c.label}: ${c.count} games | Avg Score ${c.avg_ratio}%`
+    ).join('\n') || 'N/A'}
+            `;
+            mimeType = 'text/plain';
+            filename = 'steam_analysis.txt';
+        } else {
+            // Full raw JSON (best for me to review)
+            content = JSON.stringify(GLOBAL_DATA, null, 2);
+            mimeType = 'application/json';
+            filename = 'steam_analysis.json';
+        }
+
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+
+        URL.revokeObjectURL(url);
+    }
+
+    function gradStop(ctx, c1, c2) {
+        const g = ctx.createLinearGradient(0, 0, 0, 360);
+        g.addColorStop(0, c1);
+        g.addColorStop(1, c2);
+        return g;
+    }
+
+    function card(tag, title, body, id='') {
+        return `<div class="section-card" id="${id}"><span class="section-tag">${tag}</span><h2>${title}</h2>${body}</div>`;
+    }
+
+    function renderHeatmap(d) {
+        if (!d) return '<p style="color:#888">Correlation data unavailable.</p>';
+        const { labels, matrix } = d;
+        function cellColor(v) {
+            if (v > 0) return `rgba(255,105,180,${Math.abs(v).toFixed(2)})`;
+            if (v < 0) return `rgba(127,255,212,${Math.abs(v).toFixed(2)})`;
+            return 'rgba(255,255,255,0.05)';
+        }
+        let rows = labels.map((rowLabel, i) => {
+            const cells = matrix[i].map((v, j) => `<td style="background:${cellColor(v)};color:${Math.abs(v) > 0.5 ? '#fff' : '#aaa'}">${v.toFixed(2)}</td>`).join('');
+            return `<tr><th style="text-align:right;padding-right:8px;color:#7fffd4">${rowLabel}</th>${cells}</tr>`;
+        }).join('');
+        const headers = labels.map(l => `<th>${l}</th>`).join('');
+        return `<div class="heatmap-wrap"><table class="heatmap-table"><thead><tr><th></th>${headers}</tr></thead><tbody>${rows}</tbody></table></div><p style="font-size:0.75rem;color:#666;text-align:center;margin-top:0.5rem">Pink = positive correlation · Teal = negative correlation</p>`;
+    }
+
+    async function init() {
+        let D;
+        try {
+            const res = await fetch(DATA_URL);
+            if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            D = await res.json();
+            GLOBAL_DATA = D; 
+        } catch (err) {
+            document.getElementById('mainContent').innerHTML = `<div class="post-wrap"><div class="error-box"><strong>⚠️ Couldn't load analysis data</strong><br><code>${err.message}</code><br><br>Make sure you've run <code>analyze_steam.py</code> and the output is at<br><code>${DATA_URL}</code></div></div>`;
+            return;
+        }
+
+        document.getElementById('post-date').textContent = new Date(D.meta.generated_at).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+        const s = D.summary;
+        const statVals = [[D.meta.total_games.toLocaleString(), 'Games Analyzed'],[`$${s.median_price}`, 'Median Price'],[`${(s.avg_positive_ratio*100).toFixed(1)}%`, 'Avg Review Score'],[`${s.median_playtime_h}h`, 'Median Playtime'],[s.sweet_spot, 'Price Sweet Spot'],[s.top_genre || '—', 'Top Genre']];
+        document.getElementById('statGrid').innerHTML = statVals.map(([v, l]) => `<div class="stat-pill"><span class="stat-val">${v}</span><span class="stat-label">${l}</span></div>`).join('');
+
+        const sections = [];
+        sections.push(card('🔥 Analysis 1', 'What Actually Correlates With Success?', `<p>Before diving into specific factors, let's look at the big picture: which variables actually move together? The heatmap below shows Pearson correlations between price, review count, review score, playtime, peak CCU, and recommendations.</p>${renderHeatmap(D.correlation)}<div class="chart-wrap" style="margin-top:1.2rem"><canvas id="chartPricePlaytime"></canvas></div><div class="insight">Correlation ≠ causation, but high playtime and recommendation counts tend to cluster with popular games far more than high price does. Price shows surprisingly weak correlation with review volume — meaning an expensive game isn't automatically more or less loved.</div>`, 'sec-corr'));
+        sections.push(card('📊 Analysis 2', 'Price vs Success — The Big One', `<p>Every indie dev agonizes over pricing. Should you go $5 to maximize accessibility? $15 for the "real game" tier? $25 to signal quality? Here's what the data shows across price buckets.</p><div class="chart-wrap tall"><canvas id="chartPriceBucket"></canvas></div><div class="chart-wrap"><canvas id="chartPriceScatter"></canvas></div><div class="insight">The sweet spot by median positive reviews is <strong>${s.sweet_spot}</strong>. Free-to-play games have massive counts but often lower ratios — the whales carry them. The $10–$20 range consistently delivers strong ratios, suggesting players feel they got value.</div>`, 'sec-price'));
+        if (D.genre_analysis) sections.push(card('🎮 Analysis 3', 'Genre Breakdown — Supply vs Demand', `<p>Not all genres are created equal. Some are oversaturated with low returns; others punch way above their weight. The chart below ranks by <em>average positive reviews</em> — a rough proxy for reach — while the table adds context on review quality and playtime.</p><div class="chart-wrap tall"><canvas id="chartGenre"></canvas></div><div id="genreTable"></div><div class="insight">Horror, roguelikes, and survival games consistently appear in the high-engagement tiers despite being "saturated" — players in those genres are <em>hungry</em>. Niche genres with fewer games often post better ratios, meaning less competition + loyal audiences = easier wins.</div>`, 'sec-genre'));
+        sections.push(card('⏱️ Analysis 4', 'Playtime vs Reviews — Does Longer = Better?', `<p>The eternal scope debate: should your indie game be a tight 5-hour experience or an epic 40-hour RPG? Reviews are plotted against average playtime (in hours, log scale) to reveal the real relationship.</p><div class="chart-wrap tall"><canvas id="chartPlaytime"></canvas></div><div class="insight">There's no clear "longer = more reviews" — short, replayable games accumulate huge review counts by keeping players coming back. That said, games with 10–30h of content cluster in the high-ratio zone. The lesson: optimize for <em>replayability</em> or <em>completeness</em>, not raw hour count.</div>`, 'sec-playtime'));
+        sections.push(card('📈 Analysis 5', 'Review Score as Revenue Proxy', `<p>Steam doesn't publish revenue, but positive reviews are the industry's go-to proxy — roughly 1 review per 30–80 sales by most estimates. Here we look at whether it's better to have <em>lots</em> of reviews or <em>great</em> reviews.</p><div class="chart-wrap tall"><canvas id="chartReviewScore"></canvas></div><div class="insight">"Overwhelmingly Positive" (≥95%) games cluster in a tight band regardless of total count — a small game with 500 reviews at 97% is often healthier than a bigger game at 85% with 10,000. Quality perception compounds over time via Steam's algorithm. Aim for 95%+ even if it means a smaller launch.</div>`, 'sec-review'));
+        sections.push(card('🧠 Analysis 6', 'Clustering — Types of Successful Games', `<p>K-Means clustering (k=4) on price, playtime, review count, and review score reveals the natural "archetypes" of successful Steam games. Each dot is a game; size ≈ review count.</p><div id="clusterCards" class="cluster-grid"></div><div class="chart-wrap tall"><canvas id="chartCluster"></canvas></div><div class="insight">The "Budget Hits" cluster is the Vampire Survivors / Among Us zone — cheap, massive audience. Premium titles can work but need a strong hook to justify the price. The Hidden Quality cluster is your target as a first-time dev: strong scores, modest reach, genuine fans.</div>`, 'sec-cluster'));
+        if (D.release_trends) sections.push(card('📅 Analysis 7', 'Release Date Trends — Is It Getting Harder?', `<p>How crowded is the timeline? Here's how many of these top 1,000 games launched each month, giving a sense of Steam's acceleration (or not).</p><div class="chart-wrap tall"><canvas id="chartTrends"></canvas></div><p class="waterfall-note">Note: only top-1000 games shown — absolute release counts are far higher.</p><div class="insight">The data shows clear seasonality — releases cluster around Q4 (holiday window) and spring. Breaking out in a crowded month is harder; if your game is ready in October, consider whether holding for January gives you a quieter launch window.</div>`, 'sec-trends'));
+        sections.push(card('🧪 Analysis 8', 'Hidden Gems — High Rating, Low Visibility', `<p>Defined as: 100–3,000 reviews, ≥85% positive ratio, and >1 hour average playtime. These games have everything going for them except reach.</p><div id="gemsTable"></div><div class="insight">These games prove that quality can survive without a marketing budget — they just grow slowly. If you're pre-launch, this is your benchmark tier: get 85%+ and stay there. Discovery algorithms reward sustained score more than launch spike.</div>`, 'sec-gems'));
+        sections.push(card('📦 Analysis 9', 'Engagement Score — The Derived Metric', `<p>Combining playtime and reviews into <code>log(playtime × reviews)</code> as an engagement proxy. Plotted against review ratio to find the ideal top-right quadrant: high engagement <em>and</em> high approval.</p><div class="chart-wrap tall"><canvas id="chartEngagement"></canvas></div><div class="insight">The top-right quadrant (high engagement + high ratio) is where you want to be. High-engagement games with poor ratios are often deep games that overpromised. High-ratio games with low engagement are loved but forgotten — they needed a bigger hook to keep players talking.</div>`, 'sec-engagement'));
+        sections.push(card('🏆 Top 10', 'Most-Reviewed Games in This Dataset', `<div id="topGamesList"></div>`, 'sec-top'));
+
+        const analysisContainer = document.createElement('div');
+        analysisContainer.className = 'analysis-sections';
+        analysisContainer.innerHTML = sections.join('');
+        document.getElementById('mainContent').innerHTML = '';
+        document.getElementById('mainContent').appendChild(analysisContainer);
+
+        if (D.top_games) document.getElementById('topGamesList').innerHTML = D.top_games.map((g,i) => `<div class="top-game-row"><div class="tg-rank">#${i+1}</div><div class="tg-info"><div class="tg-name">${g.name}</div><div class="tg-sub">${g.price === 0 ? 'Free' : '$'+g.price} &nbsp;·&nbsp; ${g.avg_playtime_h}h avg &nbsp;·&nbsp; ${g.positive.toLocaleString()} reviews</div></div><div class="tg-score">${g.positive_ratio}%</div></div>`).join('');
+        if (D.hidden_gems) document.getElementById('gemsTable').innerHTML = `<table class="data-table"><thead><tr><th>#</th><th>Game</th><th>Score</th><th>Reviews</th><th>Playtime</th><th>Price</th></tr></thead><tbody>${D.hidden_gems.map((g,i)=>`<tr><td class="rank">${i+1}</td><td>${g.name} <span class="gem-badge">gem</span></td><td>${g.positive_ratio}%</td><td>${g.total_reviews.toLocaleString()}</td><td>${g.avg_playtime_h}h</td><td>${g.price === 0 ? 'Free' : '$'+g.price}</td></tr>`).join('')}</tbody></table>`;
+        if (D.genre_analysis) {
+            const ga = D.genre_analysis;
+            const maxAvg = Math.max(...ga.avg_positive);
+            document.getElementById('genreTable').innerHTML = `<table class="data-table" style="margin-top:1.2rem"><thead><tr><th>#</th><th>Genre</th><th>Avg Reviews</th><th>Avg Score</th><th>Avg Playtime</th><th>Game Count</th></tr></thead><tbody>${ga.genres.slice(0,12).map((g,i)=>`<tr><td class="rank">${i+1}</td><td>${g}</td><td><span class="bar-inline" style="width:${Math.round(ga.avg_positive[i]/maxAvg*80)}px"></span> ${ga.avg_positive[i].toLocaleString()}</td><td>${ga.avg_ratio[i]}%</td><td>${ga.avg_playtime_h[i]}h</td><td>${ga.count[i]}</td></tr>`).join('')}</tbody></table>`;
+        }
+        if (D.clusters?.cluster_summary) {
+            document.getElementById('clusterCards').innerHTML = D.clusters.cluster_summary.map((c,i)=>`<div class="cluster-card"><h4><span style="color:${CLUSTER_COLORS[i]}">●</span> ${c.label}</h4><div class="c-stat">Games <span>${c.count}</span></div><div class="c-stat">Avg Price <span>$${c.avg_price}</span></div><div class="c-stat">Avg Playtime <span>${c.avg_playtime_h}h</span></div><div class="c-stat">Avg Reviews <span>${c.avg_positive.toLocaleString()}</span></div><div class="c-stat">Avg Score <span>${c.avg_ratio}%</span></div></div>`).join('');
+        }
+
+        const navItems = [
+            ['sec-corr','Correlations'], ['sec-price','Price'], ['sec-genre','Genre'], ['sec-playtime','Playtime'],
+            ['sec-review','Review Score'], ['sec-cluster','Clustering'], ['sec-trends','Trends'], ['sec-gems','Gems'],
+            ['sec-engagement','Engagement'], ['sec-top','Top 10']
+        ];
+const navDiv = document.createElement('div');
+navDiv.className = 'section-nav';
+navDiv.innerHTML = navItems.map(([id,label]) => `<a href="#${id}" class="toc-link">${label}</a>`).join('');
+
+        const heroElement = document.querySelector('.hero');
+        if (heroElement) {
+            heroElement.parentNode.insertBefore(navDiv, heroElement);
+        } else {
+            const navbar = document.querySelector('.navbar');
+            if (navbar && navbar.parentNode) navbar.parentNode.insertBefore(navDiv, navbar.nextSibling);
+        }
+
+        nextTick(() => buildCharts(D));
+
+        const tocLinks = document.querySelectorAll('.toc-link');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    tocLinks.forEach(l => l.classList.remove('active'));
+                    const match = document.querySelector(`.toc-link[href="#${e.target.id}"]`);
+                    if (match) match.classList.add('active');
+                }
+            });
+        }, { rootMargin: '-30% 0px -60% 0px' });
+        document.querySelectorAll('.section-card[id]').forEach(s => observer.observe(s));
+    }
+
+    function nextTick(fn) { requestAnimationFrame(() => requestAnimationFrame(fn)); }
+    function buildCharts(D) {
+        const tooltip = { backgroundColor: 'rgba(20,0,40,0.92)', borderColor: 'rgba(255,105,180,0.4)', borderWidth: 1, titleColor: '#ff69b4', bodyColor: '#ccc', padding: 10, cornerRadius: 8 };
+        if(D.price_scatter) new Chart(document.getElementById('chartPricePlaytime'),{type:'scatter',data:{datasets:[{label:'Games',data:D.price_scatter.x.map((x,i)=>({x,y:D.price_scatter.y[i],label:D.price_scatter.names[i],ratio:D.price_scatter.ratio[i]})),backgroundColor:D.price_scatter.ratio.map(r=>`rgba(255,105,180,${(r/100*0.7+0.15).toFixed(2)})`),pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltip,callbacks:{label:ctx=>[ctx.raw.label,`Price: $${ctx.raw.x}  Reviews: ${ctx.raw.y.toLocaleString()}`,`Score: ${ctx.raw.ratio}%`]}},title:{display:true,text:'Price vs Positive Reviews',color:'#7fffd4'}},scales:{x:{title:{text:'Price ($)',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}},y:{title:{text:'Positive Reviews',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}}}}});
+        if(D.price_distribution){let pd=D.price_distribution;new Chart(document.getElementById('chartPriceBucket'),{type:'bar',data:{labels:pd.buckets,datasets:[{label:'Median Positive Reviews',data:pd.median_positive,backgroundColor:pd.buckets.map((_,i)=>`hsla(${320-i*15},80%,65%,0.75)`),borderRadius:6,yAxisID:'y'},{label:'Median Score (%)',data:pd.median_ratio,type:'line',borderColor:AQUA,pointBackgroundColor:AQUA,fill:false,tension:0.3,yAxisID:'y2'}]},options:{responsive:true,plugins:{legend:{labels:{color:'#aaa'}},tooltip,title:{text:'Price Buckets: Median Reviews & Score',color:'#7fffd4'}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'}},y:{title:{text:'Median Positive Reviews',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}},y2:{position:'right',title:{text:'Median Score %',color:AQUA},grid:{drawOnChartArea:false},ticks:{color:AQUA}}}}})}
+        if(D.price_scatter) new Chart(document.getElementById('chartPriceScatter'),{type:'scatter',data:{datasets:[{label:'Games',data:D.price_scatter.x.map((x,i)=>({x,y:D.price_scatter.ratio[i],label:D.price_scatter.names[i],rev:D.price_scatter.y[i]})),backgroundColor:'rgba(255,140,66,0.55)',pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltip,callbacks:{label:ctx=>[`${ctx.raw.label}`,`$${ctx.raw.x} → ${ctx.raw.y}% score, ${ctx.raw.rev.toLocaleString()} reviews`]}},title:{text:'Price vs Review Score',color:'#7fffd4'}},scales:{x:{title:{text:'Price ($)',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}},y:{title:{text:'Positive Score (%)',color:'#888'},min:0,max:100,grid:{color:'rgba(255,255,255,0.04)'}}}}});
+        if(D.genre_analysis){let ga=D.genre_analysis;new Chart(document.getElementById('chartGenre'),{type:'bar',data:{labels:ga.genres.slice(0,12),datasets:[{label:'Avg Positive Reviews',data:ga.avg_positive.slice(0,12),backgroundColor:ga.genres.slice(0,12).map((_,i)=>`hsla(${290+i*6},70%,60%,0.75)`),borderRadius:6}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip,title:{text:'Top Genres by Avg Positive Reviews',color:'#7fffd4'}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'}},y:{grid:{display:false}}}}})}
+        if(D.playtime_scatter){let pt=D.playtime_scatter;new Chart(document.getElementById('chartPlaytime'),{type:'scatter',data:{datasets:[{label:'Games',data:pt.x.map((x,i)=>({x,y:pt.y[i],label:pt.names[i],ratio:pt.ratio[i]})),backgroundColor:pt.ratio.map(r=>`hsla(${180+r},70%,60%,0.5)`),pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltip,callbacks:{label:ctx=>[ctx.raw.label,`${ctx.raw.x.toFixed(1)}h playtime · ${ctx.raw.y.toLocaleString()} reviews · ${ctx.raw.ratio}% score`]}},title:{text:'Avg Playtime (hrs) vs Positive Reviews',color:'#7fffd4'}},scales:{x:{type:'logarithmic',title:{text:'Avg Playtime (hours, log scale)',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}},y:{title:{text:'Positive Reviews',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}}}}})}
+        if(D.review_score){let rs=D.review_score;new Chart(document.getElementById('chartReviewScore'),{type:'scatter',data:{datasets:[{label:'Games',data:rs.x.map((x,i)=>({x,y:rs.y[i],label:rs.names[i]})),backgroundColor:rs.y.map(r=>`hsla(${300+r},65%,62%,0.55)`),pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltip,callbacks:{label:ctx=>[ctx.raw.label,`${ctx.raw.x.toLocaleString()} total reviews · ${ctx.raw.y}% positive`]}},title:{text:'Total Reviews vs Positive Score (%)',color:'#7fffd4'}},scales:{x:{type:'logarithmic',title:{text:'Total Reviews (log scale)',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}},y:{title:{text:'Positive Score (%)',color:'#888'},min:0,max:100,grid:{color:'rgba(255,255,255,0.04)'}}}}})}
+        if(D.clusters){let labels=D.clusters.cluster_labels,grouped={};D.clusters.points.forEach(p=>{if(!grouped[p.cluster])grouped[p.cluster]=[];grouped[p.cluster].push(p)});let datasets=Object.entries(grouped).map(([ci,pts])=>({label:labels[ci]||`Cluster ${ci}`,data:pts.map(p=>({x:p.x,y:p.y,r:p.r,name:p.name,positive:p.positive,ratio:p.ratio})),backgroundColor:CLUSTER_COLORS[ci]+'88',borderColor:CLUSTER_COLORS[ci],borderWidth:1}));new Chart(document.getElementById('chartCluster'),{type:'bubble',data:{datasets},options:{responsive:true,plugins:{legend:{labels:{color:'#aaa'}},tooltip:{...tooltip,callbacks:{label:ctx=>[ctx.raw.name,`$${ctx.raw.x} · ${ctx.raw.y.toFixed(1)}h · ${ctx.raw.positive.toLocaleString()} reviews · ${ctx.raw.ratio}%`]}},title:{text:'Game Clusters: Price vs Playtime (size = reviews)',color:'#7fffd4'}},scales:{x:{title:{text:'Price ($)',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}},y:{title:{text:'Avg Playtime (hours)',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}}}}})}
+        if(D.release_trends){let rt=D.release_trends;new Chart(document.getElementById('chartTrends'),{type:'bar',data:{labels:rt.periods,datasets:[{label:'Releases',data:rt.counts,backgroundColor:rt.counts.map((_,i)=>`hsla(${280+i*2},70%,58%,0.7)`),borderRadius:3}]},options:{responsive:true,plugins:{legend:{display:false},tooltip,title:{text:'Top-1000 Game Releases by Month',color:'#7fffd4'}},scales:{x:{ticks:{maxTicksLimit:18,maxRotation:45},grid:{display:false}},y:{grid:{color:'rgba(255,255,255,0.04)'}}}}})}
+        if(D.engagement_scatter){let es=D.engagement_scatter;new Chart(document.getElementById('chartEngagement'),{type:'scatter',data:{datasets:[{label:'Games',data:es.x.map((x,i)=>({x,y:es.y[i],label:es.names[i],price:es.price[i],playtime:es.playtime_h[i],positive:es.positive[i]})),backgroundColor:es.y.map(r=>`hsla(${220+r},70%,60%,0.55)`),pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltip,callbacks:{label:ctx=>[ctx.raw.label,`Engagement: ${ctx.raw.x.toFixed(2)} · Score: ${ctx.raw.y}%`,`$${ctx.raw.price} · ${ctx.raw.playtime}h · ${ctx.raw.positive.toLocaleString()} reviews`]}},title:{text:'Log Engagement Score vs Positive Ratio',color:'#7fffd4'}},scales:{x:{title:{text:'log(playtime × reviews)',color:'#888'},grid:{color:'rgba(255,255,255,0.04)'}},y:{title:{text:'Positive Score (%)',color:'#888'},min:0,max:100,grid:{color:'rgba(255,255,255,0.04)'}}}}})}
+    }
+
+    document.getElementById('post-date').textContent = new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+    init();
+    </script>
+</body>
+</html>
