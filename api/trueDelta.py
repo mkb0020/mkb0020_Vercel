@@ -232,7 +232,7 @@ class TrueDeltaDetailsFormat:
     def update_dynamic_headers(self):
         total_lbl     = f"{int(self.total_months)} months" if self.total_months is not None else "? months"
         remaining_lbl = f"{int(self.remaining_months)} months" if self.remaining_months is not None else "? months"
-        prorate_lbl   = "12 months\n(1 year)" if self.billing_type == "annual" else remaining_lbl
+        prorate_lbl   = "12 months" if self.billing_type == "annual" else remaining_lbl
         self.ws["O1"].value = f"EXISTING\nNET PRICE\n({total_lbl})"
         self.ws["P1"].value = f"NEW\nNET PRICE\n({total_lbl})"
         self.ws["Q1"].value = f"EXISTING\nPRORATE PRICE\n({prorate_lbl})"
