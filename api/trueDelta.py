@@ -120,9 +120,11 @@ class TrueDeltaPricing:
 
 # ----------------------------  DETAILS TAB FORMATTING ----------------------------
 class TrueDeltaDetailsFormat:
-    def __init__(self, filepath, sheet_name):
+    def __init__(self, filepath, sheet_name, total_months=None, remaining_months=None):
         self.filepath = filepath
         self.sheet_name = sheet_name
+        self.total_months = total_months
+        self.remaining_months = remaining_months
         self.wb = load_workbook(filepath)
         self.ws = self.wb[sheet_name]
         self.HeaderColor = PatternFill(start_color="4B1395", end_color="4B1395", fill_type="solid")
@@ -227,13 +229,12 @@ class TrueDeltaDetailsFormat:
         self.ws.freeze_panes = "A2"
 
     def update_dynamic_headers(self):
-        summary_ws = self.wb["Summary"]
-        agreement_duration = summary_ws["B9"].value or "?"
-        remaining_duration = summary_ws["B10"].value or "?"
-        self.ws["O1"].value = f"EXISTING\nNET PRICE\n({agreement_duration} months)"
-        self.ws["P1"].value = f"NEW\nNET PRICE\n({agreement_duration} months)"
-        self.ws["Q1"].value = f"EXISTING\nPRORATE PRICE\n({remaining_duration} months)"
-        self.ws["R1"].value = f"NEW\nPRORATE PRICE\n({remaining_duration} months)"
+        total_lbl     = f"{int(self.total_months)} months" if self.total_months is not None else "? months"
+        remaining_lbl = f"{int(self.remaining_months)} months" if self.remaining_months is not None else "? months"
+        self.ws["O1"].value = f"EXISTING\nNET PRICE\n({total_lbl})"
+        self.ws["P1"].value = f"NEW\nNET PRICE\n({total_lbl})"
+        self.ws["Q1"].value = f"EXISTING\nPRORATE PRICE\n({remaining_lbl})"
+        self.ws["R1"].value = f"NEW\nPRORATE PRICE\n({remaining_lbl})"
         self.ws["S1"].value = "ESTIMATED\nCREDIT"
         self.ws["T1"].value = "ESTIMATED\nINVOICE"
         self.ws["U1"].value = "TRUE DELTA\nNET COST"
@@ -810,7 +811,11 @@ def process_truedelta():
 
         out_wb.save(tmp_path)
 
-        TrueDeltaDetailsFormat(tmp_path, tab2_name).format()
+        TrueDeltaDetailsFormat(
+            tmp_path, tab2_name,
+            total_months=summary_values[8],
+            remaining_months=summary_values[9]
+        ).format()
 
         filtered_rows = [r for r in details_rows if (r.get("DELTA QTY") or 0) != 0]
 
