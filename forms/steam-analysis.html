@@ -562,8 +562,8 @@
 
     <!-- HERO -->
     <div class="hero">
-        <h1>What Actually Makes<br>a Steam Game Succeed?</h1>
-        <div class="hero-eyebrow"><div class="hero-meta">📅 <span id="post-date"></span> &nbsp;·&nbsp; Data XP &nbsp;·&nbsp; Steam Analysis</div></div>
+        <h1>What Successful Steam Games<br>Have in Common</h1>
+        <div class="hero-eyebrow"><div class="hero-meta">📅 <span id="post-date"></span> &nbsp;·&nbsp; Data XP &nbsp;·&nbsp; Exploratory Data Analysis · Steam Games</div></div>
     </div>
 
     <!-- STAT PILLS-->
@@ -573,7 +573,7 @@
             <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Median Price</span></div>
             <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Avg Review Score</span></div>
             <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Median Playtime</span></div>
-            <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Price Sweet Spot</span></div>
+            <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Common Price Range</span></div>
             <div class="stat-pill"><span class="stat-val">—</span><span class="stat-label">Top Genre</span></div>
         </div>
     </div>
@@ -585,11 +585,11 @@
         <p>Crunching the data...</p>
     </div>
 
-    <div style="text-align:center; margin-top: 0px;">
+   <!--<div style="text-align:center; margin-top: 0px;">
         <button onclick="downloadData()" class="download-btn glow-sweep">
             ⬇️ Download Analysis Data
         </button>
-    </div>
+    </div>-->
 
 
     <footer>
@@ -615,7 +615,7 @@
         </div>
             <div class="modal-body">
                 <div class="modal-card"><h3>ABOUT THIS ANALYSIS</h3>
-                    <p>This project explores what makes a Steam game *successful* using real-world data from the **Top 1000 Steam Games (2024–2026)** dataset. Instead of relying on opinions or trends, the analysis focuses on measurable signals like player engagement, review sentiment, pricing, and playtime.</p>
+                    <p>This project explores what successful Steam games tend to have in common using real-world data.  Instead of relying on opinions or trends, the analysis focuses on measurable signals like player engagement, review sentiment, pricing, and playtime.</p>
                     <p>The data is processed using Python, with tools like Pandas and NumPy for transformation and Scikit-learn for clustering. Every chart and insight you see here is precomputed and served as static JSON, allowing the front-end to stay fast, lightweight, and purely focused on visualization.</p>
                 </div>
                 <div class="modal-card"><h3>WHAT WE'RE LOOKING AT</h3>
@@ -633,7 +633,7 @@
                 </div>
                 <div class="modal-card"><h3>NOTES</h3>
                     <ul>
-                        <li><strong>“Success”</strong> here is defined primarily through **player reviews, engagement, and popularity**, not revenue.</li>
+                        <li><strong>“Success”</strong> here is defined primarily through **player reviews, engagement, and popularity**, not revenue.  This analysis identifies correlations and shared patterns, not causal drivers of success.</li>
                         <li>Some values (like ownership ranges) are estimated and normalized for analysis.</li>
                         <li><strong>Correlation does **not** imply causation</strong> — these insights highlight patterns, not guarantees.</li>
                     </ul>
@@ -789,15 +789,83 @@
         document.getElementById('statGrid').innerHTML = statVals.map(([v, l]) => `<div class="stat-pill"><span class="stat-val">${v}</span><span class="stat-label">${l}</span></div>`).join('');
 
         const sections = [];
-        sections.push(card('🔥 Analysis 1', 'What Actually Correlates With Success?', `<p>Before diving into specific factors, let's look at the big picture: which variables actually move together? The heatmap below shows Pearson correlations between price, review count, review score, playtime, peak CCU, and recommendations.</p>${renderHeatmap(D.correlation)}<div class="chart-wrap" style="margin-top:1.2rem"><canvas id="chartPricePlaytime"></canvas></div><div class="insight">Correlation ≠ causation, but high playtime and recommendation counts tend to cluster with popular games far more than high price does. Price shows surprisingly weak correlation with review volume — meaning an expensive game isn't automatically more or less loved.</div>`, 'sec-corr'));
-        sections.push(card('📊 Analysis 2', 'Price vs Success — The Big One', `<p>Every indie dev agonizes over pricing. Should you go $5 to maximize accessibility? $15 for the "real game" tier? $25 to signal quality? Here's what the data shows across price buckets.</p><div class="chart-wrap tall"><canvas id="chartPriceBucket"></canvas></div><div class="chart-wrap"><canvas id="chartPriceScatter"></canvas></div><div class="insight">The sweet spot by median positive reviews is <strong>${s.sweet_spot}</strong>. Free-to-play games have massive counts but often lower ratios — the whales carry them. The $10–$20 range consistently delivers strong ratios, suggesting players feel they got value.</div>`, 'sec-price'));
-        if (D.genre_analysis) sections.push(card('🎮 Analysis 3', 'Genre Breakdown — Supply vs Demand', `<p>Not all genres are created equal. Some are oversaturated with low returns; others punch way above their weight. The chart below ranks by <em>average positive reviews</em> — a rough proxy for reach — while the table adds context on review quality and playtime.</p><div class="chart-wrap tall"><canvas id="chartGenre"></canvas></div><div id="genreTable"></div><div class="insight">Horror, roguelikes, and survival games consistently appear in the high-engagement tiers despite being "saturated" — players in those genres are <em>hungry</em>. Niche genres with fewer games often post better ratios, meaning less competition + loyal audiences = easier wins.</div>`, 'sec-genre'));
-        sections.push(card('⏱️ Analysis 4', 'Playtime vs Reviews — Does Longer = Better?', `<p>The eternal scope debate: should your indie game be a tight 5-hour experience or an epic 40-hour RPG? Reviews are plotted against average playtime (in hours, log scale) to reveal the real relationship.</p><div class="chart-wrap tall"><canvas id="chartPlaytime"></canvas></div><div class="insight">There's no clear "longer = more reviews" — short, replayable games accumulate huge review counts by keeping players coming back. That said, games with 10–30h of content cluster in the high-ratio zone. The lesson: optimize for <em>replayability</em> or <em>completeness</em>, not raw hour count.</div>`, 'sec-playtime'));
-        sections.push(card('📈 Analysis 5', 'Review Score as Revenue Proxy', `<p>Steam doesn't publish revenue, but positive reviews are the industry's go-to proxy — roughly 1 review per 30–80 sales by most estimates. Here we look at whether it's better to have <em>lots</em> of reviews or <em>great</em> reviews.</p><div class="chart-wrap tall"><canvas id="chartReviewScore"></canvas></div><div class="insight">"Overwhelmingly Positive" (≥95%) games cluster in a tight band regardless of total count — a small game with 500 reviews at 97% is often healthier than a bigger game at 85% with 10,000. Quality perception compounds over time via Steam's algorithm. Aim for 95%+ even if it means a smaller launch.</div>`, 'sec-review'));
-        sections.push(card('🧠 Analysis 6', 'Clustering — Types of Successful Games', `<p>K-Means clustering (k=4) on price, playtime, review count, and review score reveals the natural "archetypes" of successful Steam games. Each dot is a game; size ≈ review count.</p><div id="clusterCards" class="cluster-grid"></div><div class="chart-wrap tall"><canvas id="chartCluster"></canvas></div><div class="insight">The "Budget Hits" cluster is the Vampire Survivors / Among Us zone — cheap, massive audience. Premium titles can work but need a strong hook to justify the price. The Hidden Quality cluster is your target as a first-time dev: strong scores, modest reach, genuine fans.</div>`, 'sec-cluster'));
-        if (D.release_trends) sections.push(card('📅 Analysis 7', 'Release Date Trends — Is It Getting Harder?', `<p>How crowded is the timeline? Here's how many of these top 1,000 games launched each month, giving a sense of Steam's acceleration (or not).</p><div class="chart-wrap tall"><canvas id="chartTrends"></canvas></div><p class="waterfall-note">Note: only top-1000 games shown — absolute release counts are far higher.</p><div class="insight">The data shows clear seasonality — releases cluster around Q4 (holiday window) and spring. Breaking out in a crowded month is harder; if your game is ready in October, consider whether holding for January gives you a quieter launch window.</div>`, 'sec-trends'));
-        sections.push(card('🧪 Analysis 8', 'Hidden Gems — High Rating, Low Visibility', `<p>Defined as: 100–3,000 reviews, ≥85% positive ratio, and >1 hour average playtime. These games have everything going for them except reach.</p><div id="gemsTable"></div><div class="insight">These games prove that quality can survive without a marketing budget — they just grow slowly. If you're pre-launch, this is your benchmark tier: get 85%+ and stay there. Discovery algorithms reward sustained score more than launch spike.</div>`, 'sec-gems'));
-        sections.push(card('📦 Analysis 9', 'Engagement Score — The Derived Metric', `<p>Combining playtime and reviews into <code>log(playtime × reviews)</code> as an engagement proxy. Plotted against review ratio to find the ideal top-right quadrant: high engagement <em>and</em> high approval.</p><div class="chart-wrap tall"><canvas id="chartEngagement"></canvas></div><div class="insight">The top-right quadrant (high engagement + high ratio) is where you want to be. High-engagement games with poor ratios are often deep games that overpromised. High-ratio games with low engagement are loved but forgotten — they needed a bigger hook to keep players talking.</div>`, 'sec-engagement'));
+        sections.push(card(
+            '🔥 Analysis 1',
+            'Shared Patterns in Successful Games',
+            `<p style="text-align: left;">Before looking at individual factors, it helps to understand how variables move together across successful games. The heatmap below shows Pearson correlations between price, review count, review score, playtime, peak CCU, and recommendations.</p>
+            ${renderHeatmap(D.correlation)}
+            <div class="chart-wrap" style="margin-top:1.2rem"><canvas id="chartPricePlaytime"></canvas></div>
+            <div class="insight">Correlation does not imply causation, but certain signals consistently co-occur among higher-performing games. In particular, playtime and recommendation volume tend to align more closely with overall popularity than price, while price shows relatively weak relationships with review volume.</div>`,
+            'sec-corr'
+            ));
+        sections.push(card(
+        '📊 Analysis 2',
+        'Price vs Success — Distribution Patterns',
+        `<p style="text-align: left;">Pricing is one of the most consistent strategic decisions in game development, but outcomes vary widely. This section examines how games cluster across different price ranges, from free-to-play to premium titles.</p>
+        <div class="chart-wrap tall"><canvas id="chartPriceBucket"></canvas></div>
+        <div class="chart-wrap"><canvas id="chartPriceScatter"></canvas></div>
+        <div class="insight">The highest median positive review rates appear in the ${s.sweet_spot} range. Free-to-play titles accumulate large engagement volumes but often show lower average ratios, while mid-priced games ($10–$20) tend to balance accessibility and perceived value.</div>`,
+        'sec-price'
+        ));
+        if (D.genre_analysis) sections.push(card(
+        '🎮 Analysis 3',
+        'Genre Breakdown — Distribution of Engagement',
+        `<p style="text-align: left;">Genres differ significantly in both saturation and engagement outcomes. This section compares genres using average positive reviews as a proxy for reach, alongside review quality and playtime metrics.</p>
+        <div class="chart-wrap tall"><canvas id="chartGenre"></canvas></div>
+        <div id="genreTable"></div>
+        <div class="insight">Some genres such as horror, roguelikes, and survival consistently appear in higher engagement tiers despite high competition levels. This suggests that certain player communities within these genres maintain consistently high engagement and repeat participation.</div>`,
+        'sec-genre'
+        ));
+        sections.push(card(
+        '⏱️ Analysis 4',
+        'Playtime vs Reviews — Engagement Patterns',
+        `<p style="text-align: left;">This section compares average playtime with review volume to explore how engagement depth relates to visibility and feedback volume across games.</p>
+        <div class="chart-wrap tall"><canvas id="chartPlaytime"></canvas></div>
+        <div class="insight">There is no consistent linear relationship between playtime and review volume. Instead, games with strong replayability or tightly designed shorter experiences can achieve high engagement, while mid-length games (10–30 hours) often cluster in higher-quality review ranges.</div>`,
+        'sec-playtime'
+        ));        
+        sections.push(card(
+        '📈 Analysis 5',
+        'Review Score and Engagement Distribution',
+        `<p style="text-align: left;">While Steam does not publish revenue data, review counts and sentiment are commonly used as proxies for commercial and player reception. This section compares total review volume with positive rating percentages.</p>
+        <div class="chart-wrap tall"><canvas id="chartReviewScore"></canvas></div>
+        <div class="insight">Highly rated games (95%+) tend to cluster within a relatively narrow band of outcomes across different scales of review volume. Lower-rated games show more dispersion, suggesting that sustained sentiment may be more stable than raw popularity alone.</div>`,
+        'sec-review'
+        ));
+        sections.push(card(
+            '🧠 Analysis 6',
+            'Clustering — Archetypes of Successful Games',
+            `<p style="text-align: left;">K-Means clustering (k=4) is applied to price, playtime, review count, and review score to identify common structural groupings among successful games. Each point represents a game, with size proportional to review count.</p>
+            <div id="clusterCards" class="cluster-grid"></div>
+            <div class="chart-wrap tall"><canvas id="chartCluster"></canvas></div>
+            <div class="insight">Distinct clusters emerge that reflect different market archetypes, including low-cost high-reach titles, premium high-production games, and smaller-scale high-quality releases with limited reach. These groupings reflect structural differences in how games achieve visibility and engagement.</div>`,
+            'sec-cluster'
+            ));
+        if (D.release_trends) sections.push(card(
+            '📅 Analysis 7',
+            'Release Date Trends — Temporal Distribution',
+            `<p style="text-align: left;">This section examines the distribution of release dates among top-performing Steam games to identify seasonal or temporal clustering effects in the dataset.</p>
+            <div class="chart-wrap tall"><canvas id="chartTrends"></canvas></div>
+            <p class="waterfall-note">Note: only top-1000 games shown — absolute release counts are far higher.</p>
+            <div class="insight">Release activity shows noticeable seasonal clustering, particularly around Q4 and spring periods. This suggests that timing may influence competitive density within the marketplace.</div>`,
+            'sec-trends'
+            ));        
+        sections.push(card(
+            '🧪 Analysis 8',
+            'Hidden Gems — High Quality, Low Visibility',
+            `<p style="text-align: left;">Hidden gems are defined here as games with 100–3,000 reviews, ≥85% positive ratio, and over 1 hour of average playtime. These represent high-quality games with relatively limited reach.</p>
+            <div id="gemsTable"></div>
+            <div class="insight">These titles demonstrate that strong sentiment does not necessarily guarantee wide distribution. Many maintain high review quality while experiencing slower or more limited audience growth.</div>`,
+            'sec-gems'
+            ));
+        sections.push(card(
+            '📦 Analysis 9',
+            'Engagement Score — Composite Behavior Metric',
+            `<p style="text-align: left;">This section uses a composite metric based on log(playtime × reviews) to approximate engagement intensity, plotted against review positivity to explore distribution patterns.</p>
+            <div class="chart-wrap tall"><canvas id="chartEngagement"></canvas></div>
+            <div class="insight">The upper-right region represents games with both high engagement and strong review sentiment. Lower engagement high-score games tend to indicate niche appeal, while high engagement low-score games may reflect divided reception.</div>`,
+            'sec-engagement'
+            ));        
         sections.push(card('🏆 Top 10', 'Most-Reviewed Games in This Dataset', `<div id="topGamesList"></div>`, 'sec-top'));
 
         const analysisContainer = document.createElement('div');
