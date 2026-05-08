@@ -12,7 +12,7 @@ from api.blog import blog_bp
 from api.responses import responses_bp      # AI Dopamine: A/B response pairs
 from api.compare import compare_bp          # AI Dopamine: preference votes
 from api.AI_score import score_bp
-from api.mkDelta import mkdelta_bp
+from api.trueDelta import truedelta_bp
 
 from flask_cors import CORS
 
@@ -31,7 +31,7 @@ app.register_blueprint(blog_bp)                 # BLOG
 app.register_blueprint(responses_bp)            # AI DOPAMINE
 app.register_blueprint(compare_bp)              # AI DOPAMINE
 app.register_blueprint(score_bp)                # AI DOPAMINE
-app.register_blueprint(mkdelta_bp) 
+app.register_blueprint(truedelta_bp)
  
 
 
@@ -99,15 +99,15 @@ def scorer_page():
 def steam_analysis_page():
     return send_from_directory('forms', 'steam-analysis.html')
 
-@app.route('/mkdelta')
-def mkdelta_page():
-    return send_from_directory('forms', 'mkdelta.html')
+@app.route('/true-delta')
+def trueDelta_page():
+    return send_from_directory('forms', 'true-delta.html')
 
-@app.route('/mkdelta/template')
-def mkdelta_template():
+@app.route('/true-delta/template')
+def trueDelta_template():
     return send_from_directory('static/templates', 'true-up_template.xlsx',
                                as_attachment=True,
-                               download_name='MKDelta_Template.xlsx')
+                               download_name='TrueDelta_Template.xlsx')
 
 if __name__ == '__main__':
     app.run()

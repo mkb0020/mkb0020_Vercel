@@ -322,7 +322,7 @@
                 rgba(60, 2, 131, 0.4));
             border: 1px solid rgba(144, 144, 192, 0.105);
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1.5rem 1rem;
             margin-bottom: 1.5rem;
             backdrop-filter: blur(50px);
             box-shadow: 
@@ -337,6 +337,16 @@
     .modal-card strong {
         color: var(--ParticlePink);
         }
+
+    .modal-card ol {
+        margin: 0;              
+        padding-left: 1.5rem;  
+    }
+
+    .modal-card ol li::marker {
+        font-weight: bold;
+        color: var(--ParticlePink);
+    }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
@@ -426,7 +436,7 @@
  
         <!-- TEMPLATE DOWNLOAD -->
         <div class="template-bar">
-          <a href="/mkdelta/template" download class="glow-sweep template-btn" style="text-decoration: none; text-align: center;">
+          <a href="/true-delta/template" download class="glow-sweep template-btn" style="text-decoration: none; text-align: center;">
             ⬇ DOWNLOAD EXAMPLE
           </a>
         </div>
@@ -520,13 +530,13 @@
         </div>
             <div class="modal-body">
                 <div class="modal-card"><h3>Meet TRUE-∆</h3>
-                    <p>TRUE-∆ is a Python-powered automation system designed to generate annual True-Up cost estimates for XaaS-based license agreements—now with an interactive web interface for real-time testing and exploration.</p>
+                    <p><strong>TRUE-∆</strong> is a Python-powered automation system designed to generate annual True-Up cost estimates for XaaS-based license agreements—now with an interactive web interface for real-time testing and exploration.</p>
                 </div>
                 <div class="modal-card"><h3>BACKGROUND</h3>
-                    <p>In a previous role within IT distribution, I specialized in Cisco XaaS and Enterprise Agreement (EA) operations. At the time, subscription management lacked standardized processes, creating friction across quoting, reporting, and forecasting workflows.</p>
-                    <p>To address this, I began applying LEAN methodology and cross-functional collaboration to bring structure and consistency to complex subscription operations.</p>
+                    <p>In a previous role within IT distribution, I specialized in <strong>XaaS and License Agreement</strong> operations. At the time, subscription management lacked standardized processes, creating friction across quoting, reporting, and forecasting workflows.</p>
+                    <p>To address this, I began applying <strong>LEAN</strong> methodology and cross-functional collaboration to bring structure and consistency to complex subscription operations.</p>
                     <p>One challenge stood out:
-                    <ul><li>Estimating True Forward (True-Up) costs was highly manual, error-prone, and difficult to scale.</li></ul></p>
+                    <ul><li><strong>Estimating License Agreement True-Up costs was highly manual, error-prone, and difficult to scale.</strong></li></ul></p>
                     <p>Existing tools couldn’t properly interpret vendor report formats, and many stakeholders lacked visibility into how these calculations worked.</p>
                 </div>
                 <div class="modal-card"><h3>THE PROJECT</h3>
@@ -554,7 +564,6 @@
                     </ul>
                 </div>
                 <div class="modal-card"><h3>NOTES</h3>
-                    <p>This project combines:</p>
                     <ul>
                         <li><strong>Developed independently as a personal project</strong></li>
                         <li><strong>Tested exclusively using synthetic / generated data</strong></li>
@@ -575,20 +584,20 @@
             </div>
             <div class="modal-body">
                 <div class="modal-card">
-                    <ul>
-                        <li><strong>1. Download Example Data:</strong> Click “Download Example” to get a pre-filled sample file.  You can use this as-is or modify the values to test different scenarios.</li>
-                        <li><strong>2. Upload File:</strong> Upload your completed file using the file upload section.</li>
-                        <li><strong>3. Enter Basic Information:</strong> Provide the following details: Your Name, Partner / Reseller Name, Internal Account Number</li>
-                        <li><strong>4. Configure Pricing Settings:</strong>
+                    <ol>
+                        <li><strong>Download Example Data:</strong> Click “Download Example” to get a pre-filled sample file.  You can use this as-is or modify the values to test different scenarios.</li>
+                        <li><strong>Upload File:</strong> Upload your completed file using the file upload section.</li>
+                        <li><strong>Enter Basic Information:</strong> Provide the following details: Your Name, Partner / Reseller Name, Internal Account Number. <i>Note: This tool does not store or retain any submitted data. For demonstration purposes, the use of sample or non-sensitive information is recommended.</i></li>
+                        <li><strong>Configure Pricing Settings:</strong>
                             <ul>
                                 <li>Billing Type (choose one): upfront, monthly, annual, quarterly</li>
                                 <li>Pricing Method (choose one): margin, markup, holdback</li>
                                 <li>Percentage Value: Enter as a whole number.  Example: 15 = 15%.  (Do not use decimals)</li>
                             </ul>
                         </li>
-                        <li><strong>5. (Optional) Upload a Logo:</strong> Upload a company logo to include in the generated output. (.png files supported).</li>
-                        <li><strong>6. Generate Estimate:</strong> Click “Generate Estimate” to process your data.  Your formatted and priced Excel (.xlsx) estimate file will automatically download to your device.</li>
-                    </ul>
+                        <li><strong>(Optional) Upload a Logo:</strong> Upload a company logo to include in the generated output. (.png files supported)  If no logo is uploaded, a fictional company logo will be used.</li>
+                        <li><strong>Generate Estimate:</strong> Click “Generate Estimate” to process your data.  Your formatted and priced Excel (.xlsx) estimate file will automatically download to your device.</li>
+                    </ol>
                 </div>
                 <div class="modal-card">
                     <p><strong>⚠️ Disclaimer:</strong> This tool is intended for demonstration and testing purposes only. All data should be considered non-production and results should not be used for real financial decisions.</p>
