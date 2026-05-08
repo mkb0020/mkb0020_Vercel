@@ -506,17 +506,17 @@ class TrueDeltaSummaryBuilder:
             self.info.get("UserName", ""),
             self.info.get("PartnerName", ""),
             self.info.get("PartnerAcct", ""),
-            self.summary_values[0],   # End Customer        (row 1, col B)
-            self.summary_values[1],   # Procurement Plan    (row 2, col B)
-            self.summary_values[2],   # Reference ID        (row 3, col B)
-            self.summary_values[3],   # Vendor Account      (row 4, col B)
-            self.summary_values[4],   # Agreement Start     (row 5, col B)
-            self.summary_values[5],   # Agreement End       (row 6, col B)
-            self.summary_values[6],   # Report Date         (row 7, col B)
-            self.summary_values[7],   # Next True-Δ Date    (row 8, col B)
-            self.summary_values[8],   # Agreement Duration  (row 9, col B)
-            self.summary_values[9],   # Remaining Duration  (row 10, col B)
-            self.info.get("BillingType", ""),
+            self.summary_values[0],
+            self.summary_values[1],
+            self.summary_values[2],
+            self.summary_values[3],
+            self.summary_values[4],
+            self.summary_values[5],
+            self.summary_values[6],
+            self.summary_values[7],
+            self.summary_values[8],
+            self.summary_values[9],
+            "Upfront" if self.info.get("BillingType", "").lower() == "prepaid" else self.info.get("BillingType", ""),
             0, 0, 0
         ]
         date_rows = {10, 11, 12, 13}  
