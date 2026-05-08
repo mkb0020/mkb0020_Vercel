@@ -10,7 +10,7 @@
   <style>
     .page-content {
       margin-top: 30px;
-      padding: 2rem 1rem;
+      padding: 0rem 1rem 1rem 1rem;
       min-height: calc(100vh - 80px);
       position: relative;
       z-index: 10;
@@ -19,7 +19,7 @@
     .container {
       max-width: 780px;
       margin: 0 auto;
-      padding: 2rem 1rem;
+      padding: 0rem 1rem 1rem 1rem;
     }
 
     /* ---- PAGE TITLE ---- */
@@ -30,8 +30,8 @@
 
     .page-title h1 {
       font-family: 'Orbitron', 'Courier New', monospace;
-      font-size: 2.8rem;
-      background: linear-gradient(45deg, var(--NuclearFuscia), #00FFFF, var(--AquaAura));
+      font-size: 3.2rem;
+      background: linear-gradient(45deg, var(--BohrsBabyBlue), var(--AquaAura));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -481,7 +481,7 @@
           <div class="form-group">
             <label for="pricingType">Pricing Strategy</label>
             <select id="pricingType">
-              <option value="Hold Back">Hold Back</option>
+              <option value="Hold Back">Holdback</option>
               <option value="Markup">Markup</option>
               <option value="Margin">Margin</option>
             </select>
@@ -588,7 +588,7 @@
                         <li><strong>Enter Basic Information:</strong> Provide the following details: Your Name, Partner / Reseller Name, Internal Account Number. <i>Note: This tool does not store or retain any submitted data. For demonstration purposes, the use of sample or non-sensitive information is recommended.</i></li>
                         <li><strong>Configure Pricing Settings:</strong>
                             <ul>
-                                <li>Billing Type (choose one): upfront, monthly, annual, quarterly</li>
+                                <li>Billing Type (choose one): upfront or annual payments</li>
                                 <li>Pricing Method (choose one): margin, markup, holdback</li>
                                 <li>Percentage Value: Enter as a whole number.  Example: 15 = 15%.  (Do not use decimals)</li>
                             </ul>
