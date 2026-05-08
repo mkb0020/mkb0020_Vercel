@@ -15,8 +15,8 @@ DETAIL_TAB_HEADERS = [
     "ALLOCATION STATUS", "EXISTING QTY", "NEW QTY", "(+)LICENSE SHIFT",
     "(-)LICENSE SHIFT", "DELTA QTY", "UNIT LIST PRICE", "DISCOUNT OFF LIST",
     "UNIT NET PRICE", "EXISTNG NET PRICE (months)", "NEW NET PRICE (months)",
-    "EXISTING PRORATED PRICE", "NEW PRORATED PRICE", "ESTIMATED CREDIT",
-    "ESTIMATED INVOICE", "TRUE DELTA NET COST"
+    "EXISTING PRORATED PRICE", "NEW PRORATED PRICE", "PROJECTED CREDIT",
+    "PROJECTED CHARGE", "TRUE DELTA NET COST"
 ]
 
 SOURCE_HEADER_ALIASES = {
@@ -143,7 +143,7 @@ class TrueDeltaDetailsFormat:
             "UNIT LIST PRICE", "DISCOUNT OFF LIST", "UNIT NET PRICE",
             "EXISTNG NET PRICE (months)", "NEW NET PRICE (months)",
             "EXISTING PRORATED PRICE", "NEW PRORATED PRICE",
-            "ESTIMATED CREDIT", "ESTIMATED INVOICE", "TRUE DELTA NET COST"
+            "PROJECTED CREDIT", "PROJECTED CHARGE", "TRUE DELTA NET COST"
         }
         self.CurrencyColumns = list(self.Rightys)
         self.PercentColumns = ["DISCOUNT OFF LIST"]
@@ -282,7 +282,7 @@ class TrueDeltaSummaryFormat:
         self.CenterAlign = Alignment(horizontal="center", vertical="center", wrap_text=True)
         self.LeftAlign = Alignment(horizontal="left", vertical="center", indent=1)
         self.RightAlign = Alignment(horizontal="right", vertical="center", indent=1)
-        self.CurrencyColumns = {"UNIT LIST PRICE", "UNIT NET PRICE", "ESTIMATED CREDIT", "ESTIMATED INVOICE", "TRUE DELTA NET COST"}
+        self.CurrencyColumns = {"UNIT LIST PRICE", "UNIT NET PRICE", "PROJECTED CREDIT", "PROJECTED CHARGE", "TRUE DELTA NET COST"}
 
     def set_column_widths(self):
         for col in ["A", "B"]:
@@ -329,7 +329,7 @@ class TrueDeltaSummaryFormat:
     def style_items_table(self, start_row, end_row):
         self.Leftys = {"SKU"}
         self.Middles = {"ALLOCATION STATUS", "EXISTING QTY", "NEW QTY", "DELTA QTY", "UNIT LIST PRICE", "UNIT NET PRICE"}
-        self.Rightys = {"ESTIMATED CREDIT", "ESTIMATED INVOICE", "TRUE DELTA NET COST"}
+        self.Rightys = {"PROJECTED CREDIT", "PROJECTED CHARGE", "TRUE DELTA NET COST"}
         for row in range(start_row, end_row + 1):
             self.ws.row_dimensions[row].height = 30 if row == start_row else 15
             for col in range(1, 11):
@@ -482,11 +482,11 @@ class TrueDeltaSummaryBuilder:
             "Agreement Start Date:", "Agreement End Date:", "Report Date:",
             "Next True Δ Date:", "Agreement Duration (months):",
             "Remaining Duration (months):", "Billing Type:",
-            "Estimated Credit:", "Estimated Invoice:", "True Delta Net Cost:"
+            "Projected Credit:", "Projected Charge:", "True Delta Net Cost:"
         ]
         self.item_headers = [
             "SKU", "ALLOCATION STATUS", "EXISTING QTY", "NEW QTY", "DELTA QTY",
-            "UNIT LIST PRICE", "UNIT NET PRICE", "ESTIMATED CREDIT", "ESTIMATED INVOICE", "TRUE DELTA NET COST"
+            "UNIT LIST PRICE", "UNIT NET PRICE", "PROJECTED CREDIT", "PROJECTED CHARGE", "TRUE DELTA NET COST"
         ]
 
     def clear_sheet(self):
@@ -541,14 +541,14 @@ class TrueDeltaSummaryBuilder:
             self.ws.cell(row=r, column=5).value = row.get("DELTA QTY", 0)
             self.ws.cell(row=r, column=6).value = row.get("UNIT LIST PRICE", 0)
             self.ws.cell(row=r, column=7).value = row.get("UNIT NET PRICE", 0)
-            self.ws.cell(row=r, column=8).value = row.get("ESTIMATED CREDIT", 0)
-            self.ws.cell(row=r, column=9).value = row.get("ESTIMATED INVOICE", 0)
+            self.ws.cell(row=r, column=8).value = row.get("PROJECTED CREDIT", 0)
+            self.ws.cell(row=r, column=9).value = row.get("PROJECTED CHARGE", 0)
             self.ws.cell(row=r, column=10).value = row.get("TRUE DELTA NET COST", 0)
         return start_row + 1 + len(self.details_rows)
 
     def write_totals_row(self, row_idx):
-        total_credit  = sum(r.get("ESTIMATED CREDIT", 0) or 0 for r in self.details_rows)
-        total_invoice = sum(r.get("ESTIMATED INVOICE", 0) or 0 for r in self.details_rows)
+        total_credit  = sum(r.get("PROJECTED CREDIT", 0) or 0 for r in self.details_rows)
+        total_invoice = sum(r.get("PROJECTED CHARGE", 0) or 0 for r in self.details_rows)
         total_delta   = sum(r.get("TRUE DELTA NET COST", 0) or 0 for r in self.details_rows)
         self.ws.cell(row=row_idx - 1, column=1).value = "TOTAL:"
         self.ws.cell(row=row_idx - 1, column=8).value = total_credit
@@ -666,8 +666,8 @@ class TrueDeltaColumns:
             "LineNewProratedNP":      "NEW PRORATED PRICE",
             "Discount":               "DISCOUNT OFF LIST",
             "ConsumptionStatus":      "ALLOCATION STATUS",
-            "LineCM":                 "ESTIMATED CREDIT",
-            "LineINV":                "ESTIMATED INVOICE"
+            "LineCM":                 "PROJECTED CREDIT",
+            "LineINV":                "PROJECTED CHARGE"
         }
         self.rows = [{rename.get(k, k): v for k, v in row.items()} for row in self.rows]
 
@@ -687,7 +687,7 @@ class TrueDeltaColumns:
         for row in self.rows:
             delta = self._compute_delta_qty(row)
             row["DELTA QTY"]          = delta
-            row["TRUE DELTA NET COST"] = (row.get("ESTIMATED INVOICE") or 0) - (row.get("ESTIMATED CREDIT") or 0)
+            row["TRUE DELTA NET COST"] = (row.get("PROJECTED CHARGE") or 0) - (row.get("PROJECTED CREDIT") or 0)
             row["TFqty"]              = delta
 
     def reorder_and_validate(self):
