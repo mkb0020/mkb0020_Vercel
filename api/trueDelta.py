@@ -235,8 +235,8 @@ class TrueDeltaDetailsFormat:
         prorate_lbl   = "12 months" if self.billing_type == "annual" else remaining_lbl
         self.ws["O1"].value = f"EXISTING\nNET PRICE\n({total_lbl})"
         self.ws["P1"].value = f"NEW\nNET PRICE\n({total_lbl})"
-        self.ws["Q1"].value = f"EXISTING\nPRORATE PRICE\n({prorate_lbl})"
-        self.ws["R1"].value = f"NEW\nPRORATE PRICE\n({prorate_lbl})"
+        self.ws["Q1"].value = f"EXISTING\nPRORATED PRICE\n({prorate_lbl})"
+        self.ws["R1"].value = f"NEW\nPRORATED PRICE\n({prorate_lbl})"
         self.ws["S1"].value = "ESTIMATED\nCREDIT"
         self.ws["T1"].value = "ESTIMATED\nINVOICE"
         self.ws["U1"].value = "TRUE DELTA\nNET COST"
@@ -480,7 +480,7 @@ class TrueDeltaSummaryBuilder:
         self.main_header = "TRUE DELTA ESTIMATE"
         self.general_headers = [
             "Created By:", "Reseller:", "Reseller Account #:", "End Customer:",
-            "Procurement Plan:", "Reference ID:", "Vendor Account:",
+            "Procurement Plan:", "Agreement ID:", "Vendor Account:",
             "Agreement Start Date:", "Agreement End Date:", "Report Date:",
             "Next True Δ Date:", "Agreement Duration (months):",
             "Remaining Duration (months):", "Billing Type:",
