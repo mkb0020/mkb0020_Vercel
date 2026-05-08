@@ -1,0 +1,11 @@
+psycopg[binary]
+psycopg2-binary
+requests
+flask
+python-dotenv
+flask-cors
+numpy
+openpyxl
+xlrd
+python-dateutil
+pytz
