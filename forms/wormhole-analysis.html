@@ -1916,10 +1916,12 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     const configs = result.configs;
 
     const configOptionsHTML = configs.map((c, i) => {
-      const winPct = (c.win_rate * 100).toFixed(0);
-      const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${c.rank}`;
-      return `<option value="${c.config_hash}">${medal} ${c.config_hash.slice(0, 6).toUpperCase()}  —  Avg ${c.avg_waves_cleared} waves  |  ${winPct}% win  |  n=${c.session_count}</option>`;
-    }).join('');
+          const medal     = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${c.rank}`;
+          const scoreStr  = c.final_score !== null && c.final_score !== undefined
+            ? `Score ${c.final_score}`
+            : 'No score';
+          return `<option value="${c.config_hash}">${medal} ${c.config_hash.slice(0, 6).toUpperCase()}  —  ${scoreStr}  |  n=${c.session_count}</option>`;
+        }).join('');
 
     ['spikesConfigSelect', 'ttkConfigSelect', 'densityConfigSelect', 'insightsConfigSelect'].forEach(id => {
       const el = document.getElementById(id);
@@ -1948,49 +1950,69 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
   const _configDataMap = {};  
 
   function renderConfigLeaderboard(configs) {
-    const container = document.getElementById('configLeaderboard');
-    if (!configs.length) {
-      container.innerHTML = '<p style="color:#888; font-size:0.9rem; text-align:center;">No config data yet.</p>';
-      return;
+      const container = document.getElementById('configLeaderboard');
+      if (!configs.length) {
+        container.innerHTML = '<p style="color:#888; font-size:0.9rem; text-align:center;">No config data yet.</p>';
+        return;
+      }
+
+      configs.forEach(c => { _configDataMap[c.config_hash] = c; });
+
+      const medals   = ['🥇', '🥈', '🥉'];
+      const numClass = ['gold', 'silver', 'bronze'];
+
+      container.innerHTML = configs.map((c, i) => {
+        const winPct     = (c.win_rate * 100).toFixed(0);
+        const medalEmoji = medals[i] || '';
+        const numCls     = numClass[i] || '';
+        const label      = `Config ${c.config_hash.slice(0, 6).toUpperCase()}`;
+        const h          = c.config_hash;
+
+        const hasScore   = c.final_score !== null && c.final_score !== undefined;
+        const scoreColor = !hasScore        ? '#555'
+                        : c.final_score >= 80 ? '#58E84C'
+                        : c.final_score >= 60 ? '#ff6200'
+                        : c.final_score >= 40 ? '#dc4ce8'
+                        :                       '#FF0000';
+
+        const ttkColor  = c.ttk_score     !== null ? scoreColor : '#555';
+        const denColor  = c.density_score !== null ? scoreColor : '#555';
+        const hpColor   = c.hp_score      !== null ? scoreColor : '#555';
+
+        return `
+          <div class="cfg-rank-row" data-hash="${h}" onclick="selectConfigFromLeaderboard('${h}')">
+            <div class="cfg-rank-num ${numCls}">${medalEmoji || '#' + c.rank}</div>
+            <div style="font-family:'SpaceLetters'; font-size:0.78rem; color:#9090C0; flex-shrink:0;">${label}</div>
+            <div class="cfg-rank-stats">
+              <div class="cfg-rank-stat">
+                <h4 style="color:${scoreColor}; font-size:1.2rem;">${hasScore ? c.final_score : '—'}</h4>
+                <p>Balance Score</p>
+              </div>
+              <div class="cfg-rank-stat">
+                <h4 style="color:#c4b5fd; font-size:0.85rem;">
+                  TTK&nbsp;${c.ttk_score ?? '—'}&nbsp;&nbsp;
+                  DEN&nbsp;${c.density_score ?? '—'}&nbsp;&nbsp;
+                  HP&nbsp;${c.hp_score ?? '—'}
+                </h4>
+                <p>Pillar Scores</p>
+              </div>
+              <div class="cfg-rank-stat">
+                <h4 style="color:#00ffff;">${c.avg_waves_cleared.toFixed(2)}</h4>
+                <p>Avg Waves</p>
+              </div>
+              <div class="cfg-rank-stat">
+                <h4 style="color:${winPct >= 80 && winPct <= 95 ? '#58E84C' : '#ff6200'};">${winPct}%</h4>
+                <p>Win Rate</p>
+              </div>
+              <div class="cfg-rank-stat">
+                <h4 style="color:#9090C0;">${c.session_count}</h4>
+                <p>Sessions</p>
+              </div>
+            </div>
+            <button class="cfg-view-btn" onclick="event.stopPropagation(); selectConfigFromLeaderboard('${h}')">View Config ▾</button>
+          </div>`;
+      }).join('');
     }
-
-    configs.forEach(c => { _configDataMap[c.config_hash] = c; });
-
-    const medals   = ['🥇', '🥈', '🥉'];
-    const numClass = ['gold', 'silver', 'bronze'];
-
-    container.innerHTML = configs.map((c, i) => {
-      const winPct     = (c.win_rate * 100).toFixed(0);
-      const medalEmoji = medals[i] || '';
-      const numCls     = numClass[i] || '';
-      const label      = `Config ${c.config_hash.slice(0, 6).toUpperCase()}`;
-      const h          = c.config_hash;
-      return `
-        <div class="cfg-rank-row" data-hash="${h}" onclick="selectConfigFromLeaderboard('${h}')">
-          <div class="cfg-rank-num ${numCls}">${medalEmoji || '#' + c.rank}</div>
-          <div style="font-family:'SpaceLetters'; font-size:0.78rem; color:#9090C0; flex-shrink:0;">${label}</div>
-          <div class="cfg-rank-stats">
-            <div class="cfg-rank-stat">
-              <h4 style="color:#00ffff;">${c.avg_waves_cleared.toFixed(2)}</h4>
-              <p>Avg Waves</p>
-            </div>
-            <div class="cfg-rank-stat">
-              <h4 style="color:${winPct >= 80 && winPct <= 95 ? '#58E84C' : '#ff6200'};">${winPct}%</h4>
-              <p>Win Rate</p>
-            </div>
-            <div class="cfg-rank-stat">
-              <h4 style="color:#c4b5fd;">${c.max_waves_cleared}</h4>
-              <p>Best Run</p>
-            </div>
-            <div class="cfg-rank-stat">
-              <h4 style="color:#9090C0;">${c.session_count}</h4>
-              <p>Sessions</p>
-            </div>
-          </div>
-          <button class="cfg-view-btn" onclick="event.stopPropagation(); selectConfigFromLeaderboard('${h}')">View Config ▾</button>
-        </div>`;
-    }).join('');
-  }
 
   function selectConfigFromLeaderboard(hash) {
     const configData = _configDataMap[hash];
@@ -2005,8 +2027,10 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     const panel = document.getElementById('configDetailPanel');
     const title = document.getElementById('configDetailTitle');
     panel.style.display = 'block';
-    title.textContent = `Config ${hash.slice(0, 6).toUpperCase()}  ·  ${configData.session_count} session${configData.session_count !== 1 ? 's' : ''}  ·  Avg ${configData.avg_waves_cleared.toFixed(2)} waves  ·  ${(configData.win_rate * 100).toFixed(0)}% win rate`;
-
+    const scoreLabel = configData.final_score !== null && configData.final_score !== undefined
+          ? `Score ${configData.final_score}  ·  `
+          : '';
+        title.textContent = `Config ${hash.slice(0, 6).toUpperCase()}  ·  ${configData.session_count} session${configData.session_count !== 1 ? 's' : ''}  ·  ${scoreLabel}Avg ${configData.avg_waves_cleared.toFixed(2)} waves  ·  ${(configData.win_rate * 100).toFixed(0)}% win rate`;
     const body = document.getElementById('configBody');
     const c    = configData.config;
 

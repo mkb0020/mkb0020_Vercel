@@ -3,6 +3,9 @@ import psycopg
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
+from config_score import (_score_ttk, _score_density, _score_hp,
+                           _get_config_sessions,
+                           TTK_WEIGHT, DENSITY_WEIGHT, HP_WEIGHT)
 
 load_dotenv()
 DB_URL = os.environ.get("DATABASE_URL")
@@ -602,7 +605,7 @@ def get_sessions():
 
 @wormhole_analysis_bp.route('/api/wormhole/configs', methods=['GET'])
 def get_configs():
-    """Returns all distinct config groups ranked by avg waves cleared, with full config snapshot."""
+    """Returns all distinct config groups ranked by balance score, with full config snapshot."""
     try:
         with psycopg.connect(DB_URL) as conn:
             with conn.cursor() as cur:
@@ -638,63 +641,89 @@ def get_configs():
                         MIN("WAVE_CONFIGS_wave5_types"), MIN("WAVE_CONFIGS_wave5_weights"), MIN("WAVE_CONFIGS_wave5_maxEnemies")
                     FROM hashed
                     GROUP BY cfg_hash
-                    ORDER BY avg_waves_cleared DESC NULLS LAST, session_count DESC
                 """)
                 rows = cur.fetchall()
 
-        def val(v):
-            return float(v) if v is not None else None
+                def val(v):
+                    return float(v) if v is not None else None
 
-        configs = []
-        for i, row in enumerate(rows):
-            configs.append({
-                "config_hash":       row[0],
-                "session_count":     int(row[1]),
-                "avg_waves_cleared": float(row[2]) if row[2] is not None else 0.0,
-                "win_rate":          float(row[3]) if row[3] is not None else 0.0,
-                "max_waves_cleared": int(row[4]) if row[4] is not None else 0,
-                "latest_session":    row[5],
-                "rank":              i + 1,
-                "config": {
-                    "COSMIC_PRISM": { "HEAL_AMOUNT": val(row[6]) },
-                    "ENEMIES": {
-                        "SPAWN_INTERVAL_MIN": val(row[7]),
-                        "SPAWN_INTERVAL_MAX": val(row[8]),
-                        "TYPES": {
-                            "BASIC":    { "HEALTH": val(row[9]),  "LASER_INTERVAL": val(row[10]), "COMBAT_DURATION": val(row[11]) },
-                            "FAST":     { "HEALTH": val(row[12]), "LASER_INTERVAL": val(row[13]), "COMBAT_DURATION": val(row[14]) },
-                            "TANK":     { "HEALTH": val(row[15]), "LASER_INTERVAL": val(row[16]), "COMBAT_DURATION": val(row[17]) },
-                            "ZIGZAG":   { "HEALTH": val(row[18]), "LASER_INTERVAL": val(row[19]), "COMBAT_DURATION": val(row[20]) },
-                            "FLIMFLAM": {
-                                "HEALTH":                val(row[21]), "LASER_INTERVAL": val(row[22]), "COMBAT_DURATION": val(row[23]),
-                                "PRISM_FIRST_DELAY_MIN": val(row[24]), "PRISM_FIRST_DELAY_MAX": val(row[25]),
-                                "PRISM_COOLDOWN_MIN":    val(row[26]), "PRISM_COOLDOWN_MAX":     val(row[27])
-                            }
-                        }
-                    },
-                    "SLIME_ATTACK": {
-                        "FIRST_ATTACK_MIN": val(row[28]), "FIRST_ATTACK_MAX": val(row[29]),
-                        "REPEAT_INTERVAL":  val(row[30])
-                    },
-                    "FRACTAL_CASCADE": {
-                        "FIRST_DELAY_MIN": val(row[31]), "FIRST_DELAY_MAX": val(row[32]),
-                        "COOLDOWN_MIN":    val(row[33]), "COOLDOWN_MAX":    val(row[34])
-                    },
-                    "WAVE_CONFIGS": [
-                        { "types": row[35], "weights": row[36], "maxEnemies": row[37] },
-                        { "types": row[38], "weights": row[39], "maxEnemies": row[40] },
-                        { "types": row[41], "weights": row[42], "maxEnemies": row[43] },
-                        { "types": row[44], "weights": row[45], "maxEnemies": row[46] },
-                        { "types": row[47], "weights": row[48], "maxEnemies": row[49] },
+                configs = []
+                for row in rows:
+                    cfg_hash = row[0]
+
+                    sessions = _get_config_sessions(cur, cfg_hash)
+                    ttk_score,     _ = _score_ttk(cur, sessions)
+                    density_score, _ = _score_density(cur, sessions)
+                    hp_score,      _ = _score_hp(cur, sessions)
+
+                    valid_pillars = [
+                        (ttk_score,     TTK_WEIGHT),
+                        (density_score, DENSITY_WEIGHT),
+                        (hp_score,      HP_WEIGHT),
                     ]
-                }
-            })
+                    valid_pillars = [(s, w) for s, w in valid_pillars if s is not None]
+                    if valid_pillars:
+                        total_w     = sum(w for _, w in valid_pillars)
+                        final_score = round(sum(s * w for s, w in valid_pillars) / total_w, 1)
+                    else:
+                        final_score = None
+                    # ─────────────────────────────────────────────────────────
+
+                    configs.append({
+                        "config_hash":       cfg_hash,
+                        "session_count":     int(row[1]),
+                        "avg_waves_cleared": float(row[2]) if row[2] is not None else 0.0,
+                        "win_rate":          float(row[3]) if row[3] is not None else 0.0,
+                        "max_waves_cleared": int(row[4]) if row[4] is not None else 0,
+                        "latest_session":    row[5],
+                        "final_score":       final_score,
+                        "ttk_score":         round(ttk_score,     1) if ttk_score     is not None else None,
+                        "density_score":     round(density_score, 1) if density_score is not None else None,
+                        "hp_score":          round(hp_score,      1) if hp_score      is not None else None,
+                        "config": {
+                            "COSMIC_PRISM": { "HEAL_AMOUNT": val(row[6]) },
+                            "ENEMIES": {
+                                "SPAWN_INTERVAL_MIN": val(row[7]),
+                                "SPAWN_INTERVAL_MAX": val(row[8]),
+                                "TYPES": {
+                                    "BASIC":    { "HEALTH": val(row[9]),  "LASER_INTERVAL": val(row[10]), "COMBAT_DURATION": val(row[11]) },
+                                    "FAST":     { "HEALTH": val(row[12]), "LASER_INTERVAL": val(row[13]), "COMBAT_DURATION": val(row[14]) },
+                                    "TANK":     { "HEALTH": val(row[15]), "LASER_INTERVAL": val(row[16]), "COMBAT_DURATION": val(row[17]) },
+                                    "ZIGZAG":   { "HEALTH": val(row[18]), "LASER_INTERVAL": val(row[19]), "COMBAT_DURATION": val(row[20]) },
+                                    "FLIMFLAM": {
+                                        "HEALTH":                val(row[21]), "LASER_INTERVAL": val(row[22]), "COMBAT_DURATION": val(row[23]),
+                                        "PRISM_FIRST_DELAY_MIN": val(row[24]), "PRISM_FIRST_DELAY_MAX": val(row[25]),
+                                        "PRISM_COOLDOWN_MIN":    val(row[26]), "PRISM_COOLDOWN_MAX":     val(row[27])
+                                    }
+                                }
+                            },
+                            "SLIME_ATTACK": {
+                                "FIRST_ATTACK_MIN": val(row[28]), "FIRST_ATTACK_MAX": val(row[29]),
+                                "REPEAT_INTERVAL":  val(row[30])
+                            },
+                            "FRACTAL_CASCADE": {
+                                "FIRST_DELAY_MIN": val(row[31]), "FIRST_DELAY_MAX": val(row[32]),
+                                "COOLDOWN_MIN":    val(row[33]), "COOLDOWN_MAX":    val(row[34])
+                            },
+                            "WAVE_CONFIGS": [
+                                { "types": row[35], "weights": row[36], "maxEnemies": row[37] },
+                                { "types": row[38], "weights": row[39], "maxEnemies": row[40] },
+                                { "types": row[41], "weights": row[42], "maxEnemies": row[43] },
+                                { "types": row[44], "weights": row[45], "maxEnemies": row[46] },
+                                { "types": row[47], "weights": row[48], "maxEnemies": row[49] },
+                            ]
+                        }
+                    })
+
+        configs.sort(key=lambda c: (-(c['final_score'] if c['final_score'] is not None else -1), -c['session_count']))
+
+        for i, c in enumerate(configs):
+            c['rank'] = i + 1
 
         return jsonify({"success": True, "configs": configs})
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 @wormhole_analysis_bp.route('/api/wormhole/config-aggregate', methods=['GET'])
 def get_config_aggregate():
