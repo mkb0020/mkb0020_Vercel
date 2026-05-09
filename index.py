@@ -1,18 +1,19 @@
 # Updated 4/29/26
 from flask import Flask, send_from_directory
-from api.comments import comments_bp
-from api.submitGameFeedback import feedback_bp
-from api.support import support_bp
-from api.testerSignup import tester_signup_bp
-from api.wormholeFeedback import wormhole_feedback_bp
-from api.leaderboard import leaderboard_bp
-from api.wormhole_analysis import wormhole_analysis_bp
-from api.scores import scores_bp
-from api.blog import blog_bp
-from api.responses import responses_bp      # AI Dopamine: A/B response pairs
-from api.compare import compare_bp          # AI Dopamine: preference votes
-from api.AI_score import score_bp
-from api.trueDelta import truedelta_bp
+from api.comments import comments_bp                           # GENERAL
+from api.submitGameFeedback import feedback_bp                 # CATASTROPHE 2
+from api.support import support_bp                             # GENERAL
+from api.testerSignup import tester_signup_bp                  # GENERAL
+from api.wormholeFeedback import wormhole_feedback_bp          # WORMHOLES ALL THE WAY DOWN
+from api.leaderboard import leaderboard_bp                     # WORMHOLES ALL THE WAY DOWN
+from api.wormhole_analysis import wormhole_analysis_bp         # WORMHOLES ALL THE WAY DOWN
+from api.config_score import config_score_bp                       # WORMHOLES ALL THE WAY DOWN
+from api.scores import scores_bp                               # WORMHOLES ALL THE WAY DOWN
+from api.blog import blog_bp                                   # GENERAL
+from api.responses import responses_bp                         # AI DOPAMINE: A/B RESPONSE PAIRS
+from api.compare import compare_bp                             # AI DOPAMINE: PREFERENCE VOTES 
+from api.AI_score import score_bp                              # AI DOPAMINE
+from api.trueDelta import truedelta_bp                         # TRUE DELTA
 
 from flask_cors import CORS
 
@@ -27,6 +28,7 @@ app.register_blueprint(wormhole_feedback_bp)    # WORMHOLES ALL THE WAY DOWN
 app.register_blueprint(leaderboard_bp)          # WORMHOLES ALL THE WAY DOWN
 app.register_blueprint(scores_bp)               # WORMHOLES ALL THE WAY DOWN
 app.register_blueprint(wormhole_analysis_bp)    # WORMHOLES ALL THE WAY DOWN
+app.register_blueprint(config_score_bp)         # WORMHOLES ALL THE WAY DOWN
 app.register_blueprint(blog_bp)                 # BLOG
 app.register_blueprint(responses_bp)            # AI DOPAMINE
 app.register_blueprint(compare_bp)              # AI DOPAMINE
