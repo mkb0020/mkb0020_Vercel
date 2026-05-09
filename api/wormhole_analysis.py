@@ -3,7 +3,7 @@ import psycopg
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
-from config_score import (_score_ttk, _score_density, _score_hp,
+from api.config_score import (_score_ttk, _score_density, _score_hp,
                            _get_config_sessions,
                            TTK_WEIGHT, DENSITY_WEIGHT, HP_WEIGHT)
 
