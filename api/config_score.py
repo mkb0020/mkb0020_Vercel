@@ -136,10 +136,8 @@ DENSITY_WEIGHT =0.30
 HP_WEIGHT =0.30 
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# HELPERS
-# ════════════════════════════════════════════════════════════════════════════════
 
+# HELPERS
 def _get_config_sessions (cur ,config_hash ):
     cur .execute (f"""
         SELECT to_char("generatedAt" AT TIME ZONE 'UTC',
