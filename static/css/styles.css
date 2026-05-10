@@ -710,7 +710,7 @@ html::-webkit-scrollbar-thumb {
 @media screen and (max-width: 1024px) {
   .waves { display: none !important; }
   .background-gradient {
-    background: linear-gradient(to bottom, #320156 10%, #47017a 55%, var(--HiggsHotPink) 90%, var(--OptimalOrange) 99%);
+    background: linear-gradient(to bottom, #320156 10%, #47017a 55%, var(--HiggsHotPink) 90%);
   }
 }
 
