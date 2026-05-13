@@ -442,7 +442,7 @@
     }
     #configSessionSelect option { background: #1a0030; }
 
-    /* ── CONFIG-MODE SELECTS (shared by all cards that support it) ── */
+    /* ── CONFIG-MODE SELECTS  ── */
     .config-select {
       background: rgba(38, 0, 75, 0.8);
       border: 1px solid #7b00ff65;
@@ -1395,7 +1395,9 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 
     async function loadChart() {
       const res = await fetch('/api/wormhole/summary');
+      if (!res.ok) { console.error('loadChart: Summary API failed', res.status); return; }
       const data = await res.json();
+      if (!data.data) { console.error('loadChart: No data in summary response', data); return; }
 
       const avgWave = data.data.avg_wave;
 
