@@ -303,27 +303,47 @@ def get_summary():
                 """)
                 row = cur.fetchone()
 
+        if row is None or row[0] is None:
+            return jsonify({"success": True, "data": {
+                "total_sessions":        0,
+                "avg_wave":              0,
+                "avg_spawns":            0,
+                "avg_kills":             0,
+                "avg_kill_time":         0,
+                "avg_hp_loss":           0,
+                "avg_hp_gain":           0,
+                "avg_fractal":           0,
+                "avg_slime":             0,
+                "avg_ocular":            0,
+                "win_rate":              0,
+                "avg_boss_entry_hp":     None,
+                "avg_singularity_bombs": None,
+            }})
+
         return jsonify({
             "success": True,
             "data": {
-                "total_sessions":       row[0],
-                "avg_wave":             float(row[1] or 0),
-                "avg_spawns":           float(row[2] or 0),
-                "avg_kills":            float(row[3] or 0),
-                "avg_kill_time":        float(row[4] or 0),
-                "avg_hp_loss":          float(row[5] or 0),
-                "avg_hp_gain":          float(row[6] or 0),
-                "avg_fractal":          float(row[7] or 0),
-                "avg_slime":            float(row[8] or 0),
-                "avg_ocular":           float(row[9] or 0),
-                "win_rate":             float(row[10] or 0),
-                "avg_boss_entry_hp":    float(row[11]) if row[11] is not None else None,
+                "total_sessions":        row[0],
+                "avg_wave":              float(row[1] or 0),
+                "avg_spawns":            float(row[2] or 0),
+                "avg_kills":             float(row[3] or 0),
+                "avg_kill_time":         float(row[4] or 0),
+                "avg_hp_loss":           float(row[5] or 0),
+                "avg_hp_gain":           float(row[6] or 0),
+                "avg_fractal":           float(row[7] or 0),
+                "avg_slime":             float(row[8] or 0),
+                "avg_ocular":            float(row[9] or 0),
+                "win_rate":              float(row[10] or 0),
+                "avg_boss_entry_hp":     float(row[11]) if row[11] is not None else None,
                 "avg_singularity_bombs": float(row[12]) if row[12] is not None else None,
             }
         })
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+
 
 #  HP TIMELINE 
 @wormhole_analysis_bp.route('/api/wormhole/hp-timeline', methods=['GET'])
@@ -574,8 +594,9 @@ def get_wave_analysis():
         def safe_avg(vals):
             return round(sum(vals) / len(vals), 2) if vals else None
 
-        weight_groups = {}
-        intro_wave_results = {}
+        cleared_weights     = []
+        not_cleared_weights = []
+        intro_wave_results  = {}
 
         for row in rows:
             types_str, weights_str = row[0], row[1]
@@ -583,6 +604,7 @@ def get_wave_analysis():
             wave_types = [t.strip() for t in (types_str or "").split(",")]
             if enemy not in wave_types:
                 continue
+
             try:
                 weights = [float(w) for w in (weights_str or "").split(",")]
                 idx = wave_types.index(enemy)
@@ -591,8 +613,8 @@ def get_wave_analysis():
                 weight = None
 
             if weight is not None:
-                key = round(weight, 2)
-                weight_groups.setdefault(key, []).append(wave_cleared)
+                did_clear = (wave_cleared is not None and wave_cleared >= wave_num)
+                (cleared_weights if did_clear else not_cleared_weights).append(weight)
 
             intro_wave = None
             for i, col_idx in enumerate(range(2, 7)):
@@ -604,11 +626,8 @@ def get_wave_analysis():
                 intro_wave_results.setdefault(intro_wave, []).append(wave_cleared)
 
         weight_comparison = {
-            str(w): {
-                "avg_wave_cleared": safe_avg(vals),
-                "count":            len(vals)
-            }
-            for w, vals in weight_groups.items()
+            "cleared":     {"avg_weight": safe_avg(cleared_weights),     "count": len(cleared_weights)},
+            "not_cleared": {"avg_weight": safe_avg(not_cleared_weights), "count": len(not_cleared_weights)},
         }
 
         intro_wave_summary = {

@@ -1688,7 +1688,8 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       const wave  = document.getElementById('waveSelect').value;
       const enemy = document.getElementById('enemySelect').value;
 
-      const res    = await fetch(`/api/wormhole/wave-analysis?wave=${wave}&enemy=${enemy}`);
+      const res = await fetch(`/api/wormhole/wave-analysis?wave=${wave}&enemy=${enemy}`);
+      if (!res.ok) { console.error('loadWaveAnalysis: API failed', res.status); return; }
       const result = await res.json();
 
       if (!result.success) { console.error(result.error); return; }
@@ -1732,7 +1733,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       }
 
       {
-        const wc  = result.weight_comparison;
+        const wc      = result.weight_comparison;
         const hasData = wc.cleared.avg_weight !== null || wc.not_cleared.avg_weight !== null;
 
         weightChart = new Chart(
@@ -1776,7 +1777,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
       }
 
       {
-        const summary = result.intro_wave_summary;
+        const summary  = result.intro_wave_summary;
         const waveNums = Object.keys(summary).sort();
         const labels   = waveNums.map(w => `First in Wave ${w} (n=${summary[w].count})`);
         const avgs     = waveNums.map(w => summary[w].avg_wave_cleared ?? 0);
@@ -1785,7 +1786,7 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
           document.getElementById('introWaveChart').getContext('2d'),
           {
             type: 'bar',
-            indexAxis: 'y',           
+            indexAxis: 'y',
             data: {
               labels,
               datasets: [{
@@ -1812,6 +1813,8 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
         );
       }
     }
+
+
 
     document.getElementById('waveSelect').addEventListener('change', loadWaveAnalysis);
     document.getElementById('enemySelect').addEventListener('change', loadWaveAnalysis);
