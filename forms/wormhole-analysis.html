@@ -1253,65 +1253,71 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
 }
 
     async function loadSummary() {
-      const res = await fetch('/api/wormhole/summary');
-      if (!res.ok) { console.error("Summary API failed"); return; }
+          const res = await fetch('/api/wormhole/summary');
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => ({}));
+            console.error(`Summary API failed ${res.status}:`, errBody.error || '(no detail)');
+            return;
+          }
 
-      const data = (await res.json()).data;  
-      document.getElementById('totalSessions').textContent = data.total_sessions;
-      document.getElementById('avgWave').textContent       = data.avg_wave.toFixed(2);
-      document.getElementById('avgSpawns').textContent     = data.avg_spawns.toFixed(1);
-      document.getElementById('avgKills').textContent      = data.avg_kills.toFixed(1);
-      document.getElementById('avgKillTime').textContent   = data.avg_kill_time.toFixed(0) + ' ms';
-      document.getElementById('avgFractal').textContent    = data.avg_fractal.toFixed(1);
-      document.getElementById('avgSlime').textContent      = data.avg_slime.toFixed(1);
-      document.getElementById('avgOcular').textContent     = data.avg_ocular.toFixed(1);
+          const data = (await res.json()).data;  
+          document.getElementById('totalSessions').textContent = data.total_sessions;
+          document.getElementById('avgWave').textContent       = data.avg_wave.toFixed(2);
+          document.getElementById('avgSpawns').textContent     = data.avg_spawns.toFixed(1);
+          document.getElementById('avgKills').textContent      = data.avg_kills.toFixed(1);
+          document.getElementById('avgKillTime').textContent   = data.avg_kill_time.toFixed(0) + ' ms';
+          document.getElementById('avgFractal').textContent    = data.avg_fractal.toFixed(1);
+          document.getElementById('avgSlime').textContent      = data.avg_slime.toFixed(1);
+          document.getElementById('avgOcular').textContent     = data.avg_ocular.toFixed(1);
 
-      const winRatePct = data.win_rate * 100;
-      const winRateEl  = document.getElementById('winRate');
-      winRateEl.textContent = winRatePct.toFixed(1) + '%';
-      winRateEl.style.color = (winRatePct >= 80 && winRatePct <= 95) ? '#58E84C' : '#FF0000';
+          const winRatePct = data.win_rate * 100;
+          const winRateEl  = document.getElementById('winRate');
+          winRateEl.textContent = winRatePct.toFixed(1) + '%';
+          winRateEl.style.color = (winRatePct >= 80 && winRatePct <= 95) ? '#58E84C' : '#FF0000';
 
-      const bossHpEl = document.getElementById('bossEntryHp');
-      if (data.avg_boss_entry_hp !== null && data.avg_boss_entry_hp !== undefined) {
-        const bossHp = data.avg_boss_entry_hp;
-        bossHpEl.textContent = bossHp.toFixed(1) + '%';
-        bossHpEl.style.color = (bossHp >= 60 && bossHp <= 90) ? '#58E84C' : '#FF0000';
-      } else {
-        bossHpEl.textContent = 'N/A';
-        bossHpEl.style.color = '#888';
-      }
+          const bossHpEl = document.getElementById('bossEntryHp');
+          if (data.avg_boss_entry_hp !== null && data.avg_boss_entry_hp !== undefined) {
+            const bossHp = data.avg_boss_entry_hp;
+            bossHpEl.textContent = bossHp.toFixed(1) + '%';
+            bossHpEl.style.color = (bossHp >= 60 && bossHp <= 90) ? '#58E84C' : '#FF0000';
+          } else {
+            bossHpEl.textContent = 'N/A';
+            bossHpEl.style.color = '#888';
+          }
 
-      const killPct = data.avg_spawns > 0
-        ? ((data.avg_kills / data.avg_spawns) * 100).toFixed(1)
-        : 0;
+          const killPct = data.avg_spawns > 0
+            ? ((data.avg_kills / data.avg_spawns) * 100).toFixed(1)
+            : 0;
 
-      if (killsGaugeChart) killsGaugeChart.destroy();
-      killsGaugeChart = buildGauge(
-        'killsGauge',
-        data.avg_kills,
-        data.avg_spawns || 1,
-        'rgba(0, 255, 255, 0.75)'
-      );
-      document.getElementById('killsGaugeLabel').textContent = killPct + '%';
+          if (killsGaugeChart) killsGaugeChart.destroy();
+          killsGaugeChart = buildGauge(
+            'killsGauge',
+            data.avg_kills,
+            data.avg_spawns || 1,
+            'rgba(0, 255, 255, 0.75)'
+          );
+          document.getElementById('killsGaugeLabel').textContent = killPct + '%';
 
-      if (hpLossGaugeChart) hpLossGaugeChart.destroy();
-      hpLossGaugeChart = buildGauge(
-        'hpLossGauge',
-        data.avg_hp_loss,
-        100,
-        'rgba(255, 60, 80, 0.8)'
-      );
-      document.getElementById('hpLossLabel').textContent = data.avg_hp_loss.toFixed(1) + ' HP';
+          if (hpLossGaugeChart) hpLossGaugeChart.destroy();
+          hpLossGaugeChart = buildGauge(
+            'hpLossGauge',
+            data.avg_hp_loss,
+            100,
+            'rgba(255, 60, 80, 0.8)'
+          );
+          document.getElementById('hpLossLabel').textContent = data.avg_hp_loss.toFixed(1) + ' HP';
 
-      if (hpGainGaugeChart) hpGainGaugeChart.destroy();
-      hpGainGaugeChart = buildGauge(
-        'hpGainGauge',
-        data.avg_hp_gain,
-        100,
-        'rgba(0, 255, 136, 0.8)'
-      );
-      document.getElementById('hpGainLabel').textContent = data.avg_hp_gain.toFixed(1) + ' HP';
-    }
+          if (hpGainGaugeChart) hpGainGaugeChart.destroy();
+          hpGainGaugeChart = buildGauge(
+            'hpGainGauge',
+            data.avg_hp_gain,
+            100,
+            'rgba(0, 255, 136, 0.8)'
+          );
+          document.getElementById('hpGainLabel').textContent = data.avg_hp_gain.toFixed(1) + ' HP';
+        }
+
+
 
     async function loadInsights(sessionKey) {
       const container  = document.getElementById('insights');
@@ -1394,44 +1400,48 @@ function buildGauge(canvasId, value, max, fillColor, bgColor = 'rgba(255,255,255
     let chart;
 
     async function loadChart() {
-      const res = await fetch('/api/wormhole/summary');
-      if (!res.ok) { console.error('loadChart: Summary API failed', res.status); return; }
-      const data = await res.json();
-      if (!data.data) { console.error('loadChart: No data in summary response', data); return; }
-
-      const avgWave = data.data.avg_wave;
-
-      const ctx = document.getElementById('waveChart').getContext('2d');
-
-      if (chart) chart.destroy();
-
-      chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Avg Wave'],
-          datasets: [{
-            label: 'Wave Progression',
-            data: [avgWave]
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              labels: { color: 'white' }
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: 'white' }
-            },
-            y: {
-              ticks: { color: 'white' }
-            }
+          const res = await fetch('/api/wormhole/summary');
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => ({}));
+            console.error(`loadChart: Summary API failed ${res.status}:`, errBody.error || '(no detail)');
+            return;
           }
+          const data = await res.json();
+          if (!data.data) { console.error('loadChart: No data in summary response', data); return; }
+
+          const avgWave = data.data.avg_wave;
+
+          const ctx = document.getElementById('waveChart').getContext('2d');
+
+          if (chart) chart.destroy();
+
+          chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ['Avg Wave'],
+              datasets: [{
+                label: 'Wave Progression',
+                data: [avgWave]
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  labels: { color: 'white' }
+                }
+              },
+              scales: {
+                x: {
+                  ticks: { color: 'white' }
+                },
+                y: {
+                  ticks: { color: 'white' }
+                }
+              }
+            }
+          });
         }
-      });
-    }
 
     let hpChart;
     let activeTab = 'avg';
