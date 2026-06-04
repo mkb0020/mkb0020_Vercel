@@ -1,4 +1,5 @@
-# Updated 4/29/26
+# Updated 6/4/26
+import os
 from flask import Flask, send_from_directory
 from api.comments import comments_bp                           # GENERAL
 from api.submitGameFeedback import feedback_bp                 # CATASTROPHE 2
@@ -14,6 +15,9 @@ from api.responses import responses_bp                         # AI DOPAMINE: A/
 from api.compare import compare_bp                             # AI DOPAMINE: PREFERENCE VOTES 
 from api.AI_score import score_bp                              # AI DOPAMINE
 from api.trueDelta import truedelta_bp                         # TRUE DELTA
+from api.audio.ingest  import audio_ingest_bp                  # meowREMIX
+from api.audio.analyze import audio_analyze_bp                 # meowREMIX
+
 
 from flask_cors import CORS
 
@@ -34,6 +38,8 @@ app.register_blueprint(responses_bp)            # AI DOPAMINE
 app.register_blueprint(compare_bp)              # AI DOPAMINE
 app.register_blueprint(score_bp)                # AI DOPAMINE
 app.register_blueprint(truedelta_bp)
+app.register_blueprint(audio_ingest_bp)         # meowREMIX
+app.register_blueprint(audio_analyze_bp)        # meowREMIX
  
 
 
@@ -110,6 +116,16 @@ def trueDelta_template():
     return send_from_directory('static/templates', 'true-up_template.xlsx',
                                as_attachment=True,
                                download_name='TrueDelta_Template.xlsx')
+
+
+@app.route('/meowREMIX')
+@app.route('/meowREMIX.html')
+def meow_remix():
+    return send_from_directory('forms', 'meowREMIX.html')
+
+@app.route('/forms/rules.js')
+def rules_js():
+    return send_from_directory('forms', 'rules.js', mimetype='application/javascript')
 
 if __name__ == '__main__':
     app.run()
