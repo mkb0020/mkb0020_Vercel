@@ -4,6 +4,10 @@
     {
       "src": "/(.*)",
       "dest": "index.py"
-    }
+    },
+    { "src": "/api/audio/ingest",           "dest": "/index.py" },
+    { "src": "/api/audio/analyze/(.*)",     "dest": "/index.py" },
+    { "src": "/meowREMIX(.*)",              "dest": "/index.py" },
+    { "src": "/forms/rules.js",             "dest": "/index.py" }
   ]
 }
