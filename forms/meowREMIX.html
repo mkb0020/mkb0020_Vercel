@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>meowRE-MIX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/static/css/audioStyles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ── CSS VARIABLES ─────────────────────────────────────────────────────────── */
+:root {
+  --bg-deep:      #170032;
+  --bg-mid:       #37025a;
+  --accent-1:     #830cde;
+  --accent-2:     #A55AFF;
+  --accent-3:     #667eea;
+  --neon-cyan:    #00ffff;
+  --neon-green:   #67FEBD;
+  --neon-pink:    #ff69b4;
+  --neon-magenta: #dc4ce8;
+  --neon-hot:     #c71585;
+  --neon-amber:   #fecd39;
+  --neon-orange:  #ff6200;
+  --text-dim:     #9090C0;
+  --text-bright:  #C4C3D0;
+  --glass-bg:     rgba(55, 2, 90, 0.45);
+  --glass-border: rgba(165, 90, 255, 0.28);
+  --glass-shine:  rgba(196, 181, 253, 0.07);
+  --shadow-glow:  0 0 24px rgba(131, 12, 222, 0.35);
+}
+
+/* ── RESET & BASE ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-bright);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* ANIMATED GRID BACKGROUND */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(131,12,222,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(131,12,222,0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+  animation: gridDrift 60s linear infinite;
+}
+@keyframes gridDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 40px 40px; }
+}
+
+/* RADIAL NEBULA GLOWS */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 40% at 15% 20%, rgba(131,12,222,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 50% at 85% 75%, rgba(220,76,232,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 30% 30% at 50% 100%, rgba(0,255,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LAYOUT ────────────────────────────────────────────────────────────────── */
+.main-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: 100vh;
+  height: 100vh;
+  gap: 0;
+}
+
+/* ── GLASSMORPHISM CARD ─────────────────────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-glow), inset 0 1px 0 var(--glass-shine);
+}
+
+/* ── VISUALIZER PANEL ─────────────────────────────────────────────────────── */
+.visualizer-card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+#matrixCanvas {
+  flex: 1;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(131,12,222,0.25);
+  background: rgba(23,0,50,0.7);
+  display: block;
+}
+
+/* ── CONSOLE LOG ───────────────────────────────────────────────────────────── */
+.console-wrapper {
+  flex-shrink: 0;
+  height: 130px;
+}
+
+.console-log {
+  height: 108px;
+  overflow-y: auto;
+  background: rgba(23,0,50,0.8);
+  border: 1px solid rgba(131,12,222,0.2);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--neon-green);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.console-log::-webkit-scrollbar { width: 4px; }
+.console-log::-webkit-scrollbar-track { background: transparent; }
+.console-log::-webkit-scrollbar-thumb { background: var(--accent-1); border-radius: 2px; }
+
+/* ── SIDEBAR ───────────────────────────────────────────────────────────────── */
+.controls-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 12px;
+  overflow-y: auto;
+  border-left: 1px solid var(--glass-border);
+  background: rgba(23, 0, 50, 0.6);
+  backdrop-filter: blur(24px);
+}
+.controls-sidebar::-webkit-scrollbar { width: 3px; }
+.controls-sidebar::-webkit-scrollbar-thumb { background: var(--accent-1); border-radius: 2px; }
+
+/* ── PANEL ─────────────────────────────────────────────────────────────────── */
+.panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: inset 0 1px 0 var(--glass-shine);
+}
+
+.panel-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(165,90,255,0.2);
+}
+
+/* ── PLAY BUTTON ───────────────────────────────────────────────────────────── */
+.btn-primary {
+  width: 100%;
+  height: 52px;
+  background: linear-gradient(135deg, var(--accent-1) 0%, var(--neon-magenta) 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 20px rgba(131,12,222,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.08));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover:not(:disabled)::before { opacity: 1; }
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 32px rgba(220,76,232,0.7), inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary img { width: 22px; height: 22px; filter: brightness(0) invert(1); }
+
+/* ── CONTROL GROUP / SLIDER ────────────────────────────────────────────────── */
+.control-group {
+  margin-bottom: 9px;
+}
+.control-group:last-child { margin-bottom: 0; }
+
+.control-group label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.val-display {
+  color: var(--neon-cyan);
+  font-size: 11px;
+  min-width: 32px;
+  text-align: right;
+}
+
+.slider-row input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent-1), var(--neon-magenta));
+  outline: none;
+  cursor: pointer;
+}
+.slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.slider-row input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 16px var(--neon-cyan);
+}
+
+/* BUCKET-COLOURED SLIDER THUMBS */
+.slider-long   input[type="range"]::-webkit-slider-thumb { background: var(--neon-cyan);    box-shadow: 0 0 8px var(--neon-cyan); }
+.slider-medium input[type="range"]::-webkit-slider-thumb { background: var(--accent-2);     box-shadow: 0 0 8px var(--accent-2); }
+.slider-short  input[type="range"]::-webkit-slider-thumb { background: var(--neon-pink);    box-shadow: 0 0 8px var(--neon-pink); }
+.slider-amb    input[type="range"]::-webkit-slider-thumb { background: var(--neon-green);   box-shadow: 0 0 8px var(--neon-green); }
+.slider-beat   input[type="range"]::-webkit-slider-thumb { background: var(--neon-amber);   box-shadow: 0 0 8px var(--neon-amber); }
+
+/* ── TELEMETRY ─────────────────────────────────────────────────────────────── */
+.metric-readouts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.metric-box {
+  background: rgba(23,0,50,0.7);
+  border: 1px solid rgba(131,12,222,0.25);
+  border-radius: 6px;
+  padding: 7px 8px;
+}
+.metric-label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 3px;
+}
+.metric-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--neon-cyan);
+  letter-spacing: 0.05em;
+}
+#telemetryLong   .metric-value { color: var(--neon-cyan); }
+#telemetryMedium .metric-value { color: var(--accent-2); }
+#telemetryShort  .metric-value { color: var(--neon-pink); }
+#telemetryTension .metric-value { color: var(--neon-amber); }
+
+/* BUCKET BADGE NEXT TO SLIDER LABELS */
+.bucket-badge {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.badge-long   { background: rgba(0,255,255,0.12);    color: var(--neon-cyan);    border: 1px solid rgba(0,255,255,0.3); }
+.badge-medium { background: rgba(165,90,255,0.12);   color: var(--accent-2);     border: 1px solid rgba(165,90,255,0.3); }
+.badge-short  { background: rgba(255,105,180,0.12);  color: var(--neon-pink);    border: 1px solid rgba(255,105,180,0.3); }
+
+/* ── DANCE GIF ─────────────────────────────────────────────────────────────── */
+.dance {
+  position: fixed;
+  top: 12px;
+  left: 16px;
+  height: 56px;
+  width: auto;
+  z-index: 200;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 8px var(--neon-magenta));
+  pointer-events: none;
+}
+
+/* ── CANVAS WATERMARK TEXT ─────────────────────────────────────────────────── */
+/* RENDERED BY JS, STYLED HERE FOR REFERENCE ONLY */
+</style>
+</head>
+<body>
+
+<img src="../static/images/dance.gif" alt="" class="dance">
+
+<main class="main-grid">
+
+  <!-- ── VISUALIZER ────────────────────────────────────────────────── -->
+  <section class="visualizer-card">
+    <canvas id="matrixCanvas"></canvas>
+    <div class="console-wrapper">
+      <div class="panel-title" style="margin-bottom:6px;">Unified Event Queue Log</div>
+      <div class="console-log" id="consoleOutput">> System awakening. Preparing audio arrays...</div>
+    </div>
+  </section>
+
+  <!-- ── SIDEBAR ───────────────────────────────────────────────────── -->
+  <section class="controls-sidebar">
+
+    <button class="btn-primary" id="playBtn" disabled>
+      <img id="playBtnImg" src="../static/images/play.png" alt="Play / Pause">
+    </button>
+
+    <!-- GENERATIVE TWEAKS -->
+    <div class="panel">
+      <div class="panel-title">Generative Tweaks</div>
+      <div class="control-group">
+        <label>
+          <span>Suspension Risk</span>
+          <span class="val-display" id="suspVal">30%</span>
+        </label>
+        <div class="slider-row">
+          <input type="range" id="suspWeight" min="0" max="1" step="0.05" value="0.30">
+        </div>
+      </div>
+      <div class="control-group">
+        <label><span>Engine Velocity</span><span style="color:var(--neon-amber)">90 BPM</span></label>
+      </div>
+    </div>
+
+    <!-- MIXER — THREE NOTE BUCKETS + STEMS -->
+    <div class="panel">
+      <div class="panel-title">Console Mixer Desk</div>
+
+      <div class="control-group slider-long">
+        <label>
+          <span><span class="bucket-badge badge-long">LONG</span> Pad Gain</span>
+          <span class="val-display" id="longVolVal">20%</span>
+        </label>
+        <div class="slider-row">
+          <input id="longVol" type="range" min="0" max="1" step="0.01" value="0.20">
+        </div>
+      </div>
+
+      <div class="control-group slider-medium">
+        <label>
+          <span><span class="bucket-badge badge-medium">MED</span> Melody Gain</span>
+          <span class="val-display" id="medVolVal">65%</span>
+        </label>
+        <div class="slider-row">
+          <input id="medVol" type="range" min="0" max="1" step="0.01" value="0.65">
+        </div>
+      </div>
+
+      <div class="control-group slider-short">
+        <label>
+          <span><span class="bucket-badge badge-short">SHORT</span> Staccato Gain</span>
+          <span class="val-display" id="shortVolVal">15%</span>
+        </label>
+        <div class="slider-row">
+          <input id="shortVol" type="range" min="0" max="1" step="0.01" value="0.15">
+        </div>
+      </div>
+
+      <div class="control-group slider-amb">
+        <label>
+          <span>Atmosphere Stem</span>
+          <span class="val-display" id="ambVolVal">20%</span>
+        </label>
+        <div class="slider-row">
+          <input id="ambVol" type="range" min="0" max="1" step="0.01" value="0.20">
+        </div>
+      </div>
+
+      <div class="control-group slider-beat">
+        <label>
+          <span>Rhythmic Loop Stem</span>
+          <span class="val-display" id="beatVolVal">65%</span>
+        </label>
+        <div class="slider-row">
+          <input id="beatVol" type="range" min="0" max="1" step="0.01" value="0.65">
+        </div>
+      </div>
+    </div>
+
+    <!-- TELEMETRY -->
+    <div class="panel">
+      <div class="panel-title">Telemetry Stream</div>
+      <div class="metric-readouts">
+        <div class="metric-box" id="telemetryLong">
+          <div class="metric-label">Long Token</div>
+          <div class="metric-value" id="telemetryLongVal">—</div>
+        </div>
+        <div class="metric-box" id="telemetryMedium">
+          <div class="metric-label">Med Token</div>
+          <div class="metric-value" id="telemetryMediumVal">—</div>
+        </div>
+        <div class="metric-box" id="telemetryShort">
+          <div class="metric-label">Short Token</div>
+          <div class="metric-value" id="telemetryShortVal">—</div>
+        </div>
+        <div class="metric-box" id="telemetryTension">
+          <div class="metric-label">Sys Tension</div>
+          <div class="metric-value" id="telemetryTensionVal">0.00</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     AUDIO ENGINE
+════════════════════════════════════════════════════════════════════════════ -->
+<script type="module">
+import { musicRules, ruleLibrary } from './rules.js';
+
+// RULELIBRARY REPLACES THE OLD RULE_LIBRARY.JSON FETCH — IT'S NOW EMBEDDED
+// IN RULES.JS AS A NAMED EXPORT BY RULES.PY V6.0
+const compRules = ruleLibrary?.rule_library ?? null;
+if (!compRules) console.warn('ruleLibrary missing or empty — running without high-level biases.');
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const BPM              = 90;
+const BEAT_SEC         = 60 / BPM;
+const HALF_QUARTER_SEC = BEAT_SEC * 2;       // HALF-NOTE = 1.333S AT 90 BPM
+const MEASURE_DUR_SEC  = BEAT_SEC * 4;       // 4/4 BAR  = 2.666S
+const LOOK_AHEAD_SEC   = 0.12;
+const SCHEDULE_INTERVAL_MS = 50;
+const SAMPLE_NAMES     = ["g", "a", "b", "c", "d", "e", "f", "g2"];
+
+// ── NOTE LENGTH BUCKETS ───────────────────────────────────────────────────────
+// ALL THREE COME FROM RULES.JS → MUSICRULES.NOTELENGTHBUCKETS
+const NLB = musicRules.noteLengthBuckets ?? {};
+
+// BUCKET WEIGHTS — HOW OFTEN EACH BUCKET IS CHOSEN OVERALL
+// E.G. { LONG: 0.33, MEDIUM: 0.34, SHORT: 0.33 }
+const BUCKET_WEIGHTS = NLB.bucketWeights ?? { long: 0.33, medium: 0.34, short: 0.33 };
+
+// PREFERRED NOTE-NAME PER (PITCH_CLASS, BUCKET)
+// E.G. { 'G': { LONG: 'G', MEDIUM: 'G', SHORT: 'G2' }, ... }
+const BUCKET_BY_PITCH = NLB.bucketByPitch ?? {};
+
+// AUDIO PATH ROOTS PER BUCKET (RELATIVE TO FORMS/)
+// E.G. { LONG: '../PROJECTS/AUDIO/NOTES/LONG', ... }
+const AUDIO_PATHS = NLB.audioPaths ?? {
+  long:   '../projects/audio/notes/long',
+  medium: '../projects/audio/notes/medium',
+  short:  '../projects/audio/notes/short',
+};
+
+// BUCKET → [{NEXT, WEIGHT}] — WHICH BUCKET NATURALLY FOLLOWS WHICH
+const BUCKET_TRANSITIONS = NLB.bucketTransitions ?? {
+  long:   [{next:'long',weight:0.35},{next:'medium',weight:0.50},{next:'short',weight:0.15}],
+  medium: [{next:'long',weight:0.20},{next:'medium',weight:0.40},{next:'short',weight:0.40}],
+  short:  [{next:'long',weight:0.10},{next:'medium',weight:0.45},{next:'short',weight:0.45}],
+};
+
+// PER-BUCKET DURATION-TYPE BIAS (AFFECTS GETRHYTHMSEQUENCE BUCKETED VARIANT)
+const BUCKET_RHYTHM_BIAS = NLB.bucketRhythmBias ?? {
+  long:   { whole:0.35, 'dotted-half':0.30, half:0.25, 'dotted-quarter':0.10 },
+  medium: { half:0.20, 'dotted-quarter':0.30, quarter:0.35, 'dotted-eighth':0.15 },
+  short:  { quarter:0.15, 'dotted-eighth':0.20, eighth:0.45, sixteenth:0.20 },
+};
+
+// PER-BUCKET TENSION BIAS MULTIPLIERS PER PITCH CLASS
+const BUCKET_TENSION_MAP = NLB.bucketTensionMap ?? { avgTensionByBucket:{}, pitchBias:{} };
+
+// ── TENSION + DUR MAPS ────────────────────────────────────────────────────────
+const TENSION_MAP = {
+  'G':0.0,'A':0.2,'B':0.1,'C':0.3,'D':0.1,
+  'E':0.2,'F#':0.5,'G#':0.8,'A#':0.7,'C#':0.9,'D#':0.7,'F':0.6,
+};
+
+const DUR_TYPE_TO_MULT = {
+  'whole':4,'half':2,'quarter':1,'eighth':0.5,'sixteenth':0.25,'thirty-second':0.125,
+  'dotted-half':3,'dotted-quarter':1.5,'dotted-eighth':0.75,'other':1,
+};
+
+// ── SMOOTHNESS HELPERS ────────────────────────────────────────────────────────
+const smoothnessRules = musicRules.smoothnessRules ?? {
+  transitionSmoothness:{}, rhythmFlowRules:[], smoothnessBias:0.85,
+};
+const SMOOTHNESS_BIAS = smoothnessRules.smoothnessBias ?? 0.85;
+
+function getTransitionSmoothness(prev, next) {
+  if (!prev || !next) return 0.5;
+  const map = smoothnessRules.transitionSmoothness[prev];
+  if (map && map[next] !== undefined) return map[next];
+  const iv = Math.abs(pitchToMidi(prev) - pitchToMidi(next));
+  if (isNaN(iv)) return 0.5;
+  if (iv <= 2) return 0.95;
+  if (iv <= 4) return 0.70;
+  if (iv <= 7) return 0.40;
+  return 0.20;
+}
+
+function getRhythmFlowSmoothness(from, to) {
+  if (!from || !to) return 0.5;
+  const r = smoothnessRules.rhythmFlowRules.find(r => r.from === from && r.to === to);
+  return r ? r.smoothness : 0.6;
+}
+
+function applySmoothnessWeight(base, s) {
+  return base * Math.pow(0.6 + 0.4 * s, SMOOTHNESS_BIAS);
+}
+
+function getTension(pitch) {
+  if (!pitch || pitch === 'REST') return 0;
+  return TENSION_MAP[pitch.replace(/\d/g, '')] ?? 0.3;
+}
+
+// ── UI REFERENCES ─────────────────────────────────────────────────────────────
+const playBtn          = document.getElementById('playBtn');
+const playBtnImg       = document.getElementById('playBtnImg');
+const consoleOutputDiv = document.getElementById('consoleOutput');
+const telemetryLong    = document.getElementById('telemetryLongVal');
+const telemetryMedium  = document.getElementById('telemetryMediumVal');
+const telemetryShort   = document.getElementById('telemetryShortVal');
+const telemetryTension = document.getElementById('telemetryTensionVal');
+
+function logToConsole(msg) {
+  const ts = new Date().toLocaleTimeString().slice(0,8);
+  consoleOutputDiv.innerText = `[${ts}] ${msg}\n` + consoleOutputDiv.innerText;
+  if (consoleOutputDiv.innerText.length > 2400)
+    consoleOutputDiv.innerText = consoleOutputDiv.innerText.slice(0,2200);
+}
+
+function setupSlider(sliderId, displayId) {
+  const sl = document.getElementById(sliderId);
+  const dp = document.getElementById(displayId);
+  if (sl && dp) sl.addEventListener('input', e => { dp.innerText = `${Math.round(e.target.value*100)}%`; });
+}
+setupSlider('suspWeight','suspVal');
+setupSlider('longVol',   'longVolVal');
+setupSlider('medVol',    'medVolVal');
+setupSlider('shortVol',  'shortVolVal');
+setupSlider('ambVol',    'ambVolVal');
+setupSlider('beatVol',   'beatVolVal');
+
+// ── AUDIO CONTEXT & BUFFERS ───────────────────────────────────────────────────
+const actx = new (window.AudioContext || window.webkitAudioContext)();
+
+// ONE BUFFER MAP PER BUCKET
+let longBuffers   = {};   // LONG  NOTES (PAD, HELD FULL BAR+)
+let medBuffers    = {};   // MEDIUM NOTES (MELODIC, HALF-BAR)
+let shortBuffers  = {};   // SHORT  NOTES (STACCATO)
+let ambienceBuffer = null, beatBuffer = null;
+
+let longGain, medGain, shortGain, ambienceGain, beatGain;
+let ambienceSource = null, beatSource = null;
+let running = false;
+let schedulerTimer = null, harmonySchedulerTimer = null, barSchedulerTimer = null;
+let melodyState, harmonyState, barState;
+let engineStartTime = 0;
+
+// ── COMPOSITIONAL STATE ───────────────────────────────────────────────────────
+let generationState = {
+  currentStructuralRole:  'setup',
+  measuresSinceRoleChange: 0,
+  nextRoleChangeMeasure:   0,
+  targetTension:           0.3,
+  phraseMeasureCounter:    0,
+  destinationChord:        'tonic',
+  lastMotifMeasure:        -100,
+  expectationDelayActive:  false,
+  currentBucket:           'medium',   // NEW: TRACKS CURRENT NOTE-LENGTH BUCKET
+};
+
+// ── BUCKET SELECTION ──────────────────────────────────────────────────────────
+
+function pickNextBucket(currentBucket) {
+  // USE BUCKETTRANSITIONS FROM RULES.JS IF AVAILABLE
+  const trans = BUCKET_TRANSITIONS[currentBucket];
+  if (!trans?.length) return weightedRandomFromObj(BUCKET_WEIGHTS);
+  return weightedRandom(trans.map(t => ({ item: t.next, weight: t.weight })));
+}
+
+function applyBucketTensionBias(candidates, bucket) {
+  // BOOST PITCH CLASSES THAT ALIGN WITH THIS BUCKET'S TENSION TARGET
+  const biasMap = BUCKET_TENSION_MAP.pitchBias?.[bucket] ?? {};
+  if (!Object.keys(biasMap).length) return candidates;
+  return candidates.map(c => {
+    const pc = c.note.replace(/\d/g, '');
+    const mult = biasMap[pc] ?? 1.0;
+    return { ...c, weight: c.weight * mult };
+  });
+}
+
+function getBucketRhythmDuration(bucket, atTime, prevDurType) {
+  // DURATION-TYPE BIASED BY BUCKET, THEN SMOOTHED BY RHYTHM FLOW
+  const biasObj = BUCKET_RHYTHM_BIAS[bucket] ?? {};
+  let entries = Object.entries(biasObj).map(([dur, w]) => ({ duration: dur, weight: w }));
+  if (!entries.length) {
+    // FALLBACK TO GENERIC RHYTHM PICKER
+    return getRhythmSequence(atTime, prevDurType)[0];
+  }
+
+  // BLEND WITH BEAT-POSITION RULES IF AVAILABLE
+  if (atTime !== null && engineStartTime > 0) {
+    const beat = getCurrentBeatPosition(atTime);
+    const key  = getNearestBeatKey(beat);
+    const beatRules = musicRules.beatDurationRules?.[key];
+    if (beatRules?.length) {
+      // INTERSECT: KEEP ONLY DURATIONS PRESENT IN BOTH BUCKET BIAS AND BEAT RULES
+      const beatMap = Object.fromEntries(beatRules.map(r => [r.duration, r.weight]));
+      const blended = entries.map(e => ({
+        duration: e.duration,
+        weight: e.weight * (beatMap[e.duration] ?? 0.1),
+      }));
+      const bTotal = blended.reduce((s,e) => s+e.weight, 0);
+      if (bTotal > 0) entries = blended.map(e => ({ ...e, weight: e.weight / bTotal }));
+    }
+  }
+
+  // RHYTHM FLOW SMOOTHNESS
+  if (prevDurType) {
+    entries = entries.map(e => {
+      const s = getRhythmFlowSmoothness(prevDurType, e.duration);
+      return { ...e, weight: applySmoothnessWeight(e.weight, s) };
+    });
+    const total = entries.reduce((s,e) => s+e.weight, 0);
+    if (total > 0) entries.forEach(e => e.weight /= total);
+  }
+
+  const picked = weightedRandom(entries.map(e => ({ item: e.duration, weight: e.weight })));
+  return durTypeSec(picked ?? 'quarter');
+}
+
+// ── COMPOSITIONAL BIAS HELPERS ────────────────────────────────────────────────
+
+function applyGravityBias(note, base) {
+  if (!compRules?.gravity_model) return base;
+  const gm = compRules.gravity_model;
+  const pc = note.replace(/\d/g, '');
+  const tonicPCs    = new Set(['G','B','D']);  // G MAJOR TONIC TRIAD
+  const dominantPCs = new Set(['D','F#','A']);
+  const mediantPCs  = new Set(['B','D','F#']);
+  let pull = 1.0;
+  if (tonicPCs.has(pc))    pull = gm.tonic_pull;
+  else if (dominantPCs.has(pc)) pull = gm.dominant_pull;
+  else if (mediantPCs.has(pc))  pull = gm.mediant_pull;
+  return base * (0.5 + 0.5 * pull);
+}
+
+function applyTensionBias(note, base, target) {
+  if (target === undefined || target === null) return base;
+  const dev = Math.abs(getTension(note) - target);
+  return base * (0.2 + 0.8 * (1.0 - dev));
+}
+
+function applyDestinationBias(note, base) {
+  if (!compRules?.phrase_destination_rules) return base;
+  const dests = compRules.phrase_destination_rules['4_bar_phrase'];
+  if (!dests) return base;
+  const pc = note.replace(/\d/g, '');
+  const chordMap = {
+    tonic:    new Set(['G','B','D']),
+    dominant: new Set(['D','F#','A']),
+    mediant:  new Set(['B','D','F#']),
+  };
+  const dest = generationState.destinationChord || 'tonic';
+  return (chordMap[dest]?.has(pc)) ? base * 1.3 : base;
+}
+
+function applyCompositionalBiases(candidates, context = {}) {
+  const { targetTension, phraseEnd, bucket } = context;
+  return candidates.map(c => {
+    let w = c.weight;
+    w = applyGravityBias(c.note, w);
+    if (targetTension !== undefined) w = applyTensionBias(c.note, w, targetTension);
+    if (phraseEnd) w = applyDestinationBias(c.note, w);
+    return { note: c.note, weight: w };
+  });
+}
+
+function updateStructuralRole(measureCount) {
+  if (!compRules?.role_transitions) return;
+  if (measureCount < generationState.nextRoleChangeMeasure) return;
+  const trans = compRules.role_transitions[generationState.currentStructuralRole];
+  if (!trans) return;
+  const roles   = Object.keys(trans);
+  const weights = roles.map(r => trans[r]);
+  const total   = weights.reduce((a,b) => a+b, 0);
+  let r = Math.random() * total;
+  let chosen = generationState.currentStructuralRole;
+  for (let i=0; i<roles.length; i++) { r -= weights[i]; if (r <= 0) { chosen = roles[i]; break; } }
+  generationState.currentStructuralRole = chosen;
+  generationState.measuresSinceRoleChange = 0;
+  generationState.nextRoleChangeMeasure = measureCount + 4 + Math.floor(Math.random()*4);
+  logToConsole(`🎭 Structural role → ${chosen}`);
+}
+
+function getTargetTensionFromArc(frac) {
+  if (!compRules?.tension_arc_templates?.length) return 0.3;
+  const arcs = compRules.tension_arc_templates;
+  const arc  = arcs.reduce((b,c) => (c.frequency > b.frequency ? c : b), arcs[0]);
+  const peak = arc.average_peak_location || 0.6;
+  return frac < peak ? 0.1 + 0.9*(frac/peak) : 1.0 - 0.9*((frac-peak)/(1-peak));
+}
+
+// ── PROBABILITY HELPERS ───────────────────────────────────────────────────────
+
+function weightedRandom(items) {
+  // ITEMS: [{ITEM, WEIGHT}] OR [{NOTE, WEIGHT}] OR [{DURATION, WEIGHT}]
+  if (!items?.length) return null;
+  const total = items.reduce((s,i) => s + (i.weight ?? 0), 0);
+  if (total <= 0) return items[0]?.item ?? items[0]?.note ?? items[0]?.duration ?? null;
+  let r = Math.random() * total;
+  for (const i of items) {
+    r -= i.weight;
+    if (r <= 0) return i.item ?? i.note ?? i.duration ?? null;
+  }
+  const last = items[items.length-1];
+  return last.item ?? last.note ?? last.duration ?? null;
+}
+
+function weightedRandomFromObj(obj) {
+  const keys   = Object.keys(obj);
+  const total  = keys.reduce((s,k) => s + obj[k], 0);
+  let r = Math.random() * total;
+  for (const k of keys) { r -= obj[k]; if (r <= 0) return k; }
+  return keys[0];
+}
+
+function durTypeSec(durType) {
+  return HALF_QUARTER_SEC * (DUR_TYPE_TO_MULT[durType] ?? 1);
+}
+
+// ── BEAT / RHYTHM ─────────────────────────────────────────────────────────────
+
+function getCurrentBeatPosition(atTime) {
+  const pos  = (atTime - engineStartTime) % MEASURE_DUR_SEC;
+  return Math.round(((pos / BEAT_SEC) + 1) * 100) / 100;
+}
+
+function getNearestBeatKey(beat) {
+  const rules = musicRules.beatDurationRules;
+  if (!rules) return null;
+  const keys = Object.keys(rules).map(Number);
+  if (!keys.length) return null;
+  let closest = keys[0], minDist = Math.abs(beat - closest);
+  for (const k of keys) { const d = Math.abs(beat-k); if (d < minDist) { minDist=d; closest=k; } }
+  return minDist <= 0.5 ? String(closest) : null;
+}
+
+function getRhythmSequence(atTime = null, prevDurType = null) {
+  if (atTime !== null && engineStartTime > 0) {
+    const beat     = getCurrentBeatPosition(atTime);
+    const key      = getNearestBeatKey(beat);
+    const beatRules = musicRules.beatDurationRules?.[key];
+    if (beatRules?.length) {
+      let cands = beatRules.map(r => ({ ...r }));
+      if (prevDurType) {
+        cands = cands.map(c => ({
+          ...c, weight: applySmoothnessWeight(c.weight, getRhythmFlowSmoothness(prevDurType, c.duration))
+        }));
+        const t = cands.reduce((s,c) => s+c.weight, 0);
+        if (t > 0) cands.forEach(c => c.weight /= t);
+      }
+      const picked = weightedRandom(cands.map(c => ({ item:c.duration, weight:c.weight })));
+      if (picked) return [durTypeSec(picked)];
+    }
+  }
+  const rhythms = musicRules.rhythmPatterns;
+  if (rhythms?.length) {
+    let cands = [...rhythms];
+    if (prevDurType) {
+      cands = cands.map(p => p.pattern?.length
+        ? { ...p, weight: applySmoothnessWeight(p.weight, getRhythmFlowSmoothness(prevDurType, p.pattern[0])) }
+        : p
+      );
+      const t = cands.reduce((s,p) => s+p.weight, 0);
+      if (t > 0) cands.forEach(p => p.weight /= t);
+    }
+    const pat = weightedRandom(cands.map(p => ({ item:p, weight:p.weight })));
+    if (pat) return pat.pattern.map(durTypeSec);
+  }
+  const singles = musicRules.singleDurations;
+  if (singles && Object.keys(singles).length) {
+    let entries = Object.entries(singles).map(([dur,w]) => ({ item:dur, weight:w }));
+    if (prevDurType) {
+      entries = entries.map(e => ({ ...e, weight: applySmoothnessWeight(e.weight, getRhythmFlowSmoothness(prevDurType, e.item)) }));
+      const t = entries.reduce((s,e) => s+e.weight, 0);
+      if (t > 0) entries.forEach(e => e.weight /= t);
+    }
+    const sel = weightedRandom(entries);
+    if (sel) return [durTypeSec(sel)];
+  }
+  return [HALF_QUARTER_SEC];
+}
+
+// ── MOTIF ─────────────────────────────────────────────────────────────────────
+
+function maybeInjectMotif(currentPitch) {
+  if (!compRules?.emotional_memory_rules) return null;
+  const mem   = compRules.emotional_memory_rules;
+  const since = generationState.lastMotifMeasure === -100
+    ? 999
+    : generationState.phraseMeasureCounter - generationState.lastMotifMeasure;
+  const dist = mem.average_motif_return_distance || 8;
+  const prob = (since >= dist-1 && since <= dist+2) ? 0.25 : 0.05;
+  if (Math.random() > prob) return null;
+  const byEntry = musicRules.motifsByEntry;
+  if (!byEntry || !currentPitch) return null;
+  const matching = byEntry[currentPitch];
+  if (!matching?.length) return null;
+  const sel = weightedRandom(matching.map(m => ({ item:m, weight:m.weight })));
+  if (sel?.pattern) {
+    generationState.lastMotifMeasure = generationState.phraseMeasureCounter;
+    logToConsole('🎵 Motif recall triggered');
+    return sel.pattern.slice(1);
+  }
+  return null;
+}
+
+// ── PITCH UTILITIES ───────────────────────────────────────────────────────────
+
+function pitchToMidi(pitch) {
+  if (!pitch || pitch === 'REST') return null;
+  const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const m = pitch.match(/^([A-G][#b]?)(\d)$/);
+  if (!m) return null;
+  let pc = m[1].replace('Bb','A#').replace('Eb','D#').replace('Ab','G#')
+                .replace('Db','C#').replace('Gb','F#').replace('B-','A#');
+  const oct = parseInt(m[2]);
+  const idx = NOTE_NAMES.indexOf(pc);
+  return idx < 0 ? null : idx + oct * 12;
+}
+
+function getNoteAtInterval(base, semitones) {
+  const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  try {
+    const parts = base.match(/^([A-G][#b]?)(\d)$/);
+    if (!parts) return null;
+    let pc = parts[1].replace('Bb','A#').replace('Eb','D#').replace('Ab','G#')
+                     .replace('Db','C#').replace('Gb','F#');
+    const oct     = parseInt(parts[2]);
+    const baseIdx = NOTE_NAMES.indexOf(pc);
+    if (baseIdx < 0) return null;
+    const newMidi = baseIdx + oct*12 + semitones;
+    return `${NOTE_NAMES[((newMidi%12)+12)%12]}${Math.floor(newMidi/12)}`;
+  } catch { return null; }
+}
+
+// ── NOTE SELECTION ────────────────────────────────────────────────────────────
+
+function getWeightedNextNote(currentNote, prevNote=null, forceDiff=false, forceNonRest=false, context={}) {
+  const rules = musicRules.transitionRules;
+  let candidates = rules[currentNote];
+  if (!candidates?.length) {
+    const all = Object.keys(rules).filter(p => p !== 'REST');
+    return all[Math.floor(Math.random()*all.length)] ?? 'G4';
+  }
+  let filtered = [...candidates];
+  if (forceDiff)    filtered = filtered.filter(c => c.note !== currentNote);
+  if (forceNonRest) filtered = filtered.filter(c => c.note !== 'REST');
+  if (!filtered.length) filtered = candidates;
+
+  // APPLY COMPOSITIONAL BIASES (GRAVITY, TENSION, PHRASE DESTINATION)
+  let biased = applyCompositionalBiases(filtered, context);
+
+  // APPLY BUCKET TENSION BIAS IF BUCKET IS IN CONTEXT
+  if (context.bucket) biased = applyBucketTensionBias(biased, context.bucket);
+
+  // APPLY SMOOTHNESS
+  const prevForSmooth = prevNote || currentNote;
+  const smoothed = biased.map(c => ({
+    note: c.note,
+    weight: applySmoothnessWeight(c.weight, getTransitionSmoothness(prevForSmooth, c.note)),
+  }));
+  const total = smoothed.reduce((s,i) => s+i.weight, 0);
+  if (total <= 0) return filtered[0]?.note ?? currentNote;
+  const norm = smoothed.map(c => ({ ...c, weight: c.weight/total }));
+  return weightedRandom(norm.map(c => ({ item:c.note, weight:c.weight }))) ?? currentNote;
+}
+
+function getSuspensionResolution(fromNote) {
+  const sus = musicRules.suspensionRules;
+  if (!sus?.length) return null;
+  const match = sus.filter(r => r.from === fromNote);
+  if (!match.length) return null;
+  return weightedRandom(match.map(r => ({ item:r.to, weight:r.weight })));
+}
+
+// ── HARMONY ───────────────────────────────────────────────────────────────────
+
+function getHarmonyNote(melodyNote, currentHarmonyNote) {
+  if (!melodyNote || melodyNote === 'REST') return 'REST';
+  const melPc  = melodyNote.replace(/\d/g,'');
+  const melMidi = pitchToMidi(melodyNote);
+  let candidates = [];
+
+  if (musicRules.harmonyRules?.[melodyNote]) {
+    candidates = musicRules.harmonyRules[melodyNote];
+    if (!Array.isArray(candidates) || !candidates.length || typeof candidates[0] !== 'object')
+      candidates = candidates.map ? candidates.map(c => ({ note:c, weight:1 })) : [];
+  }
+  if (!candidates.length && musicRules.pitchClassHarmonyRules?.[melPc])
+    candidates = musicRules.pitchClassHarmonyRules[melPc].map(c => ({ note:c.note, weight:c.weight }));
+
+  if (candidates.length) {
+    const prevH = currentHarmonyNote || melodyNote;
+    const smoothed = candidates.map(c => {
+      let smooth = 0.5;
+      if (melMidi !== null) {
+        const hm = pitchToMidi(c.note);
+        if (hm !== null) {
+          const iv = Math.abs(melMidi - hm) % 12;
+          smooth = iv<=2 ? 0.95 : iv<=4 ? 0.85 : iv===5 ? 0.70 : iv===6 ? 0.30 : iv===7 ? 0.75 : 0.50;
+          if (prevH && prevH !== 'REST') {
+            const pm = pitchToMidi(prevH);
+            if (pm !== null) {
+              const leap = Math.abs(hm - pm);
+              if (leap > 12) smooth *= 0.6;
+              else if (leap > 7) smooth *= 0.8;
+            }
+          }
+        }
+      }
+      return { note:c.note, weight:applySmoothnessWeight(c.weight, smooth) };
+    });
+    const total = smoothed.reduce((s,i) => s+i.weight, 0);
+    if (total > 0) smoothed.forEach(c => c.weight /= total);
+    const sel = weightedRandom(smoothed.map(c => ({ item:c.note, weight:c.weight })));
+    if (sel) {
+      if (sel.match(/\d$/)) return sel;
+      if (melMidi !== null) {
+        for (const oct of [3,4]) {
+          const cand = `${sel}${oct}`;
+          const cm = pitchToMidi(cand);
+          if (cm !== null && melMidi - cm > 0 && melMidi - cm < 13) return cand;
+        }
+      }
+      return `${sel}4`;
+    }
+  }
+  return getNoteAtInterval(melodyNote, -4) ?? melodyNote;
+}
+
+// ── SAMPLE MAPPING → BUCKET-BASED ────────────────────────────────────────────
+// OLD: PITCHTOSAMPLENAME(PITCH, VOICE) USING LOWBUFFERS/HIGHBUFFERS/BARBUFFERS
+// NEW: PITCHTOSAMPLENAME(PITCH, BUCKET) USING LONGBUFFERS/MEDBUFFERS/SHORTBUFFERS
+
+const missingSampleWarned = new Set();
+
+function pitchToSampleName(pitch, bucket) {
+  if (!pitch || pitch === 'REST') return null;
+  const base = pitch.replace(/\d/g,'').replace('♯','#').replace('♭','-');
+  const PC_MAP = {
+    'G':'g','G#':'g','Gb':'g','A':'a','A#':'a','Ab':'a',
+    'B':'b','B#':'b','Bb':'b','C':'c','C#':'c','Cb':'c',
+    'D':'d','D#':'d','Db':'d','E':'e','E#':'e','Eb':'e',
+    'F':'f','F#':'f','Fb':'f',
+  };
+
+  // PREFER THE NOTE-NAME THE ANALYZER ALREADY CHOSE FOR THIS PITCH+BUCKET
+  const pc = base;
+  const preferred = BUCKET_BY_PITCH[pc]?.[bucket];
+  if (preferred) {
+    const buffers = bucket === 'long' ? longBuffers : bucket === 'medium' ? medBuffers : shortBuffers;
+    if (buffers[preferred]) return preferred;
+  }
+
+  // FALLBACK: DERIVE FROM PITCH CLASS + OCTAVE (G2 = HIGH G IN OCTAVE 5+)
+  let sample = PC_MAP[base] ?? 'c';
+  if ((base === 'G' || base === 'G#') && pitch.includes('5')) sample = 'g2';
+
+  const buffers = bucket === 'long' ? longBuffers : bucket === 'medium' ? medBuffers : shortBuffers;
+  if (!buffers[sample]) {
+    const key = `${pitch}:${bucket}`;
+    if (!missingSampleWarned.has(key)) {
+      logToConsole(`⚠️ Missing ${bucket}/${sample}.m4a for ${pitch} — fallback 'g'`);
+      missingSampleWarned.add(key);
+    }
+    return buffers['g'] ? 'g' : null;
+  }
+  return sample;
+}
+
+// ── PLAY NOTE ─────────────────────────────────────────────────────────────────
+// ENVELOPE SHAPE IS NOW DERIVED FROM THE BUCKET:
+//   LONG   → PAD-STYLE: SLOW ATTACK, LONG RELEASE, LEGATO OVERLAP
+//   MEDIUM → MELODIC:   MEDIUM ATTACK/RELEASE
+//   SHORT  → STACCATO:  SHARP ATTACK, VERY SHORT RELEASE, TIGHT CUTOFF
+
+function playNote(bucket, pitch, durationSec, gainNode, atTime) {
+  // UPDATE TELEMETRY
+  const delay = Math.max(0, (atTime - actx.currentTime) * 1000);
+  setTimeout(() => {
+    if (!pitch || pitch === 'REST') {
+      if (bucket === 'long')   telemetryLong.innerText   = '—';
+      if (bucket === 'medium') telemetryMedium.innerText = '—';
+      if (bucket === 'short')  telemetryShort.innerText  = '—';
+      return;
+    }
+    const label = pitch.toUpperCase();
+    if (bucket === 'long')   { telemetryLong.innerText = label; telemetryTension.innerText = getTension(pitch).toFixed(2); }
+    if (bucket === 'medium') telemetryMedium.innerText = label;
+    if (bucket === 'short')  telemetryShort.innerText  = label;
+  }, delay);
+
+  if (!pitch || pitch === 'REST') return;
+  const sample = pitchToSampleName(pitch, bucket);
+  if (!sample) return;
+  const buffers = bucket === 'long' ? longBuffers : bucket === 'medium' ? medBuffers : shortBuffers;
+  const buffer  = buffers[sample];
+  if (!buffer) return;
+
+  // ENVELOPE PARAMETERS BY BUCKET
+  let attack, holdDur, release, legato;
+  if (bucket === 'long') {
+    attack   = Math.min(0.40, durationSec * 0.18);
+    release  = Math.min(0.60, durationSec * 0.35);
+    legato   = 0.50;
+  } else if (bucket === 'medium') {
+    attack   = Math.min(0.12, durationSec * 0.08);
+    release  = Math.min(0.28, durationSec * 0.28);
+    legato   = 0.14;
+  } else {
+    // SHORT — STACCATO: SNAP ATTACK, TIGHT RELEASE, NO LEGATO
+    attack   = Math.min(0.04, durationSec * 0.04);
+    release  = Math.min(0.12, durationSec * 0.20);
+    legato   = 0.02;
+  }
+  const holdEnd = atTime + durationSec - release;
+  const stopAt  = atTime + durationSec + legato;
+
+  try {
+    const source   = actx.createBufferSource();
+    const noteGain = actx.createGain();
+    source.buffer = buffer;
+    source.connect(noteGain);
+    noteGain.connect(gainNode);
+    noteGain.gain.setValueAtTime(0, atTime);
+    noteGain.gain.linearRampToValueAtTime(1, atTime + attack);
+    noteGain.gain.setValueAtTime(1, Math.max(atTime + attack, holdEnd));
+    noteGain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+    source.start(atTime);
+    source.stop(stopAt);
+  } catch(err) {
+    console.warn(`playNote error [${bucket}] ${pitch}:`, err);
+  }
+}
+
+// ── VOICE STATE ───────────────────────────────────────────────────────────────
+
+const RESYNC_EVERY_MEASURES = 4;
+
+function makeVoiceState() {
+  return {
+    currentNote: null, prevNote: null,
+    consecutiveSame: 0, consecutiveRest: 0,
+    motifQueue: [], rhythmQueue: [],
+    pendingSuspension: null, nextNoteTime: 0,
+    measuresSinceSync: 0, lastDurationType: null,
+    currentBucket: 'medium',
+  };
+}
+
+function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
+  const elapsed       = atTime - engineStartTime;
+  const totalMeasures = elapsed / MEASURE_DUR_SEC;
+  generationState.phraseMeasureCounter = totalMeasures;
+
+  updateStructuralRole(totalMeasures);
+
+  const songFrac = (totalMeasures % 64) / 64;
+  generationState.targetTension = getTargetTensionFromArc(songFrac);
+
+  // 4-MEASURE PHRASE DESTINATION UPDATE
+  if (totalMeasures % 4 < 0.1 && generationState.phraseMeasureCounter > 0) {
+    const dests = compRules?.phrase_destination_rules?.['4_bar_phrase'];
+    if (dests) {
+      generationState.destinationChord = weightedRandomFromObj(dests);
+    }
+  }
+
+  // EXPECTATION DELAY
+  const isNearPhraseEnd = (totalMeasures % 4) > 3.5;
+  const delayProb = compRules?.expectation_rules?.delay_probability ?? 0.18;
+  if (isNearPhraseEnd && Math.random() < delayProb && !generationState.expectationDelayActive) {
+    generationState.expectationDelayActive = true;
+    logToConsole('⏳ Expectation delay — holding');
+    state.nextNoteTime = atTime + (compRules?.expectation_rules?.average_delay_length ?? 1) * BEAT_SEC;
+    return { note:'REST', tension:0, bucket: state.currentBucket };
+  } else {
+    generationState.expectationDelayActive = false;
+  }
+
+  // ── PICK BUCKET FOR THIS NOTE ──────────────────────────────────────────────
+  // FOR THE BAR VOICE (LONG PADS), ALWAYS USE 'LONG'.
+  // FOR MELODY/HARMONY, USE BUCKET TRANSITIONS FROM RULES.
+  let bucket;
+  if (voiceRole === 'bar') {
+    bucket = 'long';
+  } else {
+    bucket = pickNextBucket(state.currentBucket);
+  }
+  state.currentBucket = bucket;
+
+  // ── DURATION — BIASED BY BUCKET ────────────────────────────────────────────
+  const durSec = getBucketRhythmDuration(bucket, atTime, state.lastDurationType);
+
+  // ── NOTE SELECTION ─────────────────────────────────────────────────────────
+  let noteToPlay = null;
+
+  if (state.pendingSuspension) {
+    noteToPlay = state.pendingSuspension;
+    state.pendingSuspension = null;
+  } else if (state.motifQueue.length > 0) {
+    noteToPlay = state.motifQueue.shift();
+  } else {
+    if (!state.currentNote) {
+      const all = Object.keys(musicRules.transitionRules).filter(p => p !== 'REST');
+      state.currentNote = all[Math.floor(Math.random()*all.length)] ?? 'G4';
+    }
+    const forceDiff    = state.consecutiveSame >= 4;
+    const forceNonRest = state.consecutiveRest >= 3;
+
+    // SUSPENSION (MELODY ONLY)
+    if (voiceRole === 'melody') {
+      const suspWeight = parseFloat(document.getElementById('suspWeight').value);
+      if (getTension(state.currentNote) >= 0.4 && Math.random() < suspWeight) {
+        const res = getSuspensionResolution(state.currentNote);
+        if (res) {
+          noteToPlay = state.currentNote;
+          state.pendingSuspension = res;
+        }
+      }
+    }
+
+    if (!noteToPlay) {
+      if (voiceRole === 'harmony' && currentMelodyNote) {
+        noteToPlay = getHarmonyNote(currentMelodyNote, state.currentNote);
+      } else if (voiceRole === 'bar') {
+        noteToPlay = getSmoothBarCandidate(state.currentNote, false);
+      } else {
+        const phraseEnd = (totalMeasures % 4) > 3.5;
+        noteToPlay = getWeightedNextNote(
+          state.currentNote, state.prevNote, forceDiff, forceNonRest,
+          { targetTension: generationState.targetTension, phraseEnd, bucket }
+        );
+      }
+    }
+
+    // MOTIF INJECTION (MELODY ONLY)
+    if (voiceRole === 'melody') {
+      const tail = maybeInjectMotif(state.currentNote);
+      if (tail?.length) state.motifQueue.push(...tail);
+    }
+  }
+
+  // DURATION TYPE FOR RHYTHM FLOW
+  const durType = Object.entries(DUR_TYPE_TO_MULT).find(([,m]) => Math.abs(durTypeSec(Object.keys(DUR_TYPE_TO_MULT).find(t => DUR_TYPE_TO_MULT[t]===m) ?? 'quarter') - durSec) < 0.01)?.[0] ?? 'quarter';
+  state.lastDurationType = durType;
+
+  // GAIN NODE SELECTED BY BUCKET
+  const gainNode = bucket === 'long' ? longGain : bucket === 'medium' ? medGain : shortGain;
+  playNote(bucket, noteToPlay, durSec, gainNode, atTime);
+
+  // UPDATE STATE
+  if (noteToPlay === 'REST') {
+    state.consecutiveRest++;
+    state.consecutiveSame = 0;
+  } else {
+    state.consecutiveSame  = noteToPlay === state.currentNote ? state.consecutiveSame+1 : 0;
+    state.consecutiveRest  = 0;
+  }
+  state.prevNote     = state.currentNote;
+  state.currentNote  = noteToPlay;
+  state.nextNoteTime = atTime + durSec;
+
+  // RESYNC SNAP
+  const measIdx    = (state.nextNoteTime - engineStartTime) / MEASURE_DUR_SEC;
+  const fractional = measIdx % RESYNC_EVERY_MEASURES;
+  const nearBound  = fractional < 0.5 || fractional > (RESYNC_EVERY_MEASURES - 0.5);
+  if (nearBound) {
+    const snapped = engineStartTime + Math.round(measIdx/RESYNC_EVERY_MEASURES)*RESYNC_EVERY_MEASURES*MEASURE_DUR_SEC;
+    const drift   = Math.abs(snapped - state.nextNoteTime);
+    if (drift > 0.001 && drift < BEAT_SEC * 0.5) {
+      state.nextNoteTime = snapped;
+      state.rhythmQueue  = [];
+      logToConsole(`↺ ${voiceRole} resynced — drift ${(drift*1000).toFixed(1)}ms`);
+    }
+  }
+
+  return { note: noteToPlay, tension: getTension(noteToPlay), bucket };
+}
+
+// ── BAR CENTER LAYER ──────────────────────────────────────────────────────────
+// UNCHANGED LOGIC — USES THE FIXED FULL-PITCH-KEY BARCENTERRULES FROM RULES.JS V6.0
+
+function getSmoothBarCandidate(prevBarNote, forceDifferent=false) {
+  if (!musicRules.barCenterRules || !Object.keys(musicRules.barCenterRules).length) {
+    const notes = ['G3','C4','D4','E4','G4'];
+    if (forceDifferent && prevBarNote) {
+      const others = notes.filter(n => n !== prevBarNote);
+      return others[Math.floor(Math.random()*others.length)] ?? notes[0];
+    }
+    return notes[Math.floor(Math.random()*notes.length)];
+  }
+  let candidates = musicRules.barCenterRules[prevBarNote];
+  if (!candidates?.length) {
+    const all    = Object.keys(musicRules.barCenterRules);
+    candidates   = musicRules.barCenterRules[all[Math.floor(Math.random()*all.length)]] ?? [];
+    if (!candidates.length) return 'G3';
+  }
+  let filtered = [...candidates];
+  if (forceDifferent && prevBarNote) {
+    filtered = filtered.filter(c => c.note !== prevBarNote);
+    if (!filtered.length) {
+      const others = Object.keys(musicRules.barCenterRules).filter(n => n !== prevBarNote);
+      return others.length ? others[Math.floor(Math.random()*others.length)] : prevBarNote;
+    }
+  }
+  const prevMidi = pitchToMidi(prevBarNote);
+  const smoothed = filtered.map(c => {
+    let smooth = 0.5;
+    if (prevMidi !== null) {
+      const nm = pitchToMidi(c.note);
+      if (nm !== null) {
+        const iv = Math.abs(nm - prevMidi);
+        smooth = iv<=2 ? 0.95 : iv<=5 ? 0.70 : iv<=7 ? 0.40 : 0.20;
+      }
+    }
+    return { item:c.note, weight: applySmoothnessWeight(c.weight, smooth) };
+  });
+  const total = smoothed.reduce((s,i) => s+i.weight, 0);
+  if (total <= 0) return filtered[0]?.note ?? prevBarNote;
+  const norm = smoothed.map(c => ({ ...c, weight: c.weight/total }));
+  return weightedRandom(norm) ?? prevBarNote;
+}
+
+// ── SCHEDULERS ────────────────────────────────────────────────────────────────
+
+function scheduleMelody() {
+  if (!running) return;
+  const now = actx.currentTime;
+  while (melodyState.nextNoteTime < now + LOOK_AHEAD_SEC) {
+    const r = tickVoice(melodyState, 'melody', melodyState.nextNoteTime);
+    tensionArc.push(r.tension);
+    if (tensionArc.length > 44) tensionArc.shift();
+  }
+  schedulerTimer = setTimeout(scheduleMelody, SCHEDULE_INTERVAL_MS);
+}
+
+function scheduleHarmony() {
+  if (!running) return;
+  const now     = actx.currentTime;
+  const curMel  = melodyState?.currentNote ?? null;
+  while (harmonyState.nextNoteTime < now + LOOK_AHEAD_SEC) {
+    tickVoice(harmonyState, 'harmony', harmonyState.nextNoteTime, curMel);
+  }
+  harmonySchedulerTimer = setTimeout(scheduleHarmony, SCHEDULE_INTERVAL_MS);
+}
+
+function scheduleBar() {
+  if (!running) return;
+  const now = actx.currentTime;
+  while (barState.nextNoteTime < now + LOOK_AHEAD_SEC) {
+    const r = tickVoice(barState, 'bar', barState.nextNoteTime);
+    barState.nextNoteTime = barState.nextNoteTime + MEASURE_DUR_SEC;
+  }
+  barSchedulerTimer = setTimeout(scheduleBar, SCHEDULE_INTERVAL_MS);
+}
+
+// ── VISUALIZER ────────────────────────────────────────────────────────────────
+
+const canvas  = document.getElementById('matrixCanvas');
+const ctx2d   = canvas.getContext('2d');
+let points    = Array(35).fill(0).map(() => Math.random()*350);
+const tensionArc = new Array(44).fill(0);
+
+function resizeCanvas() {
+  const parent = canvas.parentElement;
+  canvas.height = Math.min(320, Math.max(200, parent.clientHeight - 60));
+  canvas.width  = parent.clientWidth;
+}
+window.addEventListener('resize', resizeCanvas);
+setTimeout(resizeCanvas, 10);
+
+function renderVisuals() {
+  if (!canvas || !ctx2d) return;
+  ctx2d.fillStyle = 'rgba(23,0,50,0.15)';
+  ctx2d.fillRect(0, 0, canvas.width, canvas.height);
+
+  // SUBTLE GRID
+  ctx2d.strokeStyle = 'rgba(131,12,222,0.06)';
+  ctx2d.lineWidth   = 1;
+  const gs = 32;
+  for (let x=0; x<canvas.width; x+=gs)  { ctx2d.beginPath(); ctx2d.moveTo(x,0); ctx2d.lineTo(x,canvas.height); ctx2d.stroke(); }
+  for (let y=0; y<canvas.height; y+=gs) { ctx2d.beginPath(); ctx2d.moveTo(0,y); ctx2d.lineTo(canvas.width,y); ctx2d.stroke(); }
+
+  // TENSION WAVEFORM
+  if (tensionArc.length > 1) {
+    const segW   = canvas.width / points.length;
+    const curT   = tensionArc[tensionArc.length-1] || 0;
+
+    // GLOW — TWO PASSES: WIDE SOFT, NARROW BRIGHT
+    for (const [lw, blur, alpha] of [[6, 18, 0.3],[2, 6, 0.9]]) {
+      const color = curT > 0.45
+        ? `rgba(255,105,180,${alpha})`
+        : `rgba(0,255,255,${alpha})`;
+      ctx2d.strokeStyle = color;
+      ctx2d.lineWidth   = lw;
+      ctx2d.shadowBlur  = blur;
+      ctx2d.shadowColor = curT > 0.45 ? '#ff69b4' : '#00ffff';
+      ctx2d.beginPath();
+      for (let i=0; i<points.length; i++) {
+        const mappedT  = tensionArc[Math.floor((i/points.length)*tensionArc.length)] || 0;
+        const modBias  = mappedT * 40 * Math.sin(Date.now()*0.005 + i);
+        points[i]     += (Math.random()*6-3);
+        points[i]      = Math.max(100, Math.min(canvas.height-60, points[i]));
+        const x = i*segW + segW/2;
+        const y = points[i] + modBias;
+        i===0 ? ctx2d.moveTo(x,y) : ctx2d.lineTo(x,y);
+      }
+      ctx2d.stroke();
+    }
+    ctx2d.shadowBlur = 0;
+  }
+
+  // WATERMARK TEXT
+  ctx2d.fillStyle = '#67FEBD';
+  ctx2d.font      = '9px "Share Tech Mono", monospace';
+  ctx2d.fillText('meowRE-MIX', 14, 20);
+  ctx2d.fillStyle = 'rgba(103,254,189,0.5)';
+  ctx2d.fillText('PROCEDURAL AUDIO ENGINE v6.0', 14, 34);
+
+  requestAnimationFrame(renderVisuals);
+}
+renderVisuals();
+
+// ── ASSET LOADING ─────────────────────────────────────────────────────────────
+
+async function loadSamples(bucket, bufMap) {
+  const root = AUDIO_PATHS[bucket] ?? `../projects/audio/notes/${bucket}`;
+  let loaded = 0;
+  await Promise.all(SAMPLE_NAMES.map(async s => {
+    const url = `${root}/${s}.m4a`;
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      bufMap[s] = await actx.decodeAudioData(await r.arrayBuffer());
+      loaded++;
+    } catch { console.warn(`missing: ${url}`); }
+  }));
+  return loaded;
+}
+
+async function loadAllAssets() {
+  logToConsole('Loading sample banks...');
+  const [lLd, mLd, sLd] = await Promise.all([
+    loadSamples('long',   longBuffers),
+    loadSamples('medium', medBuffers),
+    loadSamples('short',  shortBuffers),
+  ]);
+  logToConsole(`Samples — long:${lLd} · med:${mLd} · short:${sLd}`);
+
+  for (const name of ['ambience','beat']) {
+    try {
+      const r = await fetch(`../projects/audio/${name}.m4a`);
+      if (r.ok) {
+        const buf = await actx.decodeAudioData(await r.arrayBuffer());
+        if (name === 'ambience') ambienceBuffer = buf;
+        else                     beatBuffer = buf;
+        logToConsole(`Stem loaded: ${name}.m4a`);
+      }
+    } catch { logToConsole(`⚠️ missing ../projects/audio/${name}.m4a`); }
+  }
+  playBtn.disabled = false;
+  logToConsole('All assets linked. Engine ready.');
+}
+loadAllAssets();
+
+// ── START / STOP ──────────────────────────────────────────────────────────────
+
+async function startEngine() {
+  if (running) return;
+  await actx.resume();
+  const rawNow    = actx.currentTime + 0.05;
+  engineStartTime = Math.ceil(rawNow / MEASURE_DUR_SEC) * MEASURE_DUR_SEC;
+
+  longGain    = actx.createGain();
+  medGain     = actx.createGain();
+  shortGain   = actx.createGain();
+  ambienceGain = actx.createGain();
+  beatGain    = actx.createGain();
+  [longGain, medGain, shortGain, ambienceGain, beatGain].forEach(g => g.connect(actx.destination));
+
+  longGain.gain.value    = parseFloat(document.getElementById('longVol').value);
+  medGain.gain.value     = parseFloat(document.getElementById('medVol').value);
+  shortGain.gain.value   = parseFloat(document.getElementById('shortVol').value);
+  ambienceGain.gain.value = parseFloat(document.getElementById('ambVol').value);
+  beatGain.gain.value    = parseFloat(document.getElementById('beatVol').value);
+
+  document.getElementById('longVol').oninput  = e => longGain.gain.value   = e.target.value;
+  document.getElementById('medVol').oninput   = e => medGain.gain.value    = e.target.value;
+  document.getElementById('shortVol').oninput = e => shortGain.gain.value  = e.target.value;
+  document.getElementById('ambVol').oninput   = e => ambienceGain.gain.value = e.target.value;
+  document.getElementById('beatVol').oninput  = e => beatGain.gain.value   = e.target.value;
+
+  if (ambienceBuffer) {
+    ambienceSource = actx.createBufferSource();
+    ambienceSource.buffer = ambienceBuffer; ambienceSource.loop = true;
+    ambienceSource.connect(ambienceGain); ambienceSource.start(engineStartTime);
+  }
+  if (beatBuffer) {
+    beatSource = actx.createBufferSource();
+    beatSource.buffer   = beatBuffer; beatSource.loop = true;
+    beatSource.loopStart = 0; beatSource.loopEnd = beatBuffer.duration;
+    beatSource.connect(beatGain); beatSource.start(engineStartTime);
+  }
+
+  const firstNote = engineStartTime + MEASURE_DUR_SEC;
+  melodyState  = makeVoiceState(); melodyState.nextNoteTime  = firstNote;
+  harmonyState = makeVoiceState(); harmonyState.nextNoteTime = firstNote;
+
+  // BAR STATE: INITIAL PITCH FROM BARCENTERRULES (FULL PITCH STRINGS NOW)
+  const barKeys = Object.keys(musicRules.barCenterRules ?? {});
+  const initBar = barKeys.length
+    ? barKeys[Math.floor(Math.random()*barKeys.length)]
+    : 'G3';
+  barState = { currentNote: initBar, prevNote: null, nextNoteTime: firstNote,
+               consecutiveSame: 0, currentBucket: 'long', lastDurationType: null,
+               motifQueue: [], rhythmQueue: [], pendingSuspension: null,
+               prevNote: null, consecutiveRest: 0, measuresSinceSync: 0 };
+
+  generationState = {
+    currentStructuralRole:  'setup',
+    measuresSinceRoleChange: 0,
+    nextRoleChangeMeasure:   4,
+    targetTension:           0.3,
+    phraseMeasureCounter:    0,
+    destinationChord:        'tonic',
+    lastMotifMeasure:        -100,
+    expectationDelayActive:  false,
+    currentBucket:           'medium',
+  };
+
+  running = true;
+  scheduleMelody();
+  scheduleHarmony();
+  scheduleBar();
+  playBtnImg.src = '../static/images/pause.png';
+  logToConsole(`Engine active — compRules:${compRules ? '✓' : '✗'} · smoothness:${SMOOTHNESS_BIAS} · buckets:[${Object.keys(BUCKET_WEIGHTS).join(',')}]`);
+}
+
+function stopEngine() {
+  running = false;
+  [schedulerTimer, harmonySchedulerTimer, barSchedulerTimer].forEach(t => t && clearTimeout(t));
+  try {
+    if (ambienceSource) { ambienceSource.stop(); ambienceSource.disconnect(); ambienceSource = null; }
+    if (beatSource)     { beatSource.stop();     beatSource.disconnect();     beatSource     = null; }
+    if (longGain)   longGain.disconnect();
+    if (medGain)    medGain.disconnect();
+    if (shortGain)  shortGain.disconnect();
+    if (ambienceGain) ambienceGain.disconnect();
+    if (beatGain)   beatGain.disconnect();
+  } catch {}
+  playBtnImg.src = '../static/images/play.png';
+  telemetryLong.innerText    = '—';
+  telemetryMedium.innerText  = '—';
+  telemetryShort.innerText   = '—';
+  telemetryTension.innerText = '0.00';
+  logToConsole('Engine halted.');
+}
+
+playBtn.addEventListener('click', () => running ? stopEngine() : startEngine());
+
+</script>
+</body>
+</html>
