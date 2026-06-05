@@ -445,7 +445,7 @@ body::after {
      AUDIO ENGINE
 ════════════════════════════════════════════════════════════════════════════ -->
 <script type="module">
-import { musicRules, ruleLibrary } from './rules.js';
+import { musicRules, ruleLibrary } from '/forms/rules.js';
 
 
 // RULELIBRARY REPLACES THE OLD RULE_LIBRARY.JSON FETCH — IT'S NOW EMBEDDED
@@ -1393,7 +1393,7 @@ async function loadAllAssets() {
 
  const STEM_BASE = 'https://uknctjnhzxedyxlioloq.supabase.co/storage/v1/object/public/meowREMIX';
 
-  for (const name of ['ambience', 'beats']) {
+  for (const name of ['ambience', 'beat']) {
       try {
           const r = await fetch(`${STEM_BASE}/${name}.m4a`);
           if (r.ok) {
