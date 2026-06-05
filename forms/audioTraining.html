@@ -301,12 +301,13 @@
           <img src="/static/images/dislike.png" alt="Dislike"> DISLIKE
         </button>
       </div>
+      <div id="prefStatus" style="margin-top:10px;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:0.08em;"></div>
     </div>
   </div>
 </main>
 
 <script type="module">
-import { musicRules, ruleLibrary } from '/forms/rules.js';
+import { musicRules, ruleLibrary } from '/api/audio/rules.js';
 
 // ── COMPOSITION RULES ────────────────────────────────────────────────────────
 const compRules = ruleLibrary?.rule_library ?? null;
@@ -327,6 +328,43 @@ const BUCKET_TENSION_MAP = NLB.bucketTensionMap ?? { avgTensionByBucket:{}, pitc
 const smoothnessRules = musicRules.smoothnessRules ?? {
   transitionSmoothness:{}, rhythmFlowRules:[], smoothnessBias:0.85,
 };
+
+// ── PREFERENCE SIGNALS (from RLHF training data baked into rules.js) ─────────
+const PREF = musicRules.preferenceSignals ?? {};
+const PREF_TOTAL   = PREF.total_ratings ?? 0;
+const PREF_LIKED   = PREF.overall_like_rate ?? null;
+
+// Build fast lookup maps from note_transition_signals
+// pref_score is +1 (always liked) to -1 (always disliked)
+const LIKED_TRANS_BOOST  = {};   // "A4->B4" -> boost multiplier > 1
+const DISLIKED_TRANS_PEN = {};   // "G4->F#4" -> penalty multiplier < 1
+const PREF_BOOST_STRENGTH = 2.5; // how strongly to reward liked transitions
+const PREF_PEN_STRENGTH   = 0.3; // how much to penalise disliked transitions
+
+(PREF.note_transition_signals?.top_liked ?? []).forEach(t => {
+  const key = `${t.from}->${t.to}`;
+  // Scale boost by preference_score (0→1) so weak signals don't over-steer
+  LIKED_TRANS_BOOST[key] = 1 + (PREF_BOOST_STRENGTH - 1) * t.preference_score;
+});
+(PREF.note_transition_signals?.top_disliked ?? []).forEach(t => {
+  const key = `${t.from}->${t.to}`;
+  DISLIKED_TRANS_PEN[key] = PREF_PEN_STRENGTH + (1 - PREF_PEN_STRENGTH) * (1 + t.preference_score);
+});
+
+// Liked bucket distribution — nudge bucket weights toward what got liked
+const LIKED_BUCKET_DIST = PREF.liked_patterns?.avg_bucket_dist ?? null;
+
+function preferenceBoost(fromPitch, toPitch) {
+  // Returns a weight multiplier for a from->to pitch transition.
+  // Strips octave numbers so "G4->A4" matches signal key "G->A".
+  if (!fromPitch || !toPitch || PREF_TOTAL === 0) return 1.0;
+  const from = fromPitch.replace(/\d/g, '');
+  const to   = toPitch.replace(/\d/g, '');
+  const key  = `${from}->${to}`;
+  if (LIKED_TRANS_BOOST[key])  return LIKED_TRANS_BOOST[key];
+  if (DISLIKED_TRANS_PEN[key]) return DISLIKED_TRANS_PEN[key];
+  return 1.0;
+}
 
 const TENSION_MAP = {
   'G':0.0,'A':0.2,'B':0.1,'C':0.3,'D':0.1,
@@ -529,9 +567,11 @@ function getWeightedNextNote(currentNote,prevNote=null,forceDiff=false,forceNonR
   if(context.bucket) biased=applyBucketTensionBias(biased,context.bucket);
   const prevForSmooth=prevNote||currentNote;
   const smoothed=biased.map(c=>({note:c.note,weight:applySmoothnessWeight(c.weight,getTransitionSmoothness(prevForSmooth,c.note))}));
-  const total=smoothed.reduce((s,i)=>s+i.weight,0);
+  // Apply RLHF preference boost — nudge toward liked transitions, away from disliked
+  const boosted=smoothed.map(c=>({...c,weight:c.weight*preferenceBoost(currentNote,c.note)}));
+  const total=boosted.reduce((s,i)=>s+i.weight,0);
   if(total<=0) return filtered[0]?.note??currentNote;
-  const norm=smoothed.map(c=>({...c,weight:c.weight/total}));
+  const norm=boosted.map(c=>({...c,weight:c.weight/total}));
   return weightedRandom(norm.map(c=>({item:c.note,weight:c.weight})))??currentNote;
 }
 function getSuspensionResolution(fromNote){
@@ -899,6 +939,20 @@ async function loadAllAssets(){
     loadSamples('short',shortBuffers),
   ]);
   playBtn.disabled=false;
+
+  // Show how many preference ratings are baked into current rules
+  const statusEl = document.getElementById('prefStatus');
+  if (statusEl) {
+    if (PREF_TOTAL === 0) {
+      statusEl.textContent = 'NO TRAINING DATA YET';
+      statusEl.style.color = 'var(--text-dim)';
+    } else {
+      const likeRate = PREF_LIKED !== null ? Math.round(PREF_LIKED * 100) : '?';
+      statusEl.innerHTML =
+        `<span style="color:var(--neon-green)">▲ ${PREF_TOTAL} ratings baked in</span>` +
+        ` &nbsp;·&nbsp; ${likeRate}% liked`;
+    }
+  }
 }
 loadAllAssets();
 
