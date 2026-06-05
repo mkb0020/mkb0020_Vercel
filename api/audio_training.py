@@ -21,6 +21,8 @@ def submit_preference():
         if field not in data:
             return jsonify({'error': f'Missing field: {field}'}), 400
 
+    source = data.get('source', 'audioTraining')  # allow callers to tag origin
+
     rating = data['rating']
     if rating not in ('like', 'dislike'):
         return jsonify({'error': 'Rating must be like or dislike'}), 400
@@ -42,10 +44,10 @@ def submit_preference():
         cur.execute(
             """INSERT INTO audio_preferences
                (phrase_id, rating, bpm, measures, phrase_json,
-                suspension_risk, long_volume, medium_volume, short_volume)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                suspension_risk, long_volume, medium_volume, short_volume, source)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
             (phrase_id, rating, bpm, measures, phrase_json,
-             susp, lvol, mvol, svol)
+             susp, lvol, mvol, svol, source)
         )
         conn.commit()
         cur.close()

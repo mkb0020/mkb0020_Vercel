@@ -357,7 +357,7 @@ let longGain, medGain, shortGain;
 let currentPhrase = null;
 let phraseTimeout = null;
 let engineRunning = false;
-let engineStartTime = 0;
+let engineStartTime = 0;               // <-- FIX: declare global
 
 // ── UI ELEMENTS ──────────────────────────────────────────────────────────────
 const playBtn   = document.getElementById('playBtn');
@@ -744,9 +744,9 @@ function tickVoiceSim(state,voiceRole,atTime,currentMelodyNote=null){
 function generatePhrase(){
   const phraseId=crypto.randomUUID();
   const notes=[];
-  const totalTime=4*MEASURE_DUR_SEC;
+  const MEASURE_COUNT = 2;          // <-- SHORTER PHRASE: 2 bars
+  const totalTime = MEASURE_COUNT * MEASURE_DUR_SEC;
   const beatSec=BEAT_SEC;
-  // re-initialize generation state
   generationState={
     currentStructuralRole:'setup', measuresSinceRoleChange:0, nextRoleChangeMeasure:4,
     targetTension:0.3, phraseMeasureCounter:0, destinationChord:'tonic', lastMotifMeasure:-100,
@@ -756,7 +756,6 @@ function generatePhrase(){
   const barKeys=Object.keys(musicRules.barCenterRules??{});
   barState.currentNote=barKeys.length?barKeys[Math.floor(Math.random()*barKeys.length)]:'G3';
   engineStartTime=0; // simulation time offset
-  // advance until all voices exceed totalTime
   while(melState.nextNoteTime<totalTime||harState.nextNoteTime<totalTime||barState.nextNoteTime<totalTime){
     const nextTimes=[];
     if(melState.nextNoteTime<totalTime) nextTimes.push({voice:'melody',time:melState.nextNoteTime});
@@ -778,7 +777,7 @@ function generatePhrase(){
       notes.push({pitch:ev.note,bucket:ev.bucket,startBeat:atTime/beatSec,duration:ev.durSec/beatSec,voice:'bar'});
     }
   }
-  return {phraseId,generatedAt:new Date().toISOString(),bpm:BPM,measures:4,notes};
+  return {phraseId,generatedAt:new Date().toISOString(),bpm:BPM,measures:MEASURE_COUNT,notes};
 }
 
 // ── PLAYBACK ─────────────────────────────────────────────────────────────────
@@ -810,7 +809,7 @@ function playPhrase(phrase){
       source.start(atTime); source.stop(stopAt);
     }catch(e){}
   });
-  const phraseDuration=4*MEASURE_DUR_SEC;
+  const phraseDuration = phrase.measures * MEASURE_DUR_SEC;
   phraseTimeout=setTimeout(()=>{
     engineRunning=false;
     likeBtn.disabled=false; dislikeBtn.disabled=false;
@@ -851,7 +850,7 @@ async function savePreference(rating){
 playBtn.addEventListener('click', async () => {
   if (engineRunning) return;
 
-  // User gesture – resume the audio context
+  // FIX: resume AudioContext only after a real user gesture
   if (actx.state === 'suspended') {
     await actx.resume();
   }
@@ -866,6 +865,7 @@ playBtn.addEventListener('click', async () => {
   currentPhrase = generatePhrase();
   playPhrase(currentPhrase);
 });
+
 likeBtn.addEventListener('click',async()=>{
   if(!currentPhrase||engineRunning)return;
   likeBtn.disabled=true; dislikeBtn.disabled=true;
@@ -902,8 +902,7 @@ async function loadAllAssets(){
 }
 loadAllAssets();
 
-// create gain nodes once audio context is ready
-// Create gain nodes immediately – they work once the context is running
+// ── GAIN NODES (created immediately, not inside resume) ──────────────────────
 longGain = actx.createGain();
 longGain.gain.value = parseFloat(longVol.value);
 longGain.connect(actx.destination);
