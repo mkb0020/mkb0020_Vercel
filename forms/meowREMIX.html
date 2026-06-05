@@ -475,10 +475,10 @@ const BUCKET_BY_PITCH = NLB.bucketByPitch ?? {};
 
 // AUDIO PATH ROOTS PER BUCKET (RELATIVE TO FORMS/)
 // E.G. { LONG: '../PROJECTS/AUDIO/NOTES/LONG', ... }
-const AUDIO_PATHS = NLB.audioPaths ?? {
-  long:   '../projects/audio/notes/long',
-  medium: '../projects/audio/notes/medium',
-  short:  '../projects/audio/notes/short',
+const AUDIO_PATHS = {
+    long:   'https://uknctjnhzxedyxlioloq.supabase.co/storage/v1/object/public/meowREMIX-long',
+    medium: 'https://uknctjnhzxedyxlioloq.supabase.co/storage/v1/object/public/meowREMIX-med',
+    short:  'https://uknctjnhzxedyxlioloq.supabase.co/storage/v1/object/public/meowREMIX-short',
 };
 
 // BUCKET → [{NEXT, WEIGHT}] — WHICH BUCKET NATURALLY FOLLOWS WHICH
@@ -1390,17 +1390,21 @@ async function loadAllAssets() {
   ]);
   logToConsole(`Samples — long:${lLd} · med:${mLd} · short:${sLd}`);
 
-  for (const name of ['ambience','beat']) {
-    try {
-      const r = await fetch(`../projects/audio/${name}.m4a`);
-      if (r.ok) {
-        const buf = await actx.decodeAudioData(await r.arrayBuffer());
-        if (name === 'ambience') ambienceBuffer = buf;
-        else                     beatBuffer = buf;
-        logToConsole(`Stem loaded: ${name}.m4a`);
-      }
-    } catch { logToConsole(`⚠️ missing ../projects/audio/${name}.m4a`); }
+ const STEM_BASE = 'https://uknctjnhzxedyxlioloq.supabase.co/storage/v1/object/public/meowREMIX';
+
+  for (const name of ['ambience', 'beats']) {
+      try {
+          const r = await fetch(`${STEM_BASE}/${name}.m4a`);
+          if (r.ok) {
+              const buf = await actx.decodeAudioData(await r.arrayBuffer());
+              if (name === 'ambience') ambienceBuffer = buf;
+              else                     beatBuffer     = buf;
+              logToConsole(`Stem loaded: ${name}.m4a`);
+          }
+      } catch { logToConsole(`⚠️ missing ${name}.m4a`); }
   }
+
+ 
   playBtn.disabled = false;
   logToConsole('All assets linked. Engine ready.');
 }
