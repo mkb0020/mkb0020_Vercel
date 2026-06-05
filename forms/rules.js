@@ -1,11 +1,11 @@
 // Auto-generated — meowREMIX Rule Engine v6.0
 // Source song  : amazinggrace+clair+greensleeves+hallelujah+house+itiswell+sacredhead+scarborough+shenandoah+wateriswide
-// Generated at : 2026-06-04T22:35:36.455754
+// Generated at : 2026-06-05T00:10:01.462973
 // DO NOT EDIT — regenerate via:  python scripts/rules.py
 
 export const metadata = {
   "source": "amazinggrace+clair+greensleeves+hallelujah+house+itiswell+sacredhead+scarborough+shenandoah+wateriswide",
-  "generatedAt": "2026-06-04T22:35:36.455754",
+  "generatedAt": "2026-06-05T00:10:01.462973",
   "totalMotifs": 7,
   "totalTransitions": 689,
   "totalSuspensions": 65,
@@ -4860,5808 +4860,1492 @@ export const musicRules = {
   "harmonyRules": {
     "G4": [
       {
-        "note": "G4",
-        "weight": 0.057915
-      },
-      {
-        "note": "F4",
-        "weight": 0.028958
-      },
-      {
         "note": "D4",
-        "weight": 0.082046
-      },
-      {
-        "note": "B-3",
-        "weight": 0.02027
+        "weight": 0.315037
       },
       {
         "note": "G3",
-        "weight": 0.101351
-      },
-      {
-        "note": "F3",
-        "weight": 0.023166
-      },
-      {
-        "note": "D3",
-        "weight": 0.024131
-      },
-      {
-        "note": "B-2",
-        "weight": 0.002896
-      },
-      {
-        "note": "C4",
-        "weight": 0.011583
-      },
-      {
-        "note": "B3",
-        "weight": 0.034749
-      },
-      {
-        "note": "E--6",
-        "weight": 0.043436
-      },
-      {
-        "note": "E--5",
-        "weight": 0.019305
-      },
-      {
-        "note": "C-6",
-        "weight": 0.024131
-      },
-      {
-        "note": "E-5",
-        "weight": 0.009653
-      },
-      {
-        "note": "A--5",
-        "weight": 0.009653
-      },
-      {
-        "note": "D--5",
-        "weight": 0.009653
-      },
-      {
-        "note": "F-5",
-        "weight": 0.028958
+        "weight": 0.158842
       },
       {
         "note": "E4",
-        "weight": 0.07722
+        "weight": 0.135016
       },
       {
-        "note": "B--4",
-        "weight": 0.014479
+        "note": "D3",
+        "weight": 0.08251
       },
       {
-        "note": "A--4",
-        "weight": 0.014479
+        "note": "G4",
+        "weight": 0.066184
       },
       {
-        "note": "F-4",
-        "weight": 0.009653
+        "note": "C4",
+        "weight": 0.052947
       },
       {
-        "note": "F#3",
-        "weight": 0.011583
+        "note": "B-3",
+        "weight": 0.046594
       },
       {
-        "note": "C-5",
-        "weight": 0.03861
-      },
-      {
-        "note": "E--4",
-        "weight": 0.019305
-      },
-      {
-        "note": "C-4",
-        "weight": 0.019305
-      },
-      {
-        "note": "F#4",
-        "weight": 0.023166
-      },
-      {
-        "note": "E-3",
-        "weight": 0.019305
-      },
-      {
-        "note": "E3",
-        "weight": 0.033784
+        "note": "B-2",
+        "weight": 0.033886
       },
       {
         "note": "C3",
-        "weight": 0.005792
+        "weight": 0.031768
       },
       {
-        "note": "E--3",
-        "weight": 0.014479
-      },
-      {
-        "note": "E-4",
-        "weight": 0.009653
-      },
-      {
-        "note": "A2",
-        "weight": 0.002896
-      },
-      {
-        "note": "B--6",
-        "weight": 0.004826
-      },
-      {
-        "note": "A3",
-        "weight": 0.011583
-      },
-      {
-        "note": "A--6",
-        "weight": 0.009653
-      },
-      {
-        "note": "G-6",
-        "weight": 0.004826
-      },
-      {
-        "note": "F-6",
-        "weight": 0.004826
-      },
-      {
-        "note": "B--3",
-        "weight": 0.004826
-      },
-      {
-        "note": "C-3",
-        "weight": 0.014479
-      },
-      {
-        "note": "A--3",
-        "weight": 0.019305
-      },
-      {
-        "note": "D-6",
-        "weight": 0.004826
-      },
-      {
-        "note": "B--2",
-        "weight": 0.009653
-      },
-      {
-        "note": "B--5",
-        "weight": 0.009653
-      },
-      {
-        "note": "D--4",
-        "weight": 0.004826
-      },
-      {
-        "note": "D--6",
-        "weight": 0.004826
-      },
-      {
-        "note": "E--7",
-        "weight": 0.004826
-      },
-      {
-        "note": "C-7",
-        "weight": 0.004826
-      },
-      {
-        "note": "G-3",
-        "weight": 0.009653
-      },
-      {
-        "note": "G--4",
-        "weight": 0.004826
-      },
-      {
-        "note": "F-3",
-        "weight": 0.004826
-      },
-      {
-        "note": "C--5",
-        "weight": 0.004826
+        "note": "E3",
+        "weight": 0.023826
       },
       {
         "note": "G2",
-        "weight": 0.009653
+        "weight": 0.022061
       },
       {
-        "note": "C#4",
-        "weight": 0.002896
+        "note": "B3",
+        "weight": 0.019855
+      },
+      {
+        "note": "D2",
+        "weight": 0.007501
+      },
+      {
+        "note": "B2",
+        "weight": 0.003971
+      }
+    ],
+    "G3": [
+      {
+        "note": "G3",
+        "weight": 0.417084
+      },
+      {
+        "note": "D3",
+        "weight": 0.311979
+      },
+      {
+        "note": "E3",
+        "weight": 0.09009
+      },
+      {
+        "note": "G2",
+        "weight": 0.066733
+      },
+      {
+        "note": "B-2",
+        "weight": 0.064064
+      },
+      {
+        "note": "B2",
+        "weight": 0.03003
+      },
+      {
+        "note": "C3",
+        "weight": 0.02002
       }
     ],
     "D5": [
       {
-        "note": "B-4",
-        "weight": 0.053595
+        "note": "G4",
+        "weight": 0.177636
       },
       {
-        "note": "G4",
-        "weight": 0.066994
+        "note": "B-4",
+        "weight": 0.159417
       },
       {
         "note": "D4",
-        "weight": 0.127289
+        "weight": 0.136643
       },
       {
         "note": "B-3",
-        "weight": 0.060295
+        "weight": 0.102482
       },
       {
         "note": "G3",
-        "weight": 0.049576
-      },
-      {
-        "note": "F3",
-        "weight": 0.009379
-      },
-      {
-        "note": "G2",
-        "weight": 0.008039
-      },
-      {
-        "note": "E--6",
-        "weight": 0.004466
-      },
-      {
-        "note": "E-3",
-        "weight": 0.024565
-      },
-      {
-        "note": "D5",
-        "weight": 0.024565
-      },
-      {
-        "note": "C5",
-        "weight": 0.053595
-      },
-      {
-        "note": "E4",
-        "weight": 0.029477
-      },
-      {
-        "note": "C4",
-        "weight": 0.045556
-      },
-      {
-        "note": "B--5",
-        "weight": 0.006699
-      },
-      {
-        "note": "E-2",
-        "weight": 0.008933
-      },
-      {
-        "note": "B4",
-        "weight": 0.040197
+        "weight": 0.075154
       },
       {
         "note": "A4",
-        "weight": 0.064761
+        "weight": 0.067752
       },
       {
-        "note": "D3",
-        "weight": 0.029031
-      },
-      {
-        "note": "F2",
-        "weight": 0.00536
-      },
-      {
-        "note": "G-5",
-        "weight": 0.002233
-      },
-      {
-        "note": "F4",
-        "weight": 0.017418
-      },
-      {
-        "note": "D--5",
-        "weight": 0.006699
-      },
-      {
-        "note": "C3",
-        "weight": 0.024118
-      },
-      {
-        "note": "E--5",
-        "weight": 0.008933
-      },
-      {
-        "note": "E-4",
-        "weight": 0.024565
-      },
-      {
-        "note": "B3",
-        "weight": 0.022331
-      },
-      {
-        "note": "B-2",
-        "weight": 0.011166
-      },
-      {
-        "note": "A--3",
-        "weight": 0.002233
-      },
-      {
-        "note": "A3",
-        "weight": 0.029031
-      },
-      {
-        "note": "E3",
-        "weight": 0.010719
-      },
-      {
-        "note": "C-7",
-        "weight": 0.004466
-      },
-      {
-        "note": "F-5",
-        "weight": 0.017865
+        "note": "B4",
+        "weight": 0.040993
       },
       {
         "note": "F#4",
-        "weight": 0.013399
+        "weight": 0.040993
       },
       {
-        "note": "D2",
-        "weight": 0.002233
+        "note": "A3",
+        "weight": 0.038716
       },
       {
-        "note": "E--4",
-        "weight": 0.013399
+        "note": "B3",
+        "weight": 0.030745
+      },
+      {
+        "note": "D5",
+        "weight": 0.028467
+      },
+      {
+        "note": "F3",
+        "weight": 0.027329
+      },
+      {
+        "note": "F4",
+        "weight": 0.016397
       },
       {
         "note": "F#3",
-        "weight": 0.00536
+        "weight": 0.015372
       },
       {
-        "note": "C#5",
-        "weight": 0.00536
+        "note": "D3",
+        "weight": 0.011387
       },
       {
-        "note": "E--3",
-        "weight": 0.013399
-      },
-      {
-        "note": "E-5",
-        "weight": 0.002233
-      },
-      {
-        "note": "C-6",
-        "weight": 0.002233
-      },
-      {
-        "note": "A--5",
-        "weight": 0.004466
+        "note": "B2",
+        "weight": 0.010248
       },
       {
         "note": "A2",
-        "weight": 0.006699
+        "weight": 0.009679
       },
       {
-        "note": "C-5",
-        "weight": 0.004466
-      },
-      {
-        "note": "A#3",
-        "weight": 0.002233
+        "note": "F2",
+        "weight": 0.005466
       },
       {
         "note": "F#2",
-        "weight": 0.00134
-      },
-      {
-        "note": "C-4",
-        "weight": 0.002233
-      },
-      {
-        "note": "G--5",
-        "weight": 0.002233
-      },
-      {
-        "note": "A--4",
-        "weight": 0.004466
-      },
-      {
-        "note": "F-4",
-        "weight": 0.006699
-      },
-      {
-        "note": "B--6",
-        "weight": 0.004466
-      },
-      {
-        "note": "F-6",
-        "weight": 0.002233
-      },
-      {
-        "note": "D--6",
-        "weight": 0.002233
-      },
-      {
-        "note": "A-4",
-        "weight": 0.004466
-      }
-    ],
-    "E5": [
-      {
-        "note": "D5",
-        "weight": 0.024218
-      },
-      {
-        "note": "C5",
-        "weight": 0.050454
-      },
-      {
-        "note": "B4",
-        "weight": 0.030272
-      },
-      {
-        "note": "B-4",
-        "weight": 0.015136
-      },
-      {
-        "note": "G4",
-        "weight": 0.075681
-      },
-      {
-        "note": "E4",
-        "weight": 0.055499
-      },
-      {
-        "note": "D4",
-        "weight": 0.157417
-      },
-      {
-        "note": "C4",
-        "weight": 0.116044
-      },
-      {
-        "note": "B-3",
-        "weight": 0.021191
-      },
-      {
-        "note": "F3",
-        "weight": 0.021191
-      },
-      {
-        "note": "E3",
-        "weight": 0.015136
-      },
-      {
-        "note": "D3",
-        "weight": 0.048436
-      },
-      {
-        "note": "C3",
-        "weight": 0.020182
-      },
-      {
-        "note": "B-2",
-        "weight": 0.009082
-      },
-      {
-        "note": "B--5",
-        "weight": 0.005045
-      },
-      {
-        "note": "E--5",
-        "weight": 0.005045
-      },
-      {
-        "note": "E5",
-        "weight": 0.010091
-      },
-      {
-        "note": "G#4",
-        "weight": 0.003027
-      },
-      {
-        "note": "F4",
-        "weight": 0.012109
-      },
-      {
-        "note": "B3",
-        "weight": 0.040363
-      },
-      {
-        "note": "G3",
-        "weight": 0.045409
-      },
-      {
-        "note": "G2",
-        "weight": 0.006054
-      },
-      {
-        "note": "E--3",
-        "weight": 0.010091
-      },
-      {
-        "note": "A3",
-        "weight": 0.018163
-      },
-      {
-        "note": "A4",
-        "weight": 0.027245
-      },
-      {
-        "note": "E-5",
-        "weight": 0.010091
-      },
-      {
-        "note": "E-3",
-        "weight": 0.015136
-      },
-      {
-        "note": "E-4",
-        "weight": 0.010091
-      },
-      {
-        "note": "G-3",
-        "weight": 0.010091
-      },
-      {
-        "note": "F-3",
-        "weight": 0.010091
-      },
-      {
-        "note": "C-5",
-        "weight": 0.015136
-      },
-      {
-        "note": "D--3",
-        "weight": 0.010091
-      },
-      {
-        "note": "G--6",
-        "weight": 0.005045
-      },
-      {
-        "note": "E--4",
-        "weight": 0.005045
-      },
-      {
-        "note": "G--4",
-        "weight": 0.010091
-      },
-      {
-        "note": "A--5",
-        "weight": 0.005045
-      },
-      {
-        "note": "F#4",
-        "weight": 0.003027
-      },
-      {
-        "note": "C-7",
-        "weight": 0.010091
-      },
-      {
-        "note": "D2",
-        "weight": 0.006054
-      },
-      {
-        "note": "F#3",
-        "weight": 0.006054
-      },
-      {
-        "note": "C-6",
-        "weight": 0.010091
-      },
-      {
-        "note": "A--4",
-        "weight": 0.005045
-      },
-      {
-        "note": "F2",
-        "weight": 0.003027
-      },
-      {
-        "note": "A2",
-        "weight": 0.003027
-      },
-      {
-        "note": "C#4",
-        "weight": 0.005045
+        "weight": 0.005124
       }
     ],
     "B-4": [
       {
         "note": "G4",
-        "weight": 0.082212
+        "weight": 0.192276
       },
       {
         "note": "D4",
-        "weight": 0.049327
+        "weight": 0.17009
       },
       {
-        "note": "B3",
-        "weight": 0.017937
-      },
-      {
-        "note": "B-3",
-        "weight": 0.067265
-      },
-      {
-        "note": "A--5",
-        "weight": 0.014948
-      },
-      {
-        "note": "A4",
-        "weight": 0.089686
-      },
-      {
-        "note": "F3",
-        "weight": 0.044843
-      },
-      {
-        "note": "E--5",
-        "weight": 0.007474
-      },
-      {
-        "note": "E--4",
-        "weight": 0.014948
-      },
-      {
-        "note": "B-4",
-        "weight": 0.059791
+        "note": "F4",
+        "weight": 0.153657
       },
       {
         "note": "G3",
-        "weight": 0.052317
+        "weight": 0.133114
       },
       {
-        "note": "C4",
-        "weight": 0.040359
+        "note": "B-3",
+        "weight": 0.115037
       },
       {
-        "note": "F#3",
-        "weight": 0.007474
-      },
-      {
-        "note": "B-2",
-        "weight": 0.014948
+        "note": "B-4",
+        "weight": 0.082169
       },
       {
         "note": "G2",
-        "weight": 0.007474
-      },
-      {
-        "note": "B--5",
-        "weight": 0.007474
-      },
-      {
-        "note": "E4",
-        "weight": 0.004484
-      },
-      {
-        "note": "D3",
-        "weight": 0.004484
-      },
-      {
-        "note": "C-6",
-        "weight": 0.007474
-      },
-      {
-        "note": "A--4",
-        "weight": 0.007474
-      },
-      {
-        "note": "A3",
-        "weight": 0.017937
-      },
-      {
-        "note": "C-7",
-        "weight": 0.007474
-      },
-      {
-        "note": "F-5",
-        "weight": 0.007474
-      },
-      {
-        "note": "C3",
-        "weight": 0.013453
-      },
-      {
-        "note": "E-4",
-        "weight": 0.044843
-      },
-      {
-        "note": "F4",
-        "weight": 0.089686
-      },
-      {
-        "note": "D-4",
-        "weight": 0.082212
-      },
-      {
-        "note": "B--3",
-        "weight": 0.007474
-      },
-      {
-        "note": "D-5",
-        "weight": 0.059791
-      },
-      {
-        "note": "G-3",
-        "weight": 0.007474
-      },
-      {
-        "note": "E-5",
-        "weight": 0.014948
-      },
-      {
-        "note": "D-3",
-        "weight": 0.007474
-      },
-      {
-        "note": "G-4",
-        "weight": 0.014948
-      },
-      {
-        "note": "A-4",
-        "weight": 0.007474
-      },
-      {
-        "note": "G-5",
-        "weight": 0.007474
-      },
-      {
-        "note": "A-3",
-        "weight": 0.007474
-      }
-    ],
-    "G5": [
-      {
-        "note": "D5",
-        "weight": 0.05326
-      },
-      {
-        "note": "C5",
-        "weight": 0.017431
-      },
-      {
-        "note": "A4",
-        "weight": 0.023241
-      },
-      {
-        "note": "D4",
-        "weight": 0.119432
-      },
-      {
-        "note": "C4",
-        "weight": 0.032924
-      },
-      {
-        "note": "B3",
-        "weight": 0.028083
-      },
-      {
-        "note": "B-3",
-        "weight": 0.031956
-      },
-      {
-        "note": "A3",
-        "weight": 0.027114
-      },
-      {
-        "note": "G3",
-        "weight": 0.093609
+        "weight": 0.044371
       },
       {
         "note": "F3",
-        "weight": 0.036798
+        "weight": 0.041906
       },
       {
         "note": "D3",
-        "weight": 0.020981
-      },
-      {
-        "note": "A2",
-        "weight": 0.002905
-      },
-      {
-        "note": "D--5",
-        "weight": 0.006456
-      },
-      {
-        "note": "G-5",
-        "weight": 0.006456
-      },
-      {
-        "note": "A--4",
-        "weight": 0.004842
-      },
-      {
-        "note": "B--4",
-        "weight": 0.004842
-      },
-      {
-        "note": "G-3",
-        "weight": 0.003228
-      },
-      {
-        "note": "B-4",
-        "weight": 0.021304
-      },
-      {
-        "note": "G4",
-        "weight": 0.11459
-      },
-      {
-        "note": "E4",
-        "weight": 0.048418
-      },
-      {
-        "note": "C3",
-        "weight": 0.020336
-      },
-      {
-        "note": "D2",
-        "weight": 0.001614
-      },
-      {
-        "note": "C-5",
-        "weight": 0.011298
-      },
-      {
-        "note": "E--4",
-        "weight": 0.00807
-      },
-      {
-        "note": "F-4",
-        "weight": 0.001614
-      },
-      {
-        "note": "B4",
-        "weight": 0.010652
-      },
-      {
-        "note": "F4",
-        "weight": 0.034861
-      },
-      {
-        "note": "B-2",
-        "weight": 0.006779
-      },
-      {
-        "note": "E-4",
-        "weight": 0.016139
-      },
-      {
-        "note": "B--2",
-        "weight": 0.001614
-      },
-      {
-        "note": "F-3",
-        "weight": 0.003228
-      },
-      {
-        "note": "E-3",
-        "weight": 0.009684
-      },
-      {
-        "note": "E-2",
-        "weight": 0.001614
-      },
-      {
-        "note": "F5",
-        "weight": 0.007747
-      },
-      {
-        "note": "C#5",
-        "weight": 0.001937
-      },
-      {
-        "note": "C#3",
-        "weight": 0.001937
+        "weight": 0.029581
       },
       {
         "note": "F#4",
-        "weight": 0.021304
-      },
-      {
-        "note": "E--7",
-        "weight": 0.003228
-      },
-      {
-        "note": "C-6",
-        "weight": 0.00807
-      },
-      {
-        "note": "B2",
-        "weight": 0.002905
-      },
-      {
-        "note": "G2",
-        "weight": 0.009684
-      },
-      {
-        "note": "G-4",
-        "weight": 0.004842
-      },
-      {
-        "note": "B--3",
-        "weight": 0.001614
-      },
-      {
-        "note": "E--6",
-        "weight": 0.003228
-      },
-      {
-        "note": "A--3",
-        "weight": 0.003228
-      },
-      {
-        "note": "E--5",
-        "weight": 0.006456
-      },
-      {
-        "note": "G5",
-        "weight": 0.016139
-      },
-      {
-        "note": "D--4",
-        "weight": 0.001614
-      },
-      {
-        "note": "E--3",
-        "weight": 0.00807
-      },
-      {
-        "note": "F#5",
-        "weight": 0.003873
-      },
-      {
-        "note": "F-5",
-        "weight": 0.004842
-      },
-      {
-        "note": "E5",
-        "weight": 0.017753
-      },
-      {
-        "note": "E3",
-        "weight": 0.014526
-      },
-      {
-        "note": "B--6",
-        "weight": 0.003228
-      },
-      {
-        "note": "F#3",
-        "weight": 0.001937
-      },
-      {
-        "note": "G#4",
-        "weight": 0.000968
-      },
-      {
-        "note": "A-4",
-        "weight": 0.006456
-      },
-      {
-        "note": "A-5",
-        "weight": 0.003228
-      },
-      {
-        "note": "E-5",
-        "weight": 0.001614
-      },
-      {
-        "note": "D-4",
-        "weight": 0.001614
-      },
-      {
-        "note": "E-6",
-        "weight": 0.003228
-      },
-      {
-        "note": "D#3",
-        "weight": 0.001614
-      },
-      {
-        "note": "A--5",
-        "weight": 0.003228
-      },
-      {
-        "note": "B--5",
-        "weight": 0.001614
+        "weight": 0.016434
       },
       {
         "note": "F2",
-        "weight": 0.001937
+        "weight": 0.013969
       },
       {
-        "note": "C#4",
-        "weight": 0.000968
+        "note": "D2",
+        "weight": 0.007395
       }
     ],
     "B4": [
       {
-        "note": "B-4",
-        "weight": 0.043924
-      },
-      {
-        "note": "A4",
-        "weight": 0.087848
-      },
-      {
         "note": "G4",
-        "weight": 0.065886
-      },
-      {
-        "note": "F#4",
-        "weight": 0.036603
-      },
-      {
-        "note": "F4",
-        "weight": 0.026354
-      },
-      {
-        "note": "E4",
-        "weight": 0.030747
-      },
-      {
-        "note": "D4",
-        "weight": 0.087848
-      },
-      {
-        "note": "B-3",
-        "weight": 0.052709
-      },
-      {
-        "note": "G3",
-        "weight": 0.139092
-      },
-      {
-        "note": "C3",
-        "weight": 0.008785
-      },
-      {
-        "note": "E-4",
-        "weight": 0.007321
-      },
-      {
-        "note": "E--3",
-        "weight": 0.007321
+        "weight": 0.468959
       },
       {
         "note": "B3",
-        "weight": 0.043924
+        "weight": 0.122823
       },
       {
-        "note": "A--3",
-        "weight": 0.007321
+        "note": "F#4",
+        "weight": 0.11389
       },
       {
-        "note": "E3",
-        "weight": 0.026354
+        "note": "D4",
+        "weight": 0.075033
       },
       {
-        "note": "C-6",
-        "weight": 0.021962
-      },
-      {
-        "note": "A--4",
-        "weight": 0.007321
-      },
-      {
-        "note": "B4",
-        "weight": 0.058565
-      },
-      {
-        "note": "C4",
-        "weight": 0.01757
-      },
-      {
-        "note": "F3",
-        "weight": 0.021962
-      },
-      {
-        "note": "D--6",
-        "weight": 0.007321
-      },
-      {
-        "note": "E--5",
-        "weight": 0.007321
-      },
-      {
-        "note": "E-3",
-        "weight": 0.007321
-      },
-      {
-        "note": "C-4",
-        "weight": 0.007321
-      },
-      {
-        "note": "A3",
-        "weight": 0.026354
+        "note": "G3",
+        "weight": 0.066994
       },
       {
         "note": "D3",
-        "weight": 0.01757
+        "weight": 0.042876
       },
       {
-        "note": "G-5",
-        "weight": 0.007321
+        "note": "E4",
+        "weight": 0.040197
       },
       {
-        "note": "E--4",
-        "weight": 0.014641
+        "note": "B4",
+        "weight": 0.033497
       },
       {
-        "note": "F-6",
-        "weight": 0.007321
+        "note": "G2",
+        "weight": 0.022331
       },
       {
-        "note": "C-5",
-        "weight": 0.007321
+        "note": "E3",
+        "weight": 0.013399
+      }
+    ],
+    "B-3": [
+      {
+        "note": "G3",
+        "weight": 0.350825
       },
       {
-        "note": "D#4",
-        "weight": 0.004392
+        "note": "B-3",
+        "weight": 0.314843
       },
       {
-        "note": "B--6",
-        "weight": 0.014641
-      },
-      {
-        "note": "F-5",
-        "weight": 0.029283
-      },
-      {
-        "note": "A--6",
-        "weight": 0.014641
-      },
-      {
-        "note": "C#4",
-        "weight": 0.004392
-      },
-      {
-        "note": "E--6",
-        "weight": 0.007321
-      },
-      {
-        "note": "D--4",
-        "weight": 0.007321
+        "note": "F3",
+        "weight": 0.152924
       },
       {
         "note": "B-2",
-        "weight": 0.008785
+        "weight": 0.074963
+      },
+      {
+        "note": "G2",
+        "weight": 0.053973
+      },
+      {
+        "note": "F2",
+        "weight": 0.025487
+      },
+      {
+        "note": "D3",
+        "weight": 0.013493
+      },
+      {
+        "note": "D2",
+        "weight": 0.013493
       }
     ],
     "C5": [
       {
-        "note": "B4",
-        "weight": 0.067742
-      },
-      {
-        "note": "B-4",
-        "weight": 0.03871
-      },
-      {
         "note": "G4",
-        "weight": 0.104839
-      },
-      {
-        "note": "F4",
-        "weight": 0.029032
-      },
-      {
-        "note": "D4",
-        "weight": 0.048387
-      },
-      {
-        "note": "B3",
-        "weight": 0.033871
-      },
-      {
-        "note": "B-3",
-        "weight": 0.03871
+        "weight": 0.273948
       },
       {
         "note": "G3",
-        "weight": 0.080645
+        "weight": 0.152193
       },
       {
-        "note": "D3",
-        "weight": 0.012097
-      },
-      {
-        "note": "B-2",
-        "weight": 0.019355
-      },
-      {
-        "note": "A--5",
-        "weight": 0.012097
-      },
-      {
-        "note": "E--3",
-        "weight": 0.008065
-      },
-      {
-        "note": "C5",
-        "weight": 0.044355
-      },
-      {
-        "note": "F#4",
-        "weight": 0.004839
-      },
-      {
-        "note": "E4",
-        "weight": 0.03629
+        "note": "F4",
+        "weight": 0.107431
       },
       {
         "note": "C4",
-        "weight": 0.060484
-      },
-      {
-        "note": "A3",
-        "weight": 0.03629
-      },
-      {
-        "note": "E3",
-        "weight": 0.009677
-      },
-      {
-        "note": "A2",
-        "weight": 0.012097
-      },
-      {
-        "note": "A--2",
-        "weight": 0.004032
+        "weight": 0.107431
       },
       {
         "note": "A4",
-        "weight": 0.064516
+        "weight": 0.096688
+      },
+      {
+        "note": "A3",
+        "weight": 0.096688
       },
       {
         "note": "F3",
-        "weight": 0.019355
+        "weight": 0.064458
       },
       {
-        "note": "C-5",
-        "weight": 0.004032
+        "note": "C5",
+        "weight": 0.03581
       },
       {
-        "note": "A--4",
-        "weight": 0.012097
-      },
-      {
-        "note": "C3",
-        "weight": 0.03629
-      },
-      {
-        "note": "G-5",
-        "weight": 0.004032
-      },
-      {
-        "note": "G-6",
-        "weight": 0.004032
-      },
-      {
-        "note": "E-3",
-        "weight": 0.016129
-      },
-      {
-        "note": "D--5",
-        "weight": 0.012097
-      },
-      {
-        "note": "E--5",
-        "weight": 0.004032
-      },
-      {
-        "note": "B--4",
-        "weight": 0.008065
-      },
-      {
-        "note": "G-4",
-        "weight": 0.016129
-      },
-      {
-        "note": "D--4",
-        "weight": 0.004032
-      },
-      {
-        "note": "F-4",
-        "weight": 0.008065
-      },
-      {
-        "note": "C-7",
-        "weight": 0.004032
-      },
-      {
-        "note": "F-5",
-        "weight": 0.008065
-      },
-      {
-        "note": "D--7",
-        "weight": 0.004032
-      },
-      {
-        "note": "B--5",
-        "weight": 0.004032
-      },
-      {
-        "note": "F#3",
-        "weight": 0.002419
-      },
-      {
-        "note": "D#3",
-        "weight": 0.002419
-      },
-      {
-        "note": "B--6",
-        "weight": 0.004032
-      },
-      {
-        "note": "A--3",
-        "weight": 0.004032
-      },
-      {
-        "note": "E-7",
-        "weight": 0.004032
+        "note": "E4",
+        "weight": 0.024172
       },
       {
         "note": "G#4",
-        "weight": 0.004032
-      },
-      {
-        "note": "E-4",
-        "weight": 0.020161
-      },
-      {
-        "note": "E-5",
-        "weight": 0.008065
-      },
-      {
-        "note": "A-3",
-        "weight": 0.004032
-      },
-      {
-        "note": "D-5",
-        "weight": 0.004032
-      },
-      {
-        "note": "A-4",
-        "weight": 0.008065
-      }
-    ],
-    "F5": [
-      {
-        "note": "A4",
-        "weight": 0.051002
-      },
-      {
-        "note": "B3",
-        "weight": 0.023679
-      },
-      {
-        "note": "E--5",
-        "weight": 0.003036
-      },
-      {
-        "note": "A--5",
-        "weight": 0.006072
-      },
-      {
-        "note": "G--4",
-        "weight": 0.003036
-      },
-      {
-        "note": "F5",
-        "weight": 0.015179
-      },
-      {
-        "note": "D5",
-        "weight": 0.033394
-      },
-      {
-        "note": "B-4",
-        "weight": 0.03643
-      },
-      {
-        "note": "G4",
-        "weight": 0.051002
-      },
-      {
-        "note": "D4",
-        "weight": 0.118397
-      },
-      {
-        "note": "B-3",
-        "weight": 0.043716
-      },
-      {
-        "note": "D3",
-        "weight": 0.045537
-      },
-      {
-        "note": "D2",
-        "weight": 0.006072
-      },
-      {
-        "note": "E-4",
-        "weight": 0.039466
-      },
-      {
-        "note": "B--5",
-        "weight": 0.009107
-      },
-      {
-        "note": "E-3",
-        "weight": 0.006072
-      },
-      {
-        "note": "C5",
-        "weight": 0.039466
-      },
-      {
-        "note": "B4",
-        "weight": 0.016393
-      },
-      {
-        "note": "F4",
-        "weight": 0.03643
-      },
-      {
-        "note": "A3",
-        "weight": 0.023679
-      },
-      {
-        "note": "G3",
-        "weight": 0.058288
-      },
-      {
-        "note": "B-2",
-        "weight": 0.01275
-      },
-      {
-        "note": "F#2",
-        "weight": 0.003643
-      },
-      {
-        "note": "F#4",
-        "weight": 0.007286
-      },
-      {
-        "note": "C4",
-        "weight": 0.069824
-      },
-      {
-        "note": "F3",
-        "weight": 0.027322
-      },
-      {
-        "note": "E3",
-        "weight": 0.014572
-      },
-      {
-        "note": "C3",
-        "weight": 0.015179
-      },
-      {
-        "note": "A2",
-        "weight": 0.001821
-      },
-      {
-        "note": "B--2",
-        "weight": 0.003036
-      },
-      {
-        "note": "E4",
-        "weight": 0.043716
-      },
-      {
-        "note": "B--6",
-        "weight": 0.003036
-      },
-      {
-        "note": "F-5",
-        "weight": 0.003036
-      },
-      {
-        "note": "F#3",
-        "weight": 0.007286
+        "weight": 0.017905
       },
       {
         "note": "G2",
-        "weight": 0.001821
-      },
-      {
-        "note": "F-6",
-        "weight": 0.006072
-      },
-      {
-        "note": "E--3",
-        "weight": 0.009107
-      },
-      {
-        "note": "C-6",
-        "weight": 0.003036
-      },
-      {
-        "note": "D--6",
-        "weight": 0.003036
-      },
-      {
-        "note": "E--6",
-        "weight": 0.003036
-      },
-      {
-        "note": "B2",
-        "weight": 0.001821
-      },
-      {
-        "note": "C-3",
-        "weight": 0.006072
-      },
-      {
-        "note": "E-5",
-        "weight": 0.009107
-      },
-      {
-        "note": "G-5",
-        "weight": 0.003036
-      },
-      {
-        "note": "D--5",
-        "weight": 0.003036
-      },
-      {
-        "note": "C-5",
-        "weight": 0.003036
-      },
-      {
-        "note": "D-4",
-        "weight": 0.042502
-      },
-      {
-        "note": "A-4",
-        "weight": 0.006072
-      },
-      {
-        "note": "A-5",
-        "weight": 0.006072
-      },
-      {
-        "note": "D-6",
-        "weight": 0.003036
-      },
-      {
-        "note": "D-5",
-        "weight": 0.006072
-      },
-      {
-        "note": "G-4",
-        "weight": 0.006072
-      }
-    ],
-    "A5": [
-      {
-        "note": "D5",
-        "weight": 0.026446
-      },
-      {
-        "note": "C5",
-        "weight": 0.021488
-      },
-      {
-        "note": "B4",
-        "weight": 0.019835
-      },
-      {
-        "note": "B-4",
-        "weight": 0.026446
-      },
-      {
-        "note": "A4",
-        "weight": 0.060606
-      },
-      {
-        "note": "G4",
-        "weight": 0.089256
-      },
-      {
-        "note": "F4",
-        "weight": 0.041322
-      },
-      {
-        "note": "D4",
-        "weight": 0.064463
-      },
-      {
-        "note": "C4",
-        "weight": 0.049587
-      },
-      {
-        "note": "B3",
-        "weight": 0.024793
-      },
-      {
-        "note": "B-3",
-        "weight": 0.033058
-      },
-      {
-        "note": "A3",
-        "weight": 0.038567
-      },
-      {
-        "note": "G3",
-        "weight": 0.105785
+        "weight": 0.015219
       },
       {
         "note": "E3",
-        "weight": 0.024793
-      },
-      {
-        "note": "D3",
-        "weight": 0.016529
-      },
-      {
-        "note": "C3",
-        "weight": 0.01157
-      },
-      {
-        "note": "B-2",
-        "weight": 0.006612
-      },
-      {
-        "note": "F2",
-        "weight": 0.002755
-      },
-      {
-        "note": "E-4",
-        "weight": 0.016529
-      },
-      {
-        "note": "A--3",
-        "weight": 0.002755
-      },
-      {
-        "note": "A5",
-        "weight": 0.035813
-      },
-      {
-        "note": "F#3",
-        "weight": 0.016529
-      },
-      {
-        "note": "E--5",
-        "weight": 0.00551
-      },
-      {
-        "note": "A--2",
-        "weight": 0.00551
-      },
-      {
-        "note": "F#5",
-        "weight": 0.00551
-      },
-      {
-        "note": "C#5",
-        "weight": 0.006612
-      },
-      {
-        "note": "C#4",
-        "weight": 0.004959
-      },
-      {
-        "note": "D--4",
-        "weight": 0.00551
-      },
-      {
-        "note": "F5",
-        "weight": 0.016529
-      },
-      {
-        "note": "F#4",
-        "weight": 0.027548
-      },
-      {
-        "note": "B2",
-        "weight": 0.003306
-      },
-      {
-        "note": "G2",
-        "weight": 0.019835
-      },
-      {
-        "note": "B--5",
-        "weight": 0.00551
-      },
-      {
-        "note": "A--4",
-        "weight": 0.008264
-      },
-      {
-        "note": "D--5",
-        "weight": 0.002755
-      },
-      {
-        "note": "G5",
-        "weight": 0.013223
-      },
-      {
-        "note": "F3",
-        "weight": 0.024793
-      },
-      {
-        "note": "E4",
-        "weight": 0.038567
-      },
-      {
-        "note": "B--4",
-        "weight": 0.002755
-      },
-      {
-        "note": "G#3",
-        "weight": 0.003306
-      },
-      {
-        "note": "C-4",
-        "weight": 0.008264
-      },
-      {
-        "note": "G#4",
-        "weight": 0.006612
-      },
-      {
-        "note": "E5",
-        "weight": 0.008264
-      },
-      {
-        "note": "C-5",
-        "weight": 0.00551
-      },
-      {
-        "note": "G-4",
-        "weight": 0.002755
-      },
-      {
-        "note": "D-4",
-        "weight": 0.002755
-      },
-      {
-        "note": "A-5",
-        "weight": 0.008264
-      },
-      {
-        "note": "A-4",
-        "weight": 0.002755
-      },
-      {
-        "note": "F-6",
-        "weight": 0.002755
-      },
-      {
-        "note": "C--5",
-        "weight": 0.002755
-      },
-      {
-        "note": "A--5",
-        "weight": 0.002755
-      },
-      {
-        "note": "E-3",
-        "weight": 0.008264
-      },
-      {
-        "note": "E-5",
-        "weight": 0.002755
-      }
-    ],
-    "C6": [
-      {
-        "note": "A5",
-        "weight": 0.052083
-      },
-      {
-        "note": "E5",
-        "weight": 0.01875
-      },
-      {
-        "note": "C5",
-        "weight": 0.104167
-      },
-      {
-        "note": "A4",
-        "weight": 0.052083
-      },
-      {
-        "note": "F#4",
-        "weight": 0.00625
-      },
-      {
-        "note": "F4",
-        "weight": 0.025
-      },
-      {
-        "note": "E4",
-        "weight": 0.03125
-      },
-      {
-        "note": "D4",
-        "weight": 0.06875
-      },
-      {
-        "note": "A3",
-        "weight": 0.041667
-      },
-      {
-        "note": "F3",
-        "weight": 0.00625
-      },
-      {
-        "note": "C3",
-        "weight": 0.072917
-      },
-      {
-        "note": "E-4",
-        "weight": 0.03125
-      },
-      {
-        "note": "D--6",
-        "weight": 0.010417
-      },
-      {
-        "note": "B--2",
-        "weight": 0.020833
-      },
-      {
-        "note": "C6",
-        "weight": 0.010417
-      },
-      {
-        "note": "C#5",
-        "weight": 0.00625
-      },
-      {
-        "note": "B4",
-        "weight": 0.0375
-      },
-      {
-        "note": "B-4",
-        "weight": 0.0375
-      },
-      {
-        "note": "G4",
-        "weight": 0.041667
-      },
-      {
-        "note": "C#4",
-        "weight": 0.0125
-      },
-      {
-        "note": "B3",
-        "weight": 0.0375
-      },
-      {
-        "note": "G3",
-        "weight": 0.03125
-      },
-      {
-        "note": "A2",
-        "weight": 0.010417
-      },
-      {
-        "note": "G2",
-        "weight": 0.010417
-      },
-      {
-        "note": "C-3",
-        "weight": 0.020833
-      },
-      {
-        "note": "F5",
-        "weight": 0.00625
-      },
-      {
-        "note": "C4",
-        "weight": 0.0625
-      },
-      {
-        "note": "B-3",
-        "weight": 0.0125
-      },
-      {
-        "note": "D5",
-        "weight": 0.0125
-      },
-      {
-        "note": "E-3",
-        "weight": 0.03125
-      },
-      {
-        "note": "D#4",
-        "weight": 0.00625
-      },
-      {
-        "note": "F#5",
-        "weight": 0.00625
-      },
-      {
-        "note": "A--6",
-        "weight": 0.010417
-      },
-      {
-        "note": "C--6",
-        "weight": 0.010417
-      },
-      {
-        "note": "F#3",
-        "weight": 0.00625
-      },
-      {
-        "note": "D3",
-        "weight": 0.00625
-      },
-      {
-        "note": "E--7",
-        "weight": 0.010417
-      },
-      {
-        "note": "C-6",
-        "weight": 0.010417
-      },
-      {
-        "note": "G5",
-        "weight": 0.010417
-      }
-    ],
-    "B5": [
-      {
-        "note": "G5",
-        "weight": 0.05291
-      },
-      {
-        "note": "F5",
-        "weight": 0.006349
-      },
-      {
-        "note": "D5",
-        "weight": 0.009524
-      },
-      {
-        "note": "C5",
-        "weight": 0.015873
-      },
-      {
-        "note": "B-4",
-        "weight": 0.006349
-      },
-      {
-        "note": "A4",
-        "weight": 0.07619
-      },
-      {
-        "note": "G4",
-        "weight": 0.153439
-      },
-      {
-        "note": "E4",
-        "weight": 0.034921
-      },
-      {
-        "note": "D4",
-        "weight": 0.092063
-      },
-      {
-        "note": "B3",
-        "weight": 0.021164
-      },
-      {
-        "note": "G3",
-        "weight": 0.089947
-      },
-      {
-        "note": "D3",
-        "weight": 0.012698
-      },
-      {
-        "note": "C3",
-        "weight": 0.009524
-      },
-      {
-        "note": "B-2",
-        "weight": 0.019048
-      },
-      {
-        "note": "F-4",
-        "weight": 0.005291
-      },
-      {
-        "note": "B4",
-        "weight": 0.037037
-      },
-      {
-        "note": "F4",
-        "weight": 0.015873
-      },
-      {
-        "note": "C#4",
-        "weight": 0.003175
-      },
-      {
-        "note": "B-3",
-        "weight": 0.031746
-      },
-      {
-        "note": "A3",
-        "weight": 0.025397
-      },
-      {
-        "note": "G2",
-        "weight": 0.010582
-      },
-      {
-        "note": "A5",
-        "weight": 0.012698
-      },
-      {
-        "note": "F#4",
-        "weight": 0.026455
-      },
-      {
-        "note": "C4",
-        "weight": 0.031746
-      },
-      {
-        "note": "F3",
-        "weight": 0.009524
-      },
-      {
-        "note": "B5",
-        "weight": 0.021164
-      },
-      {
-        "note": "E5",
-        "weight": 0.012698
-      },
-      {
-        "note": "E-5",
-        "weight": 0.010582
-      },
-      {
-        "note": "E-4",
-        "weight": 0.005291
-      },
-      {
-        "note": "E-3",
-        "weight": 0.005291
-      },
-      {
-        "note": "G#4",
-        "weight": 0.005291
-      },
-      {
-        "note": "A-4",
-        "weight": 0.037037
-      },
-      {
-        "note": "D-5",
-        "weight": 0.015873
-      },
-      {
-        "note": "A-5",
-        "weight": 0.005291
-      },
-      {
-        "note": "C-5",
-        "weight": 0.005291
-      },
-      {
-        "note": "E3",
-        "weight": 0.012698
-      },
-      {
-        "note": "G-5",
-        "weight": 0.005291
-      },
-      {
-        "note": "C-3",
-        "weight": 0.010582
-      },
-      {
-        "note": "E--5",
-        "weight": 0.005291
-      },
-      {
-        "note": "E--4",
-        "weight": 0.010582
-      },
-      {
-        "note": "C--5",
-        "weight": 0.005291
-      },
-      {
-        "note": "A2",
-        "weight": 0.006349
-      },
-      {
-        "note": "F#3",
-        "weight": 0.010582
-      }
-    ],
-    "G6": [
-      {
-        "note": "G6",
-        "weight": 0.02445
-      },
-      {
-        "note": "G5",
-        "weight": 0.036675
-      },
-      {
-        "note": "D5",
-        "weight": 0.07335
-      },
-      {
-        "note": "C5",
-        "weight": 0.036675
-      },
-      {
-        "note": "B-4",
-        "weight": 0.022005
-      },
-      {
-        "note": "G4",
-        "weight": 0.134474
-      },
-      {
-        "note": "F4",
-        "weight": 0.05868
-      },
-      {
-        "note": "D4",
-        "weight": 0.134474
-      },
-      {
-        "note": "C4",
-        "weight": 0.022005
-      },
-      {
-        "note": "B3",
-        "weight": 0.022005
-      },
-      {
-        "note": "G3",
-        "weight": 0.122249
-      },
-      {
-        "note": "F3",
-        "weight": 0.02934
-      },
-      {
-        "note": "D3",
-        "weight": 0.061125
-      },
-      {
-        "note": "A4",
-        "weight": 0.022005
-      },
-      {
-        "note": "E4",
-        "weight": 0.02445
-      },
-      {
-        "note": "B-3",
-        "weight": 0.02934
-      },
-      {
-        "note": "A3",
-        "weight": 0.022005
-      },
-      {
-        "note": "B4",
-        "weight": 0.01467
-      },
-      {
-        "note": "E-5",
-        "weight": 0.012225
-      },
-      {
-        "note": "E-3",
-        "weight": 0.012225
-      },
-      {
-        "note": "B5",
-        "weight": 0.007335
-      },
-      {
-        "note": "E5",
-        "weight": 0.012225
-      },
-      {
-        "note": "B-2",
-        "weight": 0.007335
-      },
-      {
-        "note": "C-5",
-        "weight": 0.036675
-      },
-      {
-        "note": "F5",
-        "weight": 0.01467
-      },
-      {
-        "note": "B-5",
-        "weight": 0.007335
-      }
-    ],
-    "D6": [
-      {
-        "note": "D6",
-        "weight": 0.031732
-      },
-      {
-        "note": "C5",
-        "weight": 0.027199
-      },
-      {
-        "note": "B4",
-        "weight": 0.031732
-      },
-      {
-        "note": "B-4",
-        "weight": 0.022665
-      },
-      {
-        "note": "A4",
-        "weight": 0.045331
-      },
-      {
-        "note": "G4",
-        "weight": 0.043518
-      },
-      {
-        "note": "F4",
-        "weight": 0.021759
-      },
-      {
-        "note": "D4",
-        "weight": 0.149592
-      },
-      {
-        "note": "B-3",
-        "weight": 0.045331
-      },
-      {
-        "note": "G3",
-        "weight": 0.054397
-      },
-      {
-        "note": "F3",
-        "weight": 0.013599
-      },
-      {
-        "note": "D3",
-        "weight": 0.036265
-      },
-      {
-        "note": "G5",
-        "weight": 0.010879
-      },
-      {
-        "note": "F#4",
-        "weight": 0.021759
-      },
-      {
-        "note": "B3",
-        "weight": 0.054397
-      },
-      {
-        "note": "A3",
-        "weight": 0.049864
-      },
-      {
-        "note": "E3",
-        "weight": 0.00816
-      },
-      {
-        "note": "E--7",
-        "weight": 0.004533
-      },
-      {
-        "note": "A--2",
-        "weight": 0.009066
-      },
-      {
-        "note": "G-4",
-        "weight": 0.009066
-      },
-      {
-        "note": "D5",
-        "weight": 0.036265
-      },
-      {
-        "note": "C#5",
-        "weight": 0.010879
-      },
-      {
-        "note": "G#4",
-        "weight": 0.00544
-      },
-      {
-        "note": "E4",
-        "weight": 0.019039
-      },
-      {
-        "note": "C#4",
-        "weight": 0.00544
-      },
-      {
-        "note": "C4",
-        "weight": 0.048957
-      },
-      {
-        "note": "C3",
-        "weight": 0.016319
-      },
-      {
-        "note": "F#5",
-        "weight": 0.00816
-      },
-      {
-        "note": "E5",
-        "weight": 0.00544
-      },
-      {
-        "note": "A5",
-        "weight": 0.013599
-      },
-      {
-        "note": "F#3",
-        "weight": 0.00272
-      },
-      {
-        "note": "G2",
-        "weight": 0.010879
-      },
-      {
-        "note": "E-4",
-        "weight": 0.018132
-      },
-      {
-        "note": "A-4",
-        "weight": 0.009066
-      },
-      {
-        "note": "A2",
-        "weight": 0.004533
-      },
-      {
-        "note": "A-5",
-        "weight": 0.004533
-      },
-      {
-        "note": "E-5",
-        "weight": 0.009066
-      },
-      {
-        "note": "A-3",
-        "weight": 0.009066
-      },
-      {
-        "note": "C-4",
-        "weight": 0.004533
-      },
-      {
-        "note": "D-5",
-        "weight": 0.018132
-      },
-      {
-        "note": "F-4",
-        "weight": 0.004533
-      },
-      {
-        "note": "B-2",
-        "weight": 0.004533
-      },
-      {
-        "note": "C-5",
-        "weight": 0.018132
-      },
-      {
-        "note": "C#6",
-        "weight": 0.00544
-      },
-      {
-        "note": "G#5",
-        "weight": 0.00272
-      },
-      {
-        "note": "G-5",
-        "weight": 0.004533
-      },
-      {
-        "note": "B-5",
-        "weight": 0.004533
-      },
-      {
-        "note": "A#3",
-        "weight": 0.004533
-      }
-    ],
-    "C7": [
-      {
-        "note": "F5",
-        "weight": 0.041958
-      },
-      {
-        "note": "E5",
-        "weight": 0.020979
-      },
-      {
-        "note": "D5",
-        "weight": 0.020979
-      },
-      {
-        "note": "C5",
-        "weight": 0.174825
-      },
-      {
-        "note": "B-4",
-        "weight": 0.041958
-      },
-      {
-        "note": "A4",
-        "weight": 0.034965
-      },
-      {
-        "note": "G4",
-        "weight": 0.104895
-      },
-      {
-        "note": "F#4",
-        "weight": 0.020979
-      },
-      {
-        "note": "F4",
-        "weight": 0.020979
-      },
-      {
-        "note": "D4",
-        "weight": 0.083916
-      },
-      {
-        "note": "C4",
-        "weight": 0.034965
-      },
-      {
-        "note": "B3",
-        "weight": 0.125874
-      },
-      {
-        "note": "B-3",
-        "weight": 0.041958
-      },
-      {
-        "note": "A3",
-        "weight": 0.104895
-      },
-      {
-        "note": "G3",
-        "weight": 0.104895
-      },
-      {
-        "note": "E3",
-        "weight": 0.020979
-      }
-    ],
-    "B-6": [
-      {
-        "note": "F5",
-        "weight": 0.030864
-      },
-      {
-        "note": "D5",
-        "weight": 0.037037
-      },
-      {
-        "note": "B4",
-        "weight": 0.037037
-      },
-      {
-        "note": "A4",
-        "weight": 0.148148
-      },
-      {
-        "note": "G4",
-        "weight": 0.092593
-      },
-      {
-        "note": "F4",
-        "weight": 0.061728
-      },
-      {
-        "note": "D4",
-        "weight": 0.12963
-      },
-      {
-        "note": "C4",
-        "weight": 0.074074
-      },
-      {
-        "note": "A3",
-        "weight": 0.111111
-      },
-      {
-        "note": "G3",
-        "weight": 0.061728
-      },
-      {
-        "note": "D3",
-        "weight": 0.055556
-      },
-      {
-        "note": "G2",
-        "weight": 0.030864
-      },
-      {
-        "note": "B-6",
-        "weight": 0.061728
-      },
-      {
-        "note": "B-4",
-        "weight": 0.030864
-      },
-      {
-        "note": "E4",
-        "weight": 0.018519
-      },
-      {
-        "note": "E3",
-        "weight": 0.018519
-      }
-    ],
-    "A6": [
-      {
-        "note": "B-4",
-        "weight": 0.06
-      },
-      {
-        "note": "A4",
-        "weight": 0.1
-      },
-      {
-        "note": "G4",
-        "weight": 0.24
-      },
-      {
-        "note": "D4",
-        "weight": 0.06
-      },
-      {
-        "note": "F#3",
-        "weight": 0.1
-      },
-      {
-        "note": "C4",
-        "weight": 0.06
-      },
-      {
-        "note": "B-3",
-        "weight": 0.06
-      },
-      {
-        "note": "G3",
-        "weight": 0.12
-      },
-      {
-        "note": "F-3",
-        "weight": 0.2
-      }
-    ],
-    "B-5": [
-      {
-        "note": "D5",
-        "weight": 0.033079
-      },
-      {
-        "note": "A4",
-        "weight": 0.040712
-      },
-      {
-        "note": "G4",
-        "weight": 0.089059
-      },
-      {
-        "note": "F#4",
-        "weight": 0.021204
-      },
-      {
-        "note": "D4",
-        "weight": 0.043257
-      },
-      {
-        "note": "B3",
-        "weight": 0.020356
-      },
-      {
-        "note": "A3",
-        "weight": 0.050891
-      },
-      {
-        "note": "G3",
-        "weight": 0.072095
-      },
-      {
-        "note": "D3",
-        "weight": 0.015267
-      },
-      {
-        "note": "G5",
-        "weight": 0.021204
-      },
-      {
-        "note": "F5",
-        "weight": 0.029686
-      },
-      {
-        "note": "C5",
-        "weight": 0.015267
-      },
-      {
-        "note": "B4",
-        "weight": 0.007634
-      },
-      {
-        "note": "E4",
-        "weight": 0.012723
-      },
-      {
-        "note": "F#3",
-        "weight": 0.012723
-      },
-      {
-        "note": "E-4",
-        "weight": 0.055131
-      },
-      {
-        "note": "F-4",
-        "weight": 0.004241
-      },
-      {
-        "note": "E--4",
-        "weight": 0.008482
-      },
-      {
-        "note": "C4",
-        "weight": 0.017812
-      },
-      {
-        "note": "B-3",
-        "weight": 0.072095
-      },
-      {
-        "note": "F3",
-        "weight": 0.025445
-      },
-      {
-        "note": "D--5",
-        "weight": 0.012723
-      },
-      {
-        "note": "F4",
-        "weight": 0.042409
-      },
-      {
-        "note": "E3",
-        "weight": 0.012723
-      },
-      {
-        "note": "C3",
-        "weight": 0.022901
-      },
-      {
-        "note": "B--6",
-        "weight": 0.004241
-      },
-      {
-        "note": "E--3",
-        "weight": 0.012723
-      },
-      {
-        "note": "E5",
-        "weight": 0.002545
-      },
-      {
-        "note": "B-2",
-        "weight": 0.008482
-      },
-      {
-        "note": "B--5",
-        "weight": 0.004241
-      },
-      {
-        "note": "A5",
-        "weight": 0.005089
-      },
-      {
-        "note": "F-6",
-        "weight": 0.004241
-      },
-      {
-        "note": "B-5",
-        "weight": 0.012723
-      },
-      {
-        "note": "D-4",
-        "weight": 0.067854
-      },
-      {
-        "note": "E-3",
-        "weight": 0.008482
-      },
-      {
-        "note": "A-3",
-        "weight": 0.004241
-      },
-      {
-        "note": "G-5",
-        "weight": 0.033927
-      },
-      {
-        "note": "G-3",
-        "weight": 0.004241
-      },
-      {
-        "note": "G-4",
-        "weight": 0.025445
-      },
-      {
-        "note": "D-3",
-        "weight": 0.016964
-      },
-      {
-        "note": "D-6",
-        "weight": 0.008482
-      },
-      {
-        "note": "A-5",
-        "weight": 0.008482
-      },
-      {
-        "note": "D-5",
-        "weight": 0.008482
-      }
-    ],
-    "F#5": [
-      {
-        "note": "F5",
-        "weight": 0.035714
-      },
-      {
-        "note": "E3",
-        "weight": 0.047619
-      },
-      {
-        "note": "A--5",
-        "weight": 0.009921
-      },
-      {
-        "note": "G4",
-        "weight": 0.053571
-      },
-      {
-        "note": "A3",
-        "weight": 0.029762
-      },
-      {
-        "note": "B-4",
-        "weight": 0.053571
-      },
-      {
-        "note": "A4",
-        "weight": 0.02381
-      },
-      {
-        "note": "F#4",
-        "weight": 0.039683
-      },
-      {
-        "note": "E4",
-        "weight": 0.059524
-      },
-      {
-        "note": "D4",
-        "weight": 0.119048
-      },
-      {
-        "note": "C4",
-        "weight": 0.035714
-      },
-      {
-        "note": "C5",
-        "weight": 0.011905
-      },
-      {
-        "note": "F4",
-        "weight": 0.047619
-      },
-      {
-        "note": "B-3",
-        "weight": 0.017857
-      },
-      {
-        "note": "G3",
-        "weight": 0.047619
-      },
-      {
-        "note": "F3",
-        "weight": 0.035714
-      },
-      {
-        "note": "G-5",
-        "weight": 0.029762
-      },
-      {
-        "note": "D-5",
-        "weight": 0.009921
-      },
-      {
-        "note": "F#5",
-        "weight": 0.009921
-      },
-      {
-        "note": "D3",
-        "weight": 0.049603
-      },
-      {
-        "note": "E-5",
-        "weight": 0.029762
-      },
-      {
-        "note": "E5",
-        "weight": 0.011905
-      },
-      {
-        "note": "B-2",
-        "weight": 0.005952
-      },
-      {
-        "note": "A2",
-        "weight": 0.005952
-      },
-      {
-        "note": "B--5",
-        "weight": 0.009921
-      },
-      {
-        "note": "E--3",
-        "weight": 0.019841
-      },
-      {
-        "note": "B4",
-        "weight": 0.02381
-      },
-      {
-        "note": "G-4",
-        "weight": 0.039683
-      },
-      {
-        "note": "D--6",
-        "weight": 0.009921
-      },
-      {
-        "note": "D5",
-        "weight": 0.019841
-      },
-      {
-        "note": "C-6",
-        "weight": 0.009921
-      },
-      {
-        "note": "E--6",
-        "weight": 0.009921
-      },
-      {
-        "note": "B3",
-        "weight": 0.005952
-      },
-      {
-        "note": "F-6",
-        "weight": 0.009921
-      },
-      {
-        "note": "C#5",
-        "weight": 0.009921
-      },
-      {
-        "note": "E-4",
-        "weight": 0.009921
-      }
-    ],
-    "C#5": [
-      {
-        "note": "C5",
-        "weight": 0.056075
-      },
-      {
-        "note": "B4",
-        "weight": 0.056075
-      },
-      {
-        "note": "G4",
-        "weight": 0.140187
-      },
-      {
-        "note": "F4",
-        "weight": 0.028037
-      },
-      {
-        "note": "E4",
-        "weight": 0.084112
-      },
-      {
-        "note": "D4",
-        "weight": 0.056075
-      },
-      {
-        "note": "B3",
-        "weight": 0.168224
-      },
-      {
-        "note": "A3",
-        "weight": 0.186916
-      },
-      {
-        "note": "F3",
-        "weight": 0.028037
-      },
-      {
-        "note": "G-4",
-        "weight": 0.046729
-      },
-      {
-        "note": "E3",
-        "weight": 0.028037
-      },
-      {
-        "note": "C-4",
-        "weight": 0.046729
-      },
-      {
-        "note": "G3",
-        "weight": 0.028037
-      },
-      {
-        "note": "A4",
-        "weight": 0.046729
+        "weight": 0.008057
       }
     ],
     "A4": [
       {
-        "note": "E4",
-        "weight": 0.092025
-      },
-      {
         "note": "D4",
-        "weight": 0.092025
-      },
-      {
-        "note": "C#4",
-        "weight": 0.01227
+        "weight": 0.275904
       },
       {
         "note": "A3",
-        "weight": 0.122699
-      },
-      {
-        "note": "F#3",
-        "weight": 0.030675
-      },
-      {
-        "note": "E--4",
-        "weight": 0.030675
-      },
-      {
-        "note": "G4",
-        "weight": 0.03681
-      },
-      {
-        "note": "F#4",
-        "weight": 0.051125
+        "weight": 0.160944
       },
       {
         "note": "C4",
-        "weight": 0.04908
+        "weight": 0.117719
       },
       {
-        "note": "A-4",
-        "weight": 0.02045
+        "note": "E4",
+        "weight": 0.091202
       },
       {
-        "note": "E-4",
-        "weight": 0.010225
-      },
-      {
-        "note": "B3",
-        "weight": 0.030675
-      },
-      {
-        "note": "C-5",
-        "weight": 0.02045
-      },
-      {
-        "note": "G3",
-        "weight": 0.04908
-      },
-      {
-        "note": "B--6",
-        "weight": 0.010225
-      },
-      {
-        "note": "F-5",
-        "weight": 0.030675
-      },
-      {
-        "note": "A--6",
-        "weight": 0.02045
+        "note": "F#4",
+        "weight": 0.082771
       },
       {
         "note": "F3",
-        "weight": 0.0409
+        "weight": 0.07664
       },
       {
-        "note": "E3",
-        "weight": 0.030675
+        "note": "F4",
+        "weight": 0.061312
+      },
+      {
+        "note": "D3",
+        "weight": 0.045984
+      },
+      {
+        "note": "A4",
+        "weight": 0.022992
       },
       {
         "note": "F2",
-        "weight": 0.02045
-      },
-      {
-        "note": "F-6",
-        "weight": 0.010225
-      },
-      {
-        "note": "D--5",
-        "weight": 0.010225
-      },
-      {
-        "note": "F-4",
-        "weight": 0.02045
-      },
-      {
-        "note": "A4",
-        "weight": 0.010225
-      },
-      {
-        "note": "D3",
-        "weight": 0.018405
+        "weight": 0.015328
       },
       {
         "note": "C3",
-        "weight": 0.006135
+        "weight": 0.014715
       },
       {
-        "note": "E--7",
-        "weight": 0.02045
-      },
-      {
-        "note": "C--6",
-        "weight": 0.010225
-      },
-      {
-        "note": "G-4",
-        "weight": 0.02045
-      },
-      {
-        "note": "E-5",
-        "weight": 0.030675
-      },
-      {
-        "note": "A--4",
-        "weight": 0.010225
-      },
-      {
-        "note": "C-6",
-        "weight": 0.010225
-      },
-      {
-        "note": "E-3",
-        "weight": 0.010225
-      },
-      {
-        "note": "A2",
-        "weight": 0.010225
-      }
-    ],
-    "E6": [
-      {
-        "note": "G#5",
-        "weight": 0.011952
-      },
-      {
-        "note": "E5",
-        "weight": 0.059761
-      },
-      {
-        "note": "C5",
-        "weight": 0.099602
-      },
-      {
-        "note": "B4",
-        "weight": 0.01992
-      },
-      {
-        "note": "A4",
-        "weight": 0.023904
-      },
-      {
-        "note": "G#4",
-        "weight": 0.023904
-      },
-      {
-        "note": "F#4",
-        "weight": 0.011952
-      },
-      {
-        "note": "D4",
-        "weight": 0.167331
-      },
-      {
-        "note": "A3",
-        "weight": 0.083665
-      },
-      {
-        "note": "F3",
-        "weight": 0.023904
+        "note": "F#3",
+        "weight": 0.013795
       },
       {
         "note": "E3",
-        "weight": 0.01992
+        "weight": 0.013029
       },
       {
-        "note": "D3",
-        "weight": 0.023904
-      },
+        "note": "A2",
+        "weight": 0.007664
+      }
+    ],
+    "F5": [
       {
-        "note": "C3",
-        "weight": 0.01992
-      },
-      {
-        "note": "B5",
-        "weight": 0.01992
-      },
-      {
-        "note": "E4",
-        "weight": 0.059761
-      },
-      {
-        "note": "G#3",
-        "weight": 0.011952
+        "note": "D4",
+        "weight": 0.196875
       },
       {
         "note": "C4",
-        "weight": 0.039841
-      },
-      {
-        "note": "G3",
-        "weight": 0.035857
-      },
-      {
-        "note": "C#6",
-        "weight": 0.01992
-      },
-      {
-        "note": "B-4",
-        "weight": 0.011952
-      },
-      {
-        "note": "F4",
-        "weight": 0.035857
-      },
-      {
-        "note": "B-3",
-        "weight": 0.035857
-      },
-      {
-        "note": "G2",
-        "weight": 0.011952
-      },
-      {
-        "note": "A-5",
-        "weight": 0.01992
-      },
-      {
-        "note": "G-4",
-        "weight": 0.01992
-      },
-      {
-        "note": "F#5",
-        "weight": 0.023904
-      },
-      {
-        "note": "F5",
-        "weight": 0.011952
-      },
-      {
-        "note": "G4",
-        "weight": 0.011952
-      },
-      {
-        "note": "A-3",
-        "weight": 0.039841
-      }
-    ],
-    "C#6": [
-      {
-        "note": "C#6",
-        "weight": 0.023148
-      },
-      {
-        "note": "E5",
-        "weight": 0.013889
-      },
-      {
-        "note": "B-4",
-        "weight": 0.023148
+        "weight": 0.159375
       },
       {
         "note": "A4",
-        "weight": 0.162037
+        "weight": 0.126562
       },
       {
-        "note": "G4",
-        "weight": 0.055556
+        "note": "B-4",
+        "weight": 0.09375
       },
       {
-        "note": "F#4",
-        "weight": 0.083333
+        "note": "D5",
+        "weight": 0.084375
+      },
+      {
+        "note": "C5",
+        "weight": 0.079687
+      },
+      {
+        "note": "F5",
+        "weight": 0.078125
       },
       {
         "note": "F4",
-        "weight": 0.027778
-      },
-      {
-        "note": "D4",
-        "weight": 0.041667
-      },
-      {
-        "note": "C4",
-        "weight": 0.027778
-      },
-      {
-        "note": "B3",
-        "weight": 0.027778
+        "weight": 0.078125
       },
       {
         "note": "B-3",
-        "weight": 0.046296
-      },
-      {
-        "note": "G3",
-        "weight": 0.027778
-      },
-      {
-        "note": "D3",
-        "weight": 0.013889
-      },
-      {
-        "note": "A5",
-        "weight": 0.092593
-      },
-      {
-        "note": "E4",
-        "weight": 0.013889
+        "weight": 0.05625
       },
       {
         "note": "A3",
-        "weight": 0.046296
+        "weight": 0.028125
       },
       {
         "note": "B-2",
-        "weight": 0.023148
+        "weight": 0.01875
+      }
+    ],
+    "G5": [
+      {
+        "note": "D4",
+        "weight": 0.181096
       },
       {
-        "note": "E-4",
-        "weight": 0.023148
+        "note": "D5",
+        "weight": 0.164633
       },
       {
-        "note": "F#5",
-        "weight": 0.013889
+        "note": "G4",
+        "weight": 0.106527
       },
       {
-        "note": "A#4",
-        "weight": 0.023148
+        "note": "C5",
+        "weight": 0.10459
       },
       {
-        "note": "A#3",
-        "weight": 0.023148
+        "note": "E4",
+        "weight": 0.087159
       },
       {
-        "note": "F3",
-        "weight": 0.027778
+        "note": "C4",
+        "weight": 0.081348
       },
       {
-        "note": "F-5",
-        "weight": 0.023148
+        "note": "E5",
+        "weight": 0.069727
       },
       {
-        "note": "C-5",
-        "weight": 0.046296
+        "note": "B3",
+        "weight": 0.052295
       },
       {
-        "note": "F-4",
-        "weight": 0.023148
+        "note": "G3",
+        "weight": 0.038737
       },
       {
-        "note": "A-3",
-        "weight": 0.023148
+        "note": "B-3",
+        "weight": 0.037188
       },
       {
-        "note": "C#5",
-        "weight": 0.023148
+        "note": "G5",
+        "weight": 0.019369
+      },
+      {
+        "note": "B-4",
+        "weight": 0.018594
+      },
+      {
+        "note": "B4",
+        "weight": 0.017432
+      },
+      {
+        "note": "C3",
+        "weight": 0.011621
+      },
+      {
+        "note": "G2",
+        "weight": 0.009684
       }
     ],
     "F4": [
       {
         "note": "D4",
-        "weight": 0.044248
-      },
-      {
-        "note": "B-3",
-        "weight": 0.079646
-      },
-      {
-        "note": "G3",
-        "weight": 0.013274
-      },
-      {
-        "note": "G2",
-        "weight": 0.013274
-      },
-      {
-        "note": "F4",
-        "weight": 0.066372
-      },
-      {
-        "note": "E-5",
-        "weight": 0.088496
-      },
-      {
-        "note": "A3",
-        "weight": 0.026549
-      },
-      {
-        "note": "C3",
-        "weight": 0.088496
-      },
-      {
-        "note": "E-3",
-        "weight": 0.044248
-      },
-      {
-        "note": "D-3",
-        "weight": 0.044248
-      },
-      {
-        "note": "D-4",
-        "weight": 0.088496
-      },
-      {
-        "note": "D-5",
-        "weight": 0.022124
-      },
-      {
-        "note": "A-4",
-        "weight": 0.066372
-      },
-      {
-        "note": "B-2",
-        "weight": 0.026549
+        "weight": 0.215017
       },
       {
         "note": "C4",
-        "weight": 0.110619
+        "weight": 0.203072
       },
       {
-        "note": "A-5",
-        "weight": 0.066372
+        "note": "F4",
+        "weight": 0.187713
       },
       {
-        "note": "E-4",
-        "weight": 0.022124
-      },
-      {
-        "note": "A-3",
-        "weight": 0.022124
-      },
-      {
-        "note": "G-5",
-        "weight": 0.022124
-      },
-      {
-        "note": "F3",
-        "weight": 0.044248
-      }
-    ],
-    "B3": [
-      {
-        "note": "E--5",
-        "weight": 0.162602
-      },
-      {
-        "note": "G-5",
-        "weight": 0.04065
-      },
-      {
-        "note": "D--5",
-        "weight": 0.04065
-      },
-      {
-        "note": "F#3",
-        "weight": 0.081301
+        "note": "B-3",
+        "weight": 0.143345
       },
       {
         "note": "D3",
-        "weight": 0.04878
-      },
-      {
-        "note": "C-6",
-        "weight": 0.121951
-      },
-      {
-        "note": "G3",
-        "weight": 0.081301
-      },
-      {
-        "note": "E-3",
-        "weight": 0.04065
-      },
-      {
-        "note": "B--3",
-        "weight": 0.04065
-      },
-      {
-        "note": "A--5",
-        "weight": 0.04065
-      },
-      {
-        "note": "F-4",
-        "weight": 0.04065
-      },
-      {
-        "note": "D--4",
-        "weight": 0.04065
-      },
-      {
-        "note": "D--6",
-        "weight": 0.04065
-      },
-      {
-        "note": "A3",
-        "weight": 0.04878
-      },
-      {
-        "note": "E--4",
-        "weight": 0.04065
-      },
-      {
-        "note": "A--4",
-        "weight": 0.04065
-      },
-      {
-        "note": "F3",
-        "weight": 0.02439
+        "weight": 0.09215
       },
       {
         "note": "C3",
-        "weight": 0.02439
+        "weight": 0.087031
+      },
+      {
+        "note": "F3",
+        "weight": 0.051195
+      },
+      {
+        "note": "B-2",
+        "weight": 0.020478
       }
     ],
     "D4": [
       {
-        "note": "B--5",
-        "weight": 0.046992
+        "note": "G3",
+        "weight": 0.206349
       },
       {
-        "note": "F#3",
-        "weight": 0.028195
+        "note": "D3",
+        "weight": 0.191799
       },
       {
-        "note": "C3",
-        "weight": 0.022556
-      },
-      {
-        "note": "F-5",
-        "weight": 0.046992
-      },
-      {
-        "note": "A--4",
-        "weight": 0.037594
-      },
-      {
-        "note": "B--4",
-        "weight": 0.056391
+        "note": "B-3",
+        "weight": 0.15873
       },
       {
         "note": "D4",
-        "weight": 0.065789
-      },
-      {
-        "note": "C-6",
-        "weight": 0.037594
-      },
-      {
-        "note": "A--3",
-        "weight": 0.028195
+        "weight": 0.152116
       },
       {
         "note": "A3",
-        "weight": 0.056391
-      },
-      {
-        "note": "D3",
-        "weight": 0.046992
-      },
-      {
-        "note": "E3",
-        "weight": 0.005639
-      },
-      {
-        "note": "A--6",
-        "weight": 0.018797
-      },
-      {
-        "note": "B2",
-        "weight": 0.018797
-      },
-      {
-        "note": "D--6",
-        "weight": 0.028195
-      },
-      {
-        "note": "F-6",
-        "weight": 0.018797
-      },
-      {
-        "note": "D--5",
-        "weight": 0.037594
-      },
-      {
-        "note": "E--5",
-        "weight": 0.018797
-      },
-      {
-        "note": "A--2",
-        "weight": 0.018797
-      },
-      {
-        "note": "G-4",
-        "weight": 0.018797
-      },
-      {
-        "note": "A-4",
-        "weight": 0.018797
+        "weight": 0.089947
       },
       {
         "note": "B3",
-        "weight": 0.009398
-      },
-      {
-        "note": "C--6",
-        "weight": 0.009398
-      },
-      {
-        "note": "E-6",
-        "weight": 0.009398
-      },
-      {
-        "note": "G3",
-        "weight": 0.011278
-      },
-      {
-        "note": "D--4",
-        "weight": 0.009398
-      },
-      {
-        "note": "E--3",
-        "weight": 0.028195
-      },
-      {
-        "note": "E--4",
-        "weight": 0.018797
-      },
-      {
-        "note": "E--6",
-        "weight": 0.009398
-      },
-      {
-        "note": "C-5",
-        "weight": 0.018797
-      },
-      {
-        "note": "F-4",
-        "weight": 0.009398
-      },
-      {
-        "note": "A--5",
-        "weight": 0.009398
-      },
-      {
-        "note": "E-5",
-        "weight": 0.018797
-      },
-      {
-        "note": "C4",
-        "weight": 0.022556
-      },
-      {
-        "note": "D-3",
-        "weight": 0.018797
-      },
-      {
-        "note": "B-3",
-        "weight": 0.056391
-      },
-      {
-        "note": "F3",
-        "weight": 0.016917
-      },
-      {
-        "note": "D-5",
-        "weight": 0.009398
-      },
-      {
-        "note": "E-3",
-        "weight": 0.009398
-      },
-      {
-        "note": "G-5",
-        "weight": 0.009398
-      },
-      {
-        "note": "G-3",
-        "weight": 0.009398
+        "weight": 0.083333
       },
       {
         "note": "B-2",
-        "weight": 0.009398
-      }
-    ],
-    "F#3": [
-      {
-        "note": "C-6",
-        "weight": 0.5
-      },
-      {
-        "note": "A--5",
-        "weight": 0.25
-      },
-      {
-        "note": "E--5",
-        "weight": 0.25
-      }
-    ],
-    "E4": [
-      {
-        "note": "E4",
-        "weight": 0.171103
-      },
-      {
-        "note": "E--5",
-        "weight": 0.038023
-      },
-      {
-        "note": "D4",
-        "weight": 0.022814
-      },
-      {
-        "note": "B--4",
-        "weight": 0.057034
-      },
-      {
-        "note": "C#4",
-        "weight": 0.019011
-      },
-      {
-        "note": "C4",
-        "weight": 0.076046
-      },
-      {
-        "note": "B-3",
-        "weight": 0.011407
-      },
-      {
-        "note": "G3",
-        "weight": 0.034221
-      },
-      {
-        "note": "C3",
-        "weight": 0.076046
-      },
-      {
-        "note": "F-6",
-        "weight": 0.038023
-      },
-      {
-        "note": "D--6",
-        "weight": 0.019011
-      },
-      {
-        "note": "F-4",
-        "weight": 0.019011
-      },
-      {
-        "note": "D--5",
-        "weight": 0.057034
-      },
-      {
-        "note": "E-2",
-        "weight": 0.019011
-      },
-      {
-        "note": "G-3",
-        "weight": 0.019011
-      },
-      {
-        "note": "E--7",
-        "weight": 0.038023
-      },
-      {
-        "note": "B--5",
-        "weight": 0.038023
-      },
-      {
-        "note": "C-6",
-        "weight": 0.038023
-      },
-      {
-        "note": "A--3",
-        "weight": 0.019011
-      },
-      {
-        "note": "G-4",
-        "weight": 0.019011
-      },
-      {
-        "note": "F-5",
-        "weight": 0.019011
-      },
-      {
-        "note": "E--3",
-        "weight": 0.019011
-      },
-      {
-        "note": "G-5",
-        "weight": 0.019011
-      },
-      {
-        "note": "B--6",
-        "weight": 0.019011
-      },
-      {
-        "note": "A--6",
-        "weight": 0.019011
-      },
-      {
-        "note": "E--6",
-        "weight": 0.019011
-      },
-      {
-        "note": "C-4",
-        "weight": 0.038023
-      },
-      {
-        "note": "E3",
-        "weight": 0.019011
-      }
-    ],
-    "B--4": [
-      {
-        "note": "C-5",
-        "weight": 0.2
-      },
-      {
-        "note": "E-4",
-        "weight": 0.2
-      },
-      {
-        "note": "G-4",
-        "weight": 0.2
-      },
-      {
-        "note": "B--4",
-        "weight": 0.2
-      },
-      {
-        "note": "E--4",
-        "weight": 0.2
-      }
-    ],
-    "E--4": [
-      {
-        "note": "G-4",
-        "weight": 0.25
-      },
-      {
-        "note": "B--3",
-        "weight": 0.25
-      },
-      {
-        "note": "D--4",
-        "weight": 0.25
-      },
-      {
-        "note": "C-4",
-        "weight": 0.25
-      }
-    ],
-    "B--5": [
-      {
-        "note": "F-5",
-        "weight": 0.363636
-      },
-      {
-        "note": "A--4",
-        "weight": 0.272727
-      },
-      {
-        "note": "B--5",
-        "weight": 0.090909
-      },
-      {
-        "note": "B--4",
-        "weight": 0.181818
-      },
-      {
-        "note": "F-4",
-        "weight": 0.090909
-      }
-    ],
-    "A3": [
-      {
-        "note": "F-5",
-        "weight": 0.2
-      },
-      {
-        "note": "B--5",
-        "weight": 0.133333
-      },
-      {
-        "note": "A--4",
-        "weight": 0.066667
-      },
-      {
-        "note": "F-4",
-        "weight": 0.066667
-      },
-      {
-        "note": "B--4",
-        "weight": 0.066667
-      },
-      {
-        "note": "G-6",
-        "weight": 0.066667
-      },
-      {
-        "note": "C--5",
-        "weight": 0.066667
-      },
-      {
-        "note": "A--5",
-        "weight": 0.066667
+        "weight": 0.039683
       },
       {
         "note": "F3",
-        "weight": 0.066667
+        "weight": 0.031746
       },
       {
-        "note": "A-3",
-        "weight": 0.133333
+        "note": "B2",
+        "weight": 0.02381
       },
       {
-        "note": "A-2",
-        "weight": 0.066667
+        "note": "G2",
+        "weight": 0.015873
+      },
+      {
+        "note": "D2",
+        "weight": 0.006614
       }
     ],
-    "F-5": [
+    "A5": [
       {
-        "note": "B--5",
-        "weight": 0.285714
+        "note": "D4",
+        "weight": 0.140704
       },
       {
-        "note": "A--4",
-        "weight": 0.142857
+        "note": "F4",
+        "weight": 0.134003
       },
       {
-        "note": "F-4",
-        "weight": 0.142857
-      },
-      {
-        "note": "B--4",
-        "weight": 0.142857
-      },
-      {
-        "note": "E--3",
-        "weight": 0.285714
-      }
-    ],
-    "F#4": [
-      {
-        "note": "F#3",
-        "weight": 0.03937
-      },
-      {
-        "note": "D3",
-        "weight": 0.03937
-      },
-      {
-        "note": "C-6",
-        "weight": 0.07874
-      },
-      {
-        "note": "F-3",
-        "weight": 0.03937
-      },
-      {
-        "note": "E4",
-        "weight": 0.047244
+        "note": "F5",
+        "weight": 0.134003
       },
       {
         "note": "C4",
-        "weight": 0.023622
+        "weight": 0.128643
       },
       {
-        "note": "D--6",
-        "weight": 0.07874
+        "note": "C5",
+        "weight": 0.112563
       },
       {
-        "note": "D--5",
-        "weight": 0.07874
+        "note": "F#4",
+        "weight": 0.090452
       },
       {
-        "note": "B3",
-        "weight": 0.047244
+        "note": "A4",
+        "weight": 0.067002
       },
       {
-        "note": "B-3",
-        "weight": 0.070866
+        "note": "F#5",
+        "weight": 0.060302
       },
       {
-        "note": "C-7",
-        "weight": 0.03937
+        "note": "D5",
+        "weight": 0.060302
       },
       {
-        "note": "A--6",
-        "weight": 0.03937
+        "note": "E5",
+        "weight": 0.028476
       },
       {
-        "note": "B--5",
-        "weight": 0.03937
+        "note": "E4",
+        "weight": 0.028476
       },
       {
-        "note": "G--6",
-        "weight": 0.03937
-      },
-      {
-        "note": "E--6",
-        "weight": 0.03937
-      },
-      {
-        "note": "E--4",
-        "weight": 0.07874
-      },
-      {
-        "note": "G--5",
-        "weight": 0.03937
-      },
-      {
-        "note": "D4",
-        "weight": 0.03937
-      },
-      {
-        "note": "G3",
-        "weight": 0.023622
-      },
-      {
-        "note": "E-3",
-        "weight": 0.07874
-      }
-    ],
-    "A--5": [
-      {
-        "note": "A--4",
-        "weight": 0.357143
-      },
-      {
-        "note": "D--6",
-        "weight": 0.142857
-      },
-      {
-        "note": "D--4",
-        "weight": 0.142857
-      },
-      {
-        "note": "D-5",
-        "weight": 0.142857
-      },
-      {
-        "note": "F-4",
-        "weight": 0.071429
-      },
-      {
-        "note": "F-5",
-        "weight": 0.071429
-      },
-      {
-        "note": "B--3",
-        "weight": 0.071429
-      }
-    ],
-    "C-7": [
-      {
-        "note": "F-5",
-        "weight": 1.0
-      }
-    ],
-    "G-6": [
-      {
-        "note": "F-5",
-        "weight": 0.4
-      },
-      {
-        "note": "G-4",
-        "weight": 0.2
-      },
-      {
-        "note": "E--5",
-        "weight": 0.4
-      }
-    ],
-    "A--6": [
-      {
-        "note": "F-5",
-        "weight": 0.428571
-      },
-      {
-        "note": "B--6",
-        "weight": 0.142857
-      },
-      {
-        "note": "A--4",
-        "weight": 0.142857
-      },
-      {
-        "note": "D--5",
-        "weight": 0.142857
-      },
-      {
-        "note": "C--6",
-        "weight": 0.142857
-      }
-    ],
-    "F-6": [
-      {
-        "note": "D--5",
-        "weight": 0.75
-      },
-      {
-        "note": "F-4",
-        "weight": 0.125
-      },
-      {
-        "note": "G-5",
-        "weight": 0.125
-      }
-    ],
-    "D--6": [
-      {
-        "note": "D--4",
-        "weight": 0.214286
-      },
-      {
-        "note": "B--4",
-        "weight": 0.5
-      },
-      {
-        "note": "G-4",
-        "weight": 0.142857
-      },
-      {
-        "note": "F-4",
-        "weight": 0.071429
-      },
-      {
-        "note": "F-5",
-        "weight": 0.071429
-      }
-    ],
-    "E3": [
-      {
-        "note": "D--6",
-        "weight": 0.2
-      },
-      {
-        "note": "B--4",
-        "weight": 0.2
-      },
-      {
-        "note": "E--3",
-        "weight": 0.2
-      },
-      {
-        "note": "A--6",
-        "weight": 0.2
-      },
-      {
-        "note": "F-5",
-        "weight": 0.2
-      }
-    ],
-    "E--6": [
-      {
-        "note": "B--4",
-        "weight": 0.166667
-      },
-      {
-        "note": "C-5",
-        "weight": 0.166667
-      },
-      {
-        "note": "G-5",
-        "weight": 0.166667
-      },
-      {
-        "note": "E--4",
-        "weight": 0.333333
-      },
-      {
-        "note": "G-4",
-        "weight": 0.166667
-      }
-    ],
-    "B--6": [
-      {
-        "note": "B--4",
-        "weight": 0.2
-      },
-      {
-        "note": "F-5",
-        "weight": 0.2
-      },
-      {
-        "note": "D--5",
-        "weight": 0.4
-      },
-      {
-        "note": "G-5",
-        "weight": 0.2
-      }
-    ],
-    "C-3": [
-      {
-        "note": "C-3",
-        "weight": 1.0
-      }
-    ],
-    "G--5": [
-      {
-        "note": "E--3",
-        "weight": 1.0
-      }
-    ],
-    "E--5": [
-      {
-        "note": "E--5",
-        "weight": 1.0
-      }
-    ],
-    "C-5": [
-      {
-        "note": "F-4",
-        "weight": 1.0
-      }
-    ],
-    "A--4": [
-      {
-        "note": "B--3",
-        "weight": 0.166667
-      },
-      {
-        "note": "B--2",
-        "weight": 0.166667
-      },
-      {
-        "note": "E--3",
-        "weight": 0.166667
-      },
-      {
-        "note": "F-5",
-        "weight": 0.166667
-      },
-      {
-        "note": "E--4",
-        "weight": 0.333333
-      }
-    ],
-    "F-4": [
-      {
-        "note": "D-4",
-        "weight": 0.2
-      },
-      {
-        "note": "E--3",
-        "weight": 0.2
-      },
-      {
-        "note": "E--4",
-        "weight": 0.4
-      },
-      {
-        "note": "E--5",
-        "weight": 0.2
+        "note": "C#5",
+        "weight": 0.015075
       }
     ],
     "C4": [
       {
-        "note": "A--3",
-        "weight": 0.034014
+        "note": "G3",
+        "weight": 0.295011
       },
       {
-        "note": "B--4",
-        "weight": 0.034014
-      },
-      {
-        "note": "E--3",
-        "weight": 0.102041
-      },
-      {
-        "note": "D--6",
-        "weight": 0.034014
-      },
-      {
-        "note": "B--5",
-        "weight": 0.034014
-      },
-      {
-        "note": "G--5",
-        "weight": 0.034014
-      },
-      {
-        "note": "E--5",
-        "weight": 0.034014
-      },
-      {
-        "note": "B3",
-        "weight": 0.040816
+        "note": "A3",
+        "weight": 0.156182
       },
       {
         "note": "F3",
-        "weight": 0.061224
+        "weight": 0.156182
       },
       {
-        "note": "A2",
-        "weight": 0.034014
+        "note": "C4",
+        "weight": 0.151844
       },
       {
-        "note": "A3",
-        "weight": 0.034014
+        "note": "C3",
+        "weight": 0.130152
       },
       {
-        "note": "G3",
-        "weight": 0.034014
-      },
-      {
-        "note": "A-3",
-        "weight": 0.068027
-      },
-      {
-        "note": "A-2",
-        "weight": 0.034014
-      },
-      {
-        "note": "E-5",
-        "weight": 0.102041
-      },
-      {
-        "note": "D-5",
-        "weight": 0.068027
-      },
-      {
-        "note": "G-3",
-        "weight": 0.034014
-      },
-      {
-        "note": "B-3",
-        "weight": 0.081633
-      },
-      {
-        "note": "G-4",
-        "weight": 0.034014
-      },
-      {
-        "note": "E-4",
-        "weight": 0.068027
+        "note": "G2",
+        "weight": 0.110629
       }
     ],
-    "D--3": [
+    "B-5": [
       {
-        "note": "D--3",
-        "weight": 1.0
-      }
-    ],
-    "G-5": [
-      {
-        "note": "C-3",
-        "weight": 0.25
-      },
-      {
-        "note": "G-4",
-        "weight": 0.125
-      },
-      {
-        "note": "B--3",
-        "weight": 0.125
-      },
-      {
-        "note": "E-4",
-        "weight": 0.25
-      },
-      {
-        "note": "D-4",
-        "weight": 0.125
-      },
-      {
-        "note": "E-5",
-        "weight": 0.125
-      }
-    ],
-    "C-6": [
-      {
-        "note": "E--5",
-        "weight": 0.142857
-      },
-      {
-        "note": "G-4",
-        "weight": 0.142857
-      },
-      {
-        "note": "C-6",
-        "weight": 0.142857
-      },
-      {
-        "note": "C-5",
-        "weight": 0.142857
-      },
-      {
-        "note": "E--3",
-        "weight": 0.142857
-      },
-      {
-        "note": "B--4",
-        "weight": 0.142857
-      },
-      {
-        "note": "C-4",
-        "weight": 0.142857
-      }
-    ],
-    "F6": [
-      {
-        "note": "F4",
-        "weight": 0.142857
-      },
-      {
-        "note": "D4",
+        "note": "G4",
         "weight": 0.285714
       },
       {
-        "note": "B-5",
-        "weight": 0.085714
+        "note": "F5",
+        "weight": 0.202381
+      },
+      {
+        "note": "F#4",
+        "weight": 0.15873
+      },
+      {
+        "note": "F4",
+        "weight": 0.134921
+      },
+      {
+        "note": "D4",
+        "weight": 0.107143
       },
       {
         "note": "D5",
-        "weight": 0.142857
+        "weight": 0.071429
       },
+      {
+        "note": "B-3",
+        "weight": 0.039683
+      }
+    ],
+    "G#4": [
+      {
+        "note": "F4",
+        "weight": 0.375
+      },
+      {
+        "note": "F3",
+        "weight": 0.375
+      },
+      {
+        "note": "C#4",
+        "weight": 0.25
+      }
+    ],
+    "C#5": [
       {
         "note": "A4",
-        "weight": 0.085714
+        "weight": 0.307692
       },
       {
-        "note": "E4",
-        "weight": 0.171429
+        "note": "F4",
+        "weight": 0.276923
+      },
+      {
+        "note": "G#4",
+        "weight": 0.261538
+      },
+      {
+        "note": "C#4",
+        "weight": 0.153846
+      }
+    ],
+    "E4": [
+      {
+        "note": "C4",
+        "weight": 0.477327
       },
       {
         "note": "A3",
-        "weight": 0.085714
+        "weight": 0.200477
+      },
+      {
+        "note": "E3",
+        "weight": 0.143198
+      },
+      {
+        "note": "G3",
+        "weight": 0.114558
+      },
+      {
+        "note": "B3",
+        "weight": 0.040573
+      },
+      {
+        "note": "E4",
+        "weight": 0.023866
+      }
+    ],
+    "C#4": [
+      {
+        "note": "B-3",
+        "weight": 1.0
+      }
+    ],
+    "F#4": [
+      {
+        "note": "D4",
+        "weight": 0.729167
+      },
+      {
+        "note": "F#3",
+        "weight": 0.15625
+      },
+      {
+        "note": "B3",
+        "weight": 0.0625
+      },
+      {
+        "note": "F#4",
+        "weight": 0.052083
+      }
+    ],
+    "E5": [
+      {
+        "note": "C5",
+        "weight": 0.269088
+      },
+      {
+        "note": "G4",
+        "weight": 0.161453
+      },
+      {
+        "note": "C4",
+        "weight": 0.134544
+      },
+      {
+        "note": "A3",
+        "weight": 0.100908
+      },
+      {
+        "note": "B4",
+        "weight": 0.085772
+      },
+      {
+        "note": "B3",
+        "weight": 0.085772
+      },
+      {
+        "note": "A4",
+        "weight": 0.080727
+      },
+      {
+        "note": "E5",
+        "weight": 0.033636
+      },
+      {
+        "note": "E4",
+        "weight": 0.016818
+      },
+      {
+        "note": "G3",
+        "weight": 0.016145
+      },
+      {
+        "note": "G#4",
+        "weight": 0.015136
+      }
+    ],
+    "G#5": [
+      {
+        "note": "C5",
+        "weight": 1.0
+      }
+    ],
+    "C6": [
+      {
+        "note": "C5",
+        "weight": 0.431034
+      },
+      {
+        "note": "A5",
+        "weight": 0.155172
+      },
+      {
+        "note": "A3",
+        "weight": 0.155172
+      },
+      {
+        "note": "E5",
+        "weight": 0.155172
+      },
+      {
+        "note": "F5",
+        "weight": 0.103448
+      }
+    ],
+    "D6": [
+      {
+        "note": "B3",
+        "weight": 0.412844
+      },
+      {
+        "note": "G4",
+        "weight": 0.110092
+      },
+      {
+        "note": "D6",
+        "weight": 0.091743
+      },
+      {
+        "note": "B4",
+        "weight": 0.082569
+      },
+      {
+        "note": "A4",
+        "weight": 0.077982
+      },
+      {
+        "note": "A3",
+        "weight": 0.077982
+      },
+      {
+        "note": "G3",
+        "weight": 0.055046
+      },
+      {
+        "note": "D5",
+        "weight": 0.045872
+      },
+      {
+        "note": "D4",
+        "weight": 0.045872
+      }
+    ],
+    "G6": [
+      {
+        "note": "G6",
+        "weight": 0.675676
+      },
+      {
+        "note": "B-5",
+        "weight": 0.324324
+      }
+    ],
+    "B-6": [
+      {
+        "note": "B-6",
+        "weight": 1.0
       }
     ],
     "D7": [
       {
         "note": "D7",
-        "weight": 0.069444
-      },
-      {
-        "note": "D5",
-        "weight": 0.208333
-      },
-      {
-        "note": "C5",
-        "weight": 0.083333
-      },
-      {
-        "note": "B4",
-        "weight": 0.069444
-      },
-      {
-        "note": "B-4",
-        "weight": 0.069444
-      },
-      {
-        "note": "F#4",
-        "weight": 0.083333
-      },
-      {
-        "note": "E4",
-        "weight": 0.041667
-      },
-      {
-        "note": "D4",
-        "weight": 0.069444
-      },
-      {
-        "note": "B3",
-        "weight": 0.069444
-      },
-      {
-        "note": "E3",
-        "weight": 0.041667
-      },
-      {
-        "note": "C3",
-        "weight": 0.083333
-      },
-      {
-        "note": "F#3",
-        "weight": 0.041667
-      },
-      {
-        "note": "D3",
-        "weight": 0.069444
+        "weight": 1.0
       }
     ],
     "G7": [
       {
         "note": "G7",
-        "weight": 0.277778
-      },
-      {
-        "note": "G4",
-        "weight": 0.277778
-      },
+        "weight": 1.0
+      }
+    ],
+    "A3": [
       {
         "note": "A3",
-        "weight": 0.166667
+        "weight": 0.346021
       },
+      {
+        "note": "F#3",
+        "weight": 0.311419
+      },
+      {
+        "note": "F3",
+        "weight": 0.17301
+      },
+      {
+        "note": "A2",
+        "weight": 0.086505
+      },
+      {
+        "note": "C3",
+        "weight": 0.083045
+      }
+    ],
+    "B3": [
       {
         "note": "G3",
-        "weight": 0.277778
-      }
-    ],
-    "E-4": [
-      {
-        "note": "E-4",
-        "weight": 0.666667
+        "weight": 0.754717
       },
       {
-        "note": "E-3",
-        "weight": 0.333333
-      }
-    ],
-    "E-5": [
-      {
-        "note": "E-4",
-        "weight": 0.5
+        "note": "F#3",
+        "weight": 0.106918
       },
       {
-        "note": "A-3",
-        "weight": 0.5
-      }
-    ],
-    "D--5": [
-      {
-        "note": "G-4",
-        "weight": 0.2
+        "note": "E3",
+        "weight": 0.075472
       },
       {
-        "note": "E--3",
-        "weight": 0.2
-      },
-      {
-        "note": "A--4",
-        "weight": 0.2
-      },
-      {
-        "note": "F-5",
-        "weight": 0.2
-      },
-      {
-        "note": "B--4",
-        "weight": 0.2
-      }
-    ],
-    "G-4": [
-      {
-        "note": "E--4",
-        "weight": 1.0
-      }
-    ],
-    "G3": [
-      {
-        "note": "F-5",
-        "weight": 0.25
-      },
-      {
-        "note": "D--5",
-        "weight": 0.25
-      },
-      {
-        "note": "G2",
-        "weight": 0.25
-      },
-      {
-        "note": "E-4",
-        "weight": 0.25
-      }
-    ],
-    "A--2": [
-      {
-        "note": "A--2",
-        "weight": 1.0
-      }
-    ],
-    "A--3": [
-      {
-        "note": "A--3",
-        "weight": 1.0
-      }
-    ],
-    "C-4": [
-      {
-        "note": "C-4",
-        "weight": 1.0
-      }
-    ],
-    "G--6": [
-      {
-        "note": "E--6",
-        "weight": 0.333333
-      },
-      {
-        "note": "E--4",
-        "weight": 0.666667
-      }
-    ],
-    "C--7": [
-      {
-        "note": "E--3",
-        "weight": 1.0
-      }
-    ],
-    "E--7": [
-      {
-        "note": "E--7",
-        "weight": 0.5
-      },
-      {
-        "note": "C-6",
-        "weight": 0.5
-      }
-    ],
-    "A-3": [
-      {
-        "note": "A-3",
-        "weight": 1.0
+        "note": "B3",
+        "weight": 0.062893
       }
     ],
     "F3": [
       {
+        "note": "F3",
+        "weight": 0.37037
+      },
+      {
+        "note": "D3",
+        "weight": 0.266667
+      },
+      {
+        "note": "F2",
+        "weight": 0.148148
+      },
+      {
         "note": "C3",
-        "weight": 0.333333
+        "weight": 0.125926
       },
       {
-        "note": "A-4",
-        "weight": 0.333333
-      },
-      {
-        "note": "F-4",
-        "weight": 0.333333
+        "note": "B-2",
+        "weight": 0.088889
       }
     ],
-    "A-4": [
+    "D3": [
       {
-        "note": "F-4",
+        "note": "B-2",
         "weight": 1.0
       }
     ],
-    "G#5": [
-      {
-        "note": "E5",
-        "weight": 0.238095
-      },
-      {
-        "note": "C4",
-        "weight": 0.142857
-      },
+    "C3": [
       {
         "note": "C3",
-        "weight": 0.142857
-      },
-      {
-        "note": "E-4",
-        "weight": 0.238095
-      },
-      {
-        "note": "E-3",
-        "weight": 0.238095
+        "weight": 1.0
       }
     ],
-    "B-3": [
+    "B5": [
       {
-        "note": "B-3",
-        "weight": 0.0625
+        "note": "G5",
+        "weight": 0.248756
       },
       {
-        "note": "G-5",
-        "weight": 0.125
+        "note": "G3",
+        "weight": 0.248756
       },
       {
-        "note": "E-5",
-        "weight": 0.125
+        "note": "G4",
+        "weight": 0.124378
       },
       {
-        "note": "F3",
-        "weight": 0.0625
+        "note": "D4",
+        "weight": 0.119403
       },
       {
-        "note": "D-4",
-        "weight": 0.125
+        "note": "E5",
+        "weight": 0.074627
       },
       {
-        "note": "E-4",
-        "weight": 0.125
+        "note": "B3",
+        "weight": 0.062189
       },
       {
-        "note": "D-5",
-        "weight": 0.25
+        "note": "B4",
+        "weight": 0.062189
       },
       {
-        "note": "G-4",
-        "weight": 0.125
+        "note": "D5",
+        "weight": 0.059701
       }
     ],
-    "F#6": [
+    "F#5": [
       {
-        "note": "A5",
-        "weight": 0.375
+        "note": "D5",
+        "weight": 0.4
+      },
+      {
+        "note": "D4",
+        "weight": 0.4
       },
       {
         "note": "F#4",
-        "weight": 0.625
+        "weight": 0.2
+      }
+    ],
+    "E3": [
+      {
+        "note": "D3",
+        "weight": 1.0
+      }
+    ],
+    "C#6": [
+      {
+        "note": "A4",
+        "weight": 0.652174
+      },
+      {
+        "note": "A3",
+        "weight": 0.217391
+      },
+      {
+        "note": "F#4",
+        "weight": 0.130435
+      }
+    ],
+    "E6": [
+      {
+        "note": "A4",
+        "weight": 0.352941
+      },
+      {
+        "note": "A3",
+        "weight": 0.352941
+      },
+      {
+        "note": "E4",
+        "weight": 0.294118
+      }
+    ],
+    "F#3": [
+      {
+        "note": "D3",
+        "weight": 1.0
       }
     ]
   },
   "pitchClassHarmonyRules": {
     "G": [
       {
-        "note": "G",
-        "weight": 0.205681
-      },
-      {
-        "note": "D",
-        "weight": 0.161606
-      },
-      {
         "note": "C",
-        "weight": 0.085211
-      },
-      {
-        "note": "B-",
-        "weight": 0.077375
+        "weight": 0.185185
       },
       {
         "note": "E",
-        "weight": 0.074437
+        "weight": 0.166667
       },
       {
-        "note": "A",
-        "weight": 0.065622
+        "note": "D",
+        "weight": 0.157407
+      },
+      {
+        "note": "B-",
+        "weight": 0.148148
       },
       {
         "note": "B",
-        "weight": 0.059745
+        "weight": 0.138889
+      },
+      {
+        "note": "G",
+        "weight": 0.092593
+      },
+      {
+        "note": "A",
+        "weight": 0.055556
       },
       {
         "note": "F",
-        "weight": 0.056807
-      },
-      {
-        "note": "E--",
-        "weight": 0.038198
-      },
-      {
-        "note": "C-",
-        "weight": 0.03526
-      },
-      {
-        "note": "E-",
-        "weight": 0.030362
+        "weight": 0.037037
       },
       {
         "note": "F#",
-        "weight": 0.019589
-      },
-      {
-        "note": "A--",
-        "weight": 0.01763
-      },
-      {
-        "note": "B--",
-        "weight": 0.01665
-      },
-      {
-        "note": "F-",
-        "weight": 0.01665
-      },
-      {
-        "note": "G-",
-        "weight": 0.011753
-      },
-      {
-        "note": "D--",
-        "weight": 0.009794
-      },
-      {
-        "note": "C#",
-        "weight": 0.005877
-      },
-      {
-        "note": "A-",
-        "weight": 0.005877
-      },
-      {
-        "note": "D-",
-        "weight": 0.001959
-      },
-      {
-        "note": "G#",
-        "weight": 0.000979
-      },
-      {
-        "note": "D#",
-        "weight": 0.000979
-      },
-      {
-        "note": "G--",
-        "weight": 0.000979
-      },
-      {
-        "note": "C--",
-        "weight": 0.000979
+        "weight": 0.018519
       }
     ],
     "D": [
       {
-        "note": "D",
-        "weight": 0.177474
+        "note": "B-",
+        "weight": 0.153846
       },
       {
         "note": "G",
-        "weight": 0.158134
-      },
-      {
-        "note": "B-",
-        "weight": 0.09215
-      },
-      {
-        "note": "A",
-        "weight": 0.086462
-      },
-      {
-        "note": "C",
-        "weight": 0.078498
+        "weight": 0.153846
       },
       {
         "note": "B",
-        "weight": 0.059158
+        "weight": 0.138462
       },
       {
-        "note": "E",
-        "weight": 0.051195
+        "note": "A",
+        "weight": 0.130769
       },
       {
         "note": "F",
-        "weight": 0.045506
-      },
-      {
-        "note": "E-",
-        "weight": 0.042093
+        "weight": 0.123077
       },
       {
         "note": "F#",
-        "weight": 0.039818
-      },
-      {
-        "note": "E--",
-        "weight": 0.030717
-      },
-      {
-        "note": "F-",
-        "weight": 0.023891
-      },
-      {
-        "note": "A--",
-        "weight": 0.021615
-      },
-      {
-        "note": "C-",
-        "weight": 0.01934
-      },
-      {
-        "note": "B--",
-        "weight": 0.018203
-      },
-      {
-        "note": "D--",
-        "weight": 0.013652
-      },
-      {
-        "note": "A-",
-        "weight": 0.010239
-      },
-      {
-        "note": "G-",
-        "weight": 0.009101
-      },
-      {
-        "note": "D-",
-        "weight": 0.007964
-      },
-      {
-        "note": "C#",
-        "weight": 0.006826
-      },
-      {
-        "note": "G#",
-        "weight": 0.003413
-      },
-      {
-        "note": "A#",
-        "weight": 0.002275
-      },
-      {
-        "note": "G--",
-        "weight": 0.001138
-      },
-      {
-        "note": "C--",
-        "weight": 0.001138
-      }
-    ],
-    "E": [
-      {
-        "note": "C",
-        "weight": 0.153179
-      },
-      {
-        "note": "G",
-        "weight": 0.144509
+        "weight": 0.115385
       },
       {
         "note": "D",
-        "weight": 0.138728
+        "weight": 0.076923
       },
       {
         "note": "E",
-        "weight": 0.095376
+        "weight": 0.046154
       },
       {
-        "note": "A",
-        "weight": 0.072254
-      },
-      {
-        "note": "B-",
-        "weight": 0.057803
-      },
-      {
-        "note": "F",
-        "weight": 0.052023
-      },
-      {
-        "note": "B",
-        "weight": 0.046243
-      },
-      {
-        "note": "E--",
-        "weight": 0.031792
-      },
-      {
-        "note": "C-",
-        "weight": 0.031792
-      },
-      {
-        "note": "B--",
-        "weight": 0.023121
-      },
-      {
-        "note": "E-",
-        "weight": 0.023121
-      },
-      {
-        "note": "F-",
-        "weight": 0.020231
-      },
-      {
-        "note": "D--",
-        "weight": 0.020231
-      },
-      {
-        "note": "F#",
-        "weight": 0.017341
-      },
-      {
-        "note": "G-",
-        "weight": 0.017341
+        "note": "C",
+        "weight": 0.030769
       },
       {
         "note": "G#",
-        "weight": 0.014451
-      },
-      {
-        "note": "A--",
-        "weight": 0.014451
+        "weight": 0.015385
       },
       {
         "note": "C#",
-        "weight": 0.008671
-      },
-      {
-        "note": "A-",
-        "weight": 0.008671
-      },
-      {
-        "note": "G--",
-        "weight": 0.008671
+        "weight": 0.015385
       }
     ],
     "B-": [
       {
+        "note": "F#",
+        "weight": 0.222222
+      },
+      {
         "note": "G",
-        "weight": 0.147186
-      },
-      {
-        "note": "D",
-        "weight": 0.12987
-      },
-      {
-        "note": "D-",
-        "weight": 0.108225
-      },
-      {
-        "note": "B-",
-        "weight": 0.097403
+        "weight": 0.2
       },
       {
         "note": "F",
-        "weight": 0.097403
+        "weight": 0.188889
       },
       {
-        "note": "A",
-        "weight": 0.082251
+        "note": "D",
+        "weight": 0.166667
+      },
+      {
+        "note": "B-",
+        "weight": 0.111111
       },
       {
         "note": "C",
-        "weight": 0.082251
+        "weight": 0.066667
       },
       {
-        "note": "E-",
-        "weight": 0.058442
-      },
-      {
-        "note": "G-",
-        "weight": 0.049784
-      },
-      {
-        "note": "B",
-        "weight": 0.036797
+        "note": "A",
+        "weight": 0.022222
       },
       {
         "note": "E",
-        "weight": 0.030303
-      },
-      {
-        "note": "F#",
-        "weight": 0.019481
-      },
-      {
-        "note": "E--",
-        "weight": 0.017316
-      },
-      {
-        "note": "A-",
-        "weight": 0.010823
-      },
-      {
-        "note": "B--",
-        "weight": 0.008658
-      },
-      {
-        "note": "A--",
-        "weight": 0.006494
-      },
-      {
-        "note": "F-",
-        "weight": 0.006494
-      },
-      {
-        "note": "D--",
-        "weight": 0.006494
-      },
-      {
-        "note": "C-",
-        "weight": 0.004329
+        "weight": 0.022222
       }
     ],
     "B": [
       {
         "note": "G",
-        "weight": 0.221662
-      },
-      {
-        "note": "D",
-        "weight": 0.156171
-      },
-      {
-        "note": "A",
-        "weight": 0.083123
+        "weight": 0.212766
       },
       {
         "note": "E",
-        "weight": 0.080605
-      },
-      {
-        "note": "B",
-        "weight": 0.073048
-      },
-      {
-        "note": "C",
-        "weight": 0.062972
-      },
-      {
-        "note": "F",
-        "weight": 0.055416
-      },
-      {
-        "note": "B-",
-        "weight": 0.052897
+        "weight": 0.212766
       },
       {
         "note": "F#",
-        "weight": 0.035264
+        "weight": 0.180851
       },
       {
-        "note": "E--",
-        "weight": 0.032746
+        "note": "D",
+        "weight": 0.170213
       },
       {
-        "note": "C-",
-        "weight": 0.027708
+        "note": "B",
+        "weight": 0.106383
       },
       {
-        "note": "A-",
-        "weight": 0.020151
+        "note": "A",
+        "weight": 0.042553
       },
       {
-        "note": "E-",
-        "weight": 0.017632
+        "note": "C",
+        "weight": 0.031915
       },
       {
-        "note": "F-",
-        "weight": 0.017632
+        "note": "B-",
+        "weight": 0.021277
       },
       {
-        "note": "A--",
-        "weight": 0.015113
-      },
-      {
-        "note": "D--",
-        "weight": 0.012594
-      },
-      {
-        "note": "G-",
-        "weight": 0.007557
-      },
-      {
-        "note": "D-",
-        "weight": 0.007557
-      },
-      {
-        "note": "B--",
-        "weight": 0.007557
-      },
-      {
-        "note": "C#",
-        "weight": 0.005038
-      },
-      {
-        "note": "G#",
-        "weight": 0.002519
-      },
-      {
-        "note": "D#",
-        "weight": 0.002519
-      },
-      {
-        "note": "C--",
-        "weight": 0.002519
+        "note": "F",
+        "weight": 0.021277
       }
     ],
     "C": [
       {
-        "note": "C",
-        "weight": 0.148741
-      },
-      {
-        "note": "G",
-        "weight": 0.141876
-      },
-      {
-        "note": "A",
-        "weight": 0.112128
-      },
-      {
-        "note": "D",
-        "weight": 0.100686
-      },
-      {
         "note": "F",
-        "weight": 0.073227
-      },
-      {
-        "note": "B",
-        "weight": 0.070938
-      },
-      {
-        "note": "E",
-        "weight": 0.066362
-      },
-      {
-        "note": "B-",
-        "weight": 0.064073
-      },
-      {
-        "note": "E-",
-        "weight": 0.052632
-      },
-      {
-        "note": "A--",
-        "weight": 0.022883
-      },
-      {
-        "note": "E--",
-        "weight": 0.018307
-      },
-      {
-        "note": "B--",
-        "weight": 0.018307
-      },
-      {
-        "note": "G-",
-        "weight": 0.018307
-      },
-      {
-        "note": "F#",
-        "weight": 0.016018
-      },
-      {
-        "note": "D--",
-        "weight": 0.016018
-      },
-      {
-        "note": "A-",
-        "weight": 0.01373
-      },
-      {
-        "note": "C-",
-        "weight": 0.011442
-      },
-      {
-        "note": "F-",
-        "weight": 0.009153
-      },
-      {
-        "note": "C#",
-        "weight": 0.006865
-      },
-      {
-        "note": "D-",
-        "weight": 0.006865
-      },
-      {
-        "note": "D#",
-        "weight": 0.004577
-      },
-      {
-        "note": "G--",
-        "weight": 0.002288
-      },
-      {
-        "note": "C--",
-        "weight": 0.002288
+        "weight": 0.175439
       },
       {
         "note": "G#",
-        "weight": 0.002288
-      }
-    ],
-    "F": [
-      {
-        "note": "D",
-        "weight": 0.155844
-      },
-      {
-        "note": "G",
-        "weight": 0.136364
-      },
-      {
-        "note": "B-",
-        "weight": 0.12987
-      },
-      {
-        "note": "C",
-        "weight": 0.11039
+        "weight": 0.175439
       },
       {
         "note": "A",
-        "weight": 0.099567
+        "weight": 0.157895
       },
       {
-        "note": "F",
-        "weight": 0.069264
-      },
-      {
-        "note": "E-",
-        "weight": 0.054113
-      },
-      {
-        "note": "D-",
-        "weight": 0.051948
-      },
-      {
-        "note": "B",
-        "weight": 0.049784
+        "note": "G",
+        "weight": 0.149123
       },
       {
         "note": "E",
-        "weight": 0.036797
+        "weight": 0.131579
       },
       {
-        "note": "A-",
-        "weight": 0.025974
+        "note": "C",
+        "weight": 0.087719
+      },
+      {
+        "note": "D",
+        "weight": 0.052632
+      },
+      {
+        "note": "B-",
+        "weight": 0.035088
       },
       {
         "note": "F#",
-        "weight": 0.021645
+        "weight": 0.017544
       },
       {
-        "note": "E--",
-        "weight": 0.010823
-      },
-      {
-        "note": "B--",
-        "weight": 0.010823
-      },
-      {
-        "note": "F-",
-        "weight": 0.008658
-      },
-      {
-        "note": "C-",
-        "weight": 0.008658
-      },
-      {
-        "note": "G-",
-        "weight": 0.008658
-      },
-      {
-        "note": "A--",
-        "weight": 0.004329
-      },
-      {
-        "note": "D--",
-        "weight": 0.004329
-      },
-      {
-        "note": "G--",
-        "weight": 0.002165
+        "note": "B",
+        "weight": 0.017544
       }
     ],
     "A": [
       {
-        "note": "D",
-        "weight": 0.149733
-      },
-      {
-        "note": "G",
-        "weight": 0.14082
-      },
-      {
-        "note": "A",
-        "weight": 0.114082
-      },
-      {
-        "note": "C",
-        "weight": 0.106952
-      },
-      {
-        "note": "B-",
-        "weight": 0.074866
-      },
-      {
         "note": "F",
-        "weight": 0.067736
+        "weight": 0.155039
       },
       {
-        "note": "E",
-        "weight": 0.067736
-      },
-      {
-        "note": "B",
-        "weight": 0.060606
+        "note": "D",
+        "weight": 0.155039
       },
       {
         "note": "F#",
-        "weight": 0.048128
+        "weight": 0.139535
       },
       {
-        "note": "E-",
-        "weight": 0.026738
+        "note": "E",
+        "weight": 0.131783
       },
       {
-        "note": "F-",
-        "weight": 0.023173
-      },
-      {
-        "note": "A--",
-        "weight": 0.02139
+        "note": "C",
+        "weight": 0.124031
       },
       {
         "note": "C#",
-        "weight": 0.016043
+        "weight": 0.116279
       },
       {
-        "note": "A-",
-        "weight": 0.016043
+        "note": "A",
+        "weight": 0.077519
       },
       {
-        "note": "C-",
-        "weight": 0.01426
+        "note": "B",
+        "weight": 0.046512
       },
       {
-        "note": "E--",
-        "weight": 0.012478
+        "note": "G",
+        "weight": 0.031008
       },
       {
-        "note": "B--",
-        "weight": 0.012478
-      },
-      {
-        "note": "D--",
-        "weight": 0.00713
-      },
-      {
-        "note": "G-",
-        "weight": 0.00713
-      },
-      {
-        "note": "G#",
-        "weight": 0.005348
-      },
-      {
-        "note": "C--",
-        "weight": 0.005348
-      },
-      {
-        "note": "D-",
-        "weight": 0.001783
+        "note": "B-",
+        "weight": 0.023256
       }
     ],
-    "F#": [
-      {
-        "note": "D",
-        "weight": 0.138158
-      },
-      {
-        "note": "G",
-        "weight": 0.118421
-      },
+    "F": [
       {
         "note": "B-",
-        "weight": 0.105263
+        "weight": 0.215054
       },
       {
-        "note": "E",
-        "weight": 0.072368
-      },
-      {
-        "note": "A",
-        "weight": 0.072368
-      },
-      {
-        "note": "F",
-        "weight": 0.065789
+        "note": "D",
+        "weight": 0.193548
       },
       {
         "note": "C",
-        "weight": 0.059211
+        "weight": 0.182796
+      },
+      {
+        "note": "A",
+        "weight": 0.16129
+      },
+      {
+        "note": "F",
+        "weight": 0.107527
+      },
+      {
+        "note": "G",
+        "weight": 0.064516
       },
       {
         "note": "F#",
-        "weight": 0.046053
+        "weight": 0.032258
       },
       {
-        "note": "G-",
-        "weight": 0.046053
-      },
-      {
-        "note": "E--",
-        "weight": 0.046053
+        "note": "E",
+        "weight": 0.021505
       },
       {
         "note": "B",
-        "weight": 0.046053
-      },
-      {
-        "note": "E-",
-        "weight": 0.039474
-      },
-      {
-        "note": "C-",
-        "weight": 0.039474
-      },
-      {
-        "note": "D--",
-        "weight": 0.032895
-      },
-      {
-        "note": "A--",
-        "weight": 0.019737
-      },
-      {
-        "note": "B--",
-        "weight": 0.013158
-      },
-      {
-        "note": "F-",
-        "weight": 0.013158
-      },
-      {
-        "note": "G--",
-        "weight": 0.013158
-      },
-      {
-        "note": "D-",
-        "weight": 0.006579
-      },
+        "weight": 0.021505
+      }
+    ],
+    "G#": [
       {
         "note": "C#",
-        "weight": 0.006579
+        "weight": 0.338983
+      },
+      {
+        "note": "F",
+        "weight": 0.305085
+      },
+      {
+        "note": "C",
+        "weight": 0.254237
+      },
+      {
+        "note": "F#",
+        "weight": 0.067797
+      },
+      {
+        "note": "D",
+        "weight": 0.033898
       }
     ],
     "C#": [
       {
         "note": "A",
-        "weight": 0.230769
-      },
-      {
-        "note": "G",
-        "weight": 0.153846
+        "weight": 0.18018
       },
       {
         "note": "F#",
-        "weight": 0.089744
-      },
-      {
-        "note": "F",
-        "weight": 0.076923
-      },
-      {
-        "note": "E",
-        "weight": 0.076923
-      },
-      {
-        "note": "D",
-        "weight": 0.076923
-      },
-      {
-        "note": "B",
-        "weight": 0.064103
+        "weight": 0.18018
       },
       {
         "note": "B-",
-        "weight": 0.051282
+        "weight": 0.162162
       },
       {
-        "note": "C-",
-        "weight": 0.038462
+        "note": "G#",
+        "weight": 0.153153
       },
       {
-        "note": "C",
-        "weight": 0.025641
+        "note": "F",
+        "weight": 0.135135
       },
       {
         "note": "C#",
-        "weight": 0.025641
+        "weight": 0.09009
       },
       {
-        "note": "A#",
-        "weight": 0.025641
+        "note": "B",
+        "weight": 0.036036
       },
       {
-        "note": "F-",
-        "weight": 0.025641
+        "note": "D",
+        "weight": 0.027027
       },
       {
-        "note": "G-",
-        "weight": 0.012821
+        "note": "G",
+        "weight": 0.018018
       },
-      {
-        "note": "E-",
-        "weight": 0.012821
-      },
-      {
-        "note": "A-",
-        "weight": 0.012821
-      }
-    ],
-    "B--": [
-      {
-        "note": "F-",
-        "weight": 0.285714
-      },
-      {
-        "note": "B--",
-        "weight": 0.238095
-      },
-      {
-        "note": "A--",
-        "weight": 0.142857
-      },
-      {
-        "note": "G-",
-        "weight": 0.095238
-      },
-      {
-        "note": "D--",
-        "weight": 0.095238
-      },
-      {
-        "note": "C-",
-        "weight": 0.047619
-      },
-      {
-        "note": "E-",
-        "weight": 0.047619
-      },
-      {
-        "note": "E--",
-        "weight": 0.047619
-      }
-    ],
-    "E--": [
-      {
-        "note": "E--",
-        "weight": 0.307692
-      },
-      {
-        "note": "G-",
-        "weight": 0.230769
-      },
-      {
-        "note": "C-",
-        "weight": 0.230769
-      },
-      {
-        "note": "B--",
-        "weight": 0.153846
-      },
-      {
-        "note": "D--",
-        "weight": 0.076923
-      }
-    ],
-    "F-": [
-      {
-        "note": "D--",
-        "weight": 0.3
-      },
-      {
-        "note": "E--",
-        "weight": 0.3
-      },
-      {
-        "note": "B--",
-        "weight": 0.15
-      },
-      {
-        "note": "F-",
-        "weight": 0.1
-      },
-      {
-        "note": "A--",
-        "weight": 0.05
-      },
-      {
-        "note": "D-",
-        "weight": 0.05
-      },
-      {
-        "note": "G-",
-        "weight": 0.05
-      }
-    ],
-    "A--": [
-      {
-        "note": "A--",
-        "weight": 0.322581
-      },
-      {
-        "note": "F-",
-        "weight": 0.193548
-      },
-      {
-        "note": "D--",
-        "weight": 0.16129
-      },
-      {
-        "note": "B--",
-        "weight": 0.129032
-      },
-      {
-        "note": "E--",
-        "weight": 0.096774
-      },
-      {
-        "note": "D-",
-        "weight": 0.064516
-      },
-      {
-        "note": "C--",
-        "weight": 0.032258
-      }
-    ],
-    "C-": [
-      {
-        "note": "C-",
-        "weight": 0.461538
-      },
-      {
-        "note": "F-",
-        "weight": 0.230769
-      },
-      {
-        "note": "E--",
-        "weight": 0.153846
-      },
-      {
-        "note": "G-",
-        "weight": 0.076923
-      },
-      {
-        "note": "B--",
-        "weight": 0.076923
-      }
-    ],
-    "G-": [
-      {
-        "note": "E--",
-        "weight": 0.214286
-      },
-      {
-        "note": "E-",
-        "weight": 0.214286
-      },
-      {
-        "note": "F-",
-        "weight": 0.142857
-      },
-      {
-        "note": "G-",
-        "weight": 0.142857
-      },
-      {
-        "note": "C-",
-        "weight": 0.142857
-      },
-      {
-        "note": "B--",
-        "weight": 0.071429
-      },
-      {
-        "note": "D-",
-        "weight": 0.071429
-      }
-    ],
-    "D--": [
-      {
-        "note": "B--",
-        "weight": 0.4
-      },
-      {
-        "note": "D--",
-        "weight": 0.2
-      },
-      {
-        "note": "G-",
-        "weight": 0.15
-      },
-      {
-        "note": "F-",
-        "weight": 0.15
-      },
-      {
-        "note": "E--",
-        "weight": 0.05
-      },
-      {
-        "note": "A--",
-        "weight": 0.05
-      }
-    ],
-    "G--": [
-      {
-        "note": "E--",
-        "weight": 1.0
-      }
-    ],
-    "E-": [
-      {
-        "note": "E-",
-        "weight": 0.8
-      },
-      {
-        "note": "A-",
-        "weight": 0.2
-      }
-    ],
-    "C--": [
-      {
-        "note": "E--",
-        "weight": 1.0
-      }
-    ],
-    "A-": [
-      {
-        "note": "A-",
-        "weight": 0.5
-      },
-      {
-        "note": "F-",
-        "weight": 0.5
-      }
-    ],
-    "G#": [
       {
         "note": "C",
-        "weight": 0.4
+        "weight": 0.018018
+      }
+    ],
+    "E": [
+      {
+        "note": "C",
+        "weight": 0.186916
       },
       {
-        "note": "E-",
-        "weight": 0.4
+        "note": "A",
+        "weight": 0.186916
+      },
+      {
+        "note": "B",
+        "weight": 0.158879
+      },
+      {
+        "note": "G",
+        "weight": 0.149533
+      },
+      {
+        "note": "G#",
+        "weight": 0.140187
       },
       {
         "note": "E",
-        "weight": 0.2
+        "weight": 0.093458
+      },
+      {
+        "note": "D",
+        "weight": 0.037383
+      },
+      {
+        "note": "F",
+        "weight": 0.028037
+      },
+      {
+        "note": "B-",
+        "weight": 0.018692
+      }
+    ],
+    "F#": [
+      {
+        "note": "D",
+        "weight": 0.327869
+      },
+      {
+        "note": "B",
+        "weight": 0.327869
+      },
+      {
+        "note": "F#",
+        "weight": 0.163934
+      },
+      {
+        "note": "E",
+        "weight": 0.065574
+      },
+      {
+        "note": "G",
+        "weight": 0.04918
+      },
+      {
+        "note": "F",
+        "weight": 0.032787
+      },
+      {
+        "note": "C",
+        "weight": 0.032787
       }
     ]
   },
@@ -13102,6 +8786,18 @@ export const musicRules = {
     ],
     "smoothnessBias": 0.85
   },
+  "verticalHarmonyRules": {
+    "preferredIntervals": {},
+    "consonanceThreshold": 0.5,
+    "preferredIntervalClasses": [
+      3,
+      4,
+      5,
+      7,
+      8,
+      9
+    ]
+  },
   "noteLengthBuckets": {
     "bucketWeights": {
       "medium": 0.4271,
@@ -13250,60 +8946,60 @@ export const musicRules = {
       "long": [
         {
           "next": "long",
-          "weight": 0.481
+          "weight": 0.4819
         },
         {
           "next": "medium",
-          "weight": 0.2977
+          "weight": 0.2972
         },
         {
           "next": "short",
-          "weight": 0.2213
+          "weight": 0.2209
         }
       ],
       "medium": [
         {
           "next": "medium",
-          "weight": 0.6331
+          "weight": 0.6332
         },
         {
           "next": "short",
-          "weight": 0.2455
+          "weight": 0.2451
         },
         {
           "next": "long",
-          "weight": 0.1214
+          "weight": 0.1216
         }
       ],
       "short": [
         {
           "next": "short",
-          "weight": 0.6203
+          "weight": 0.6199
         },
         {
           "next": "medium",
-          "weight": 0.262
+          "weight": 0.2623
         },
         {
           "next": "long",
-          "weight": 0.1177
+          "weight": 0.1178
         }
       ]
     },
     "bucketRhythmBias": {
       "long": {
-        "half": 0.5746,
-        "dotted-half": 0.3703,
-        "whole": 0.0508
+        "half": 0.572,
+        "dotted-half": 0.3707,
+        "whole": 0.0539
       },
       "medium": {
-        "quarter": 0.8089,
-        "dotted-quarter": 0.153,
-        "dotted-eighth": 0.0374
+        "quarter": 0.8081,
+        "dotted-quarter": 0.1531,
+        "dotted-eighth": 0.0377
       },
       "short": {
-        "eighth": 0.7376,
-        "sixteenth": 0.2463,
+        "eighth": 0.7369,
+        "sixteenth": 0.2449,
         "other": 0.0145
       }
     },
@@ -13398,7 +9094,7 @@ export const musicRules = {
 
 export const ruleLibrary = {
   "schema_version": "6.0",
-  "generated_at": "2026-06-04T22:35:36.455950",
+  "generated_at": "2026-06-05T00:10:01.463138",
   "tempo_independent": true,
   "description": "Compositional rule library \u2013 meowREMIX v6.0.",
   "rule_library": {

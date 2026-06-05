@@ -17,6 +17,8 @@ from api.AI_score import score_bp                              # AI DOPAMINE
 from api.trueDelta import truedelta_bp                         # TRUE DELTA
 from api.audio.ingest  import audio_ingest_bp                  # meowREMIX
 from api.audio.analyze import audio_analyze_bp                 # meowREMIX
+from api.audio_training import audio_training_bp               # meowREMIX
+
 
 
 from flask_cors import CORS
@@ -40,6 +42,8 @@ app.register_blueprint(score_bp)                # AI DOPAMINE
 app.register_blueprint(truedelta_bp)
 app.register_blueprint(audio_ingest_bp)         # meowREMIX
 app.register_blueprint(audio_analyze_bp)        # meowREMIX
+app.register_blueprint(audio_training_bp)       # meowREMIX
+
  
 
 
@@ -126,6 +130,11 @@ def meow_remix():
 @app.route('/forms/rules.js')
 def rules_js():
     return send_from_directory('forms', 'rules.js', mimetype='application/javascript')
+
+@app.route('/audioTraining')
+@app.route('/audioTraining.html')
+def audio_training_page():
+    return send_from_directory('forms', 'audioTraining.html')
 
 if __name__ == '__main__':
     app.run()
