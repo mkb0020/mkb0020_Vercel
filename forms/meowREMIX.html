@@ -307,9 +307,9 @@ body::after {
 /* ── DANCE GIF ─────────────────────────────────────────────────────────────── */
 .dance {
   position: fixed;
-  top: 12px;
-  left: 16px;
-  height: 56px;
+  top: 150px;
+  left: 200px;
+  height: 150px;
   width: auto;
   z-index: 200;
   opacity: 0.85;
@@ -323,7 +323,6 @@ body::after {
 </head>
 <body>
 
-<img src="../static/images/dance.gif" alt="" class="dance">
 
 <main class="main-grid">
 
@@ -920,57 +919,113 @@ function getSuspensionResolution(fromNote) {
 
 function getHarmonyNote(melodyNote, currentHarmonyNote) {
   if (!melodyNote || melodyNote === 'REST') return 'REST';
-  const melPc  = melodyNote.replace(/\d/g,'');
+  const melPc   = melodyNote.replace(/\d/g, '');
   const melMidi = pitchToMidi(melodyNote);
   let candidates = [];
 
+  // ── Candidate collection (unchanged) ───────────────────────────────────────
   if (musicRules.harmonyRules?.[melodyNote]) {
     candidates = musicRules.harmonyRules[melodyNote];
     if (!Array.isArray(candidates) || !candidates.length || typeof candidates[0] !== 'object')
-      candidates = candidates.map ? candidates.map(c => ({ note:c, weight:1 })) : [];
+      candidates = candidates.map ? candidates.map(c => ({ note: c, weight: 1 })) : [];
   }
   if (!candidates.length && musicRules.pitchClassHarmonyRules?.[melPc])
-    candidates = musicRules.pitchClassHarmonyRules[melPc].map(c => ({ note:c.note, weight:c.weight }));
+    candidates = musicRules.pitchClassHarmonyRules[melPc].map(c => ({ note: c.note, weight: c.weight }));
 
   if (candidates.length) {
     const prevH = currentHarmonyNote || melodyNote;
+
+    // ── Consonance table (interval class → multiplier) ──────────────────────
+    const CONSONANCE = {
+      0: 0.5,  1: 0.05, 2: 0.15, 3: 0.95, 4: 1.0,
+      5: 0.85, 6: 0.05, 7: 1.0,  8: 0.75, 9: 0.80,
+      10: 0.25, 11: 0.10,
+    };
+
+    // ── Preferred intervals for this pitch class from verticalHarmonyRules ──
+    const vhr = musicRules.verticalHarmonyRules?.preferredIntervals?.[melPc] ?? [];
+    const vhrMap = {};
+    vhr.forEach(v => { vhrMap[v.interval] = v.weight; });
+    const hasVhr = vhr.length > 0;
+
     const smoothed = candidates.map(c => {
-      let smooth = 0.5;
-      if (melMidi !== null) {
-        const hm = pitchToMidi(c.note);
-        if (hm !== null) {
-          const iv = Math.abs(melMidi - hm) % 12;
-          smooth = iv<=2 ? 0.95 : iv<=4 ? 0.85 : iv===5 ? 0.70 : iv===6 ? 0.30 : iv===7 ? 0.75 : 0.50;
-          if (prevH && prevH !== 'REST') {
-            const pm = pitchToMidi(prevH);
-            if (pm !== null) {
-              const leap = Math.abs(hm - pm);
-              if (leap > 12) smooth *= 0.6;
-              else if (leap > 7) smooth *= 0.8;
-            }
-          }
-        }
+      const hm = pitchToMidi(c.note);
+      if (hm === null || melMidi === null) {
+        return { note: c.note, weight: c.weight * 0.3 };
       }
-      return { note:c.note, weight:applySmoothnessWeight(c.weight, smooth) };
+
+      const ivRaw   = Math.abs(melMidi - hm);
+      const ivClass = ivRaw % 12;
+
+      // 1. Base consonance gate — dissonant intervals get heavily penalised
+      const consonanceMult = CONSONANCE[ivClass] ?? 0.3;
+
+      // 2. Vertical harmony rules tiebreaker — boost if analyzer confirmed
+      //    this interval class sounds good above this pitch class
+      const vhrBoost = hasVhr ? (1.0 + (vhrMap[ivClass] ?? 0) * 0.8) : 1.0;
+
+      // 3. Width penalty — harmony note too far below melody sounds muddy
+      //    Ideal range: within an octave below the melody
+      const widthMult = ivRaw <= 12 ? 1.0
+                      : ivRaw <= 16 ? 0.7
+                      : 0.3;
+
+      // 4. Voice leading — penalise large leaps from previous harmony note
+      let leapMult = 1.0;
+      if (prevH && prevH !== 'REST') {
+        const pm   = pitchToMidi(prevH);
+        const leap = pm !== null ? Math.abs(hm - pm) : 0;
+        leapMult = leap === 0 ? 0.7   // same note — slightly boring
+                 : leap <= 2  ? 1.0   // stepwise — ideal
+                 : leap <= 5  ? 0.9   // small leap — fine
+                 : leap <= 7  ? 0.75  // leap — ok
+                 : leap <= 12 ? 0.5   // large leap — penalise
+                 : 0.2;               // very large — strongly penalise
+      }
+
+      const finalWeight = c.weight * consonanceMult * vhrBoost * widthMult * leapMult;
+      return { note: c.note, weight: finalWeight };
     });
-    const total = smoothed.reduce((s,i) => s+i.weight, 0);
-    if (total > 0) smoothed.forEach(c => c.weight /= total);
-    const sel = weightedRandom(smoothed.map(c => ({ item:c.note, weight:c.weight })));
+
+    // ── Consonance gate — drop anything below threshold before selection ────
+    const threshold = musicRules.verticalHarmonyRules?.consonanceThreshold ?? 0.5;
+    const consonanceGate = smoothed.filter(c => {
+      const hm      = pitchToMidi(c.note);
+      const ivClass = hm !== null && melMidi !== null ? Math.abs(melMidi - hm) % 12 : 6;
+      return (CONSONANCE[ivClass] ?? 0) >= threshold;
+    });
+    // Only apply gate if it leaves at least one candidate
+    const pool = consonanceGate.length ? consonanceGate : smoothed;
+
+    const total = pool.reduce((s, i) => s + i.weight, 0);
+    if (total > 0) pool.forEach(c => c.weight /= total);
+
+    const sel = weightedRandom(pool.map(c => ({ item: c.note, weight: c.weight })));
     if (sel) {
+      // If sel already has an octave number, return it directly
       if (sel.match(/\d$/)) return sel;
+      // Otherwise find the best octave — harmony should sit below melody
       if (melMidi !== null) {
-        for (const oct of [3,4]) {
+        // Try to land within a 4th to octave below melody (sweet spot)
+        for (const oct of [3, 4, 2]) {
           const cand = `${sel}${oct}`;
-          const cm = pitchToMidi(cand);
-          if (cm !== null && melMidi - cm > 0 && melMidi - cm < 13) return cand;
+          const cm   = pitchToMidi(cand);
+          if (cm !== null && melMidi - cm >= 3 && melMidi - cm <= 12) return cand;
+        }
+        // Fallback: anything below melody
+        for (const oct of [3, 4, 2]) {
+          const cand = `${sel}${oct}`;
+          const cm   = pitchToMidi(cand);
+          if (cm !== null && cm < melMidi) return cand;
         }
       }
       return `${sel}4`;
     }
   }
-  return getNoteAtInterval(melodyNote, -4) ?? melodyNote;
-}
 
+  // Last resort — a perfect fourth below is always consonant
+  return getNoteAtInterval(melodyNote, -5) ?? melodyNote;
+}
 // ── SAMPLE MAPPING → BUCKET-BASED ────────────────────────────────────────────
 // OLD: PITCHTOSAMPLENAME(PITCH, VOICE) USING LOWBUFFERS/HIGHBUFFERS/BARBUFFERS
 // NEW: PITCHTOSAMPLENAME(PITCH, BUCKET) USING LONGBUFFERS/MEDBUFFERS/SHORTBUFFERS
@@ -1313,6 +1368,91 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 setTimeout(resizeCanvas, 10);
 
+// ── DANCER SPRITE ─────────────────────────────────────────────
+
+const dancerSprite = new Image();
+dancerSprite.src = '../static/images/dance.png';
+
+const DANCER_FRAME_COUNT = 14;
+const DANCER_FRAME_SIZE = 250;
+
+let dancerFrame = 0;
+let dancerLastFrameTime = 0;
+
+const DANCER_FPS = 8; // animation speed
+
+let dancerX = -180;
+
+const dancerTrail = [];
+const MAX_TRAIL = 10;
+
+function drawDancer() {
+  if (!dancerSprite.complete) return;
+
+  const now = performance.now();
+
+  // Advance animation frame
+  if (now - dancerLastFrameTime > (1000 / DANCER_FPS)) {
+    dancerFrame = (dancerFrame + 1) % DANCER_FRAME_COUNT;
+    dancerLastFrameTime = now;
+  }
+
+  // Horizontal drift
+  dancerX += 0.25;
+
+  if (dancerX > canvas.width + 50) {
+    dancerX = -180;
+  }
+
+  // Gentle bobbing
+  const bob =
+    Math.sin(now * 0.0025) * 6;
+
+  const drawY =
+    canvas.height - 200 + bob;
+
+  const scale = 0.75;
+
+  const drawWidth  = DANCER_FRAME_SIZE * scale;
+  const drawHeight = DANCER_FRAME_SIZE * scale;
+
+  // Soft glow
+  ctx2d.save();
+
+  ctx2d.globalAlpha = 0.15;
+
+  ctx2d.shadowBlur = 12;
+  ctx2d.shadowColor = '#dc4ce8';
+
+  ctx2d.globalAlpha = 0.85;
+  dancerTrail.unshift({
+    x: dancerX,
+    y: drawY,
+    frame: dancerFrame
+  });
+
+  if (dancerTrail.length > MAX_TRAIL) {
+    dancerTrail.pop();
+  }
+
+  ctx2d.drawImage(
+    dancerSprite,
+
+    dancerFrame * DANCER_FRAME_SIZE,
+    0,
+    DANCER_FRAME_SIZE,
+    DANCER_FRAME_SIZE,
+
+    dancerX,
+    drawY,
+
+    drawWidth,
+    drawHeight
+  );
+
+  ctx2d.restore();
+}
+
 function renderVisuals() {
   if (!canvas || !ctx2d) return;
   ctx2d.fillStyle = 'rgba(23,0,50,0.15)';
@@ -1324,6 +1464,8 @@ function renderVisuals() {
   const gs = 32;
   for (let x=0; x<canvas.width; x+=gs)  { ctx2d.beginPath(); ctx2d.moveTo(x,0); ctx2d.lineTo(x,canvas.height); ctx2d.stroke(); }
   for (let y=0; y<canvas.height; y+=gs) { ctx2d.beginPath(); ctx2d.moveTo(0,y); ctx2d.lineTo(canvas.width,y); ctx2d.stroke(); }
+
+  drawDancer();
 
   // TENSION WAVEFORM
   if (tensionArc.length > 1) {
