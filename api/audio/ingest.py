@@ -369,3 +369,113 @@ def delete_song(song_id):
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+
+@audio_ingest_bp.route('/api/audio/rules-data', methods=['GET'])
+def get_rules_data():
+    """
+    Bundles all data rules.py needs into one JSON response.
+    Used by the local rules.py CLI so it never needs a direct DB connection.
+    Query params:
+        all_songs=true   — return data for every analysed song
+        song_id=N        — return data for a specific song
+    """
+    try:
+        all_songs = request.args.get('all_songs', 'false').lower() == 'true'
+        song_id   = request.args.get('song_id', None)
+
+        with psycopg.connect(DB_URL) as conn:
+            with conn.cursor() as cur:
+
+                # Get song list
+                if song_id:
+                    cur.execute("SELECT id, song_name FROM audio_songs WHERE id = %s", (int(song_id),))
+                else:
+                    cur.execute("""
+                        SELECT DISTINCT s.id, s.song_name FROM audio_songs s
+                        JOIN audio_analyses a ON a.song_id = s.id ORDER BY s.id
+                    """)
+                songs = [{"id": r[0], "song_name": r[1]} for r in cur.fetchall()]
+                if not songs:
+                    return jsonify({"success": False, "error": "No analysed songs found"}), 404
+
+                song_ids = [s["id"] for s in songs] if all_songs else [songs[-1]["id"]]
+
+                def fetch(query, sid):
+                    cur.execute(query, (sid,))
+                    cols = [d[0] for d in cur.description]
+                    return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+                result = {"songs": songs, "song_ids": song_ids, "data": {}}
+
+                for sid in song_ids:
+                    result["data"][sid] = {
+                        "transitions": fetch("""
+                            SELECT t.from_pitch, t.to_pitch, t.count, t.probability
+                            FROM audio_pitch_transitions t
+                            JOIN audio_analyses a ON a.id = t.analysis_id
+                            WHERE t.song_id = %s ORDER BY t.count DESC
+                        """, sid),
+                        "intervals": fetch("""
+                            SELECT i.interval, i.frequency, i.percentage
+                            FROM audio_interval_distribution i
+                            JOIN audio_analyses a ON a.id = i.analysis_id
+                            WHERE i.song_id = %s ORDER BY i.interval
+                        """, sid),
+                        "phrases": fetch("""
+                            SELECT p.phrase_id, p.start_measure, p.end_measure,
+                                   p.length_beats, p.length_measures, p.phrase_start_degree,
+                                   p.phrase_end_degree, p.curve_type, p.cadence_type,
+                                   p.avg_tension, p.peak_tension
+                            FROM audio_phrase_analysis p
+                            JOIN audio_analyses a ON a.id = p.analysis_id
+                            WHERE p.song_id = %s ORDER BY p.phrase_id
+                        """, sid),
+                        "sections": fetch("""
+                            SELECT s.section_id, s.start_bar, s.end_bar,
+                                   s.average_tension, s.peak_tension,
+                                   s.cadence_density, s.structural_role
+                            FROM audio_section_analysis s
+                            JOIN audio_analyses a ON a.id = s.analysis_id
+                            WHERE s.song_id = %s ORDER BY s.start_bar
+                        """, sid),
+                        "motifs": fetch("""
+                            SELECT m.motif_str, m.motif_length, m.reuse_count,
+                                   m.first_occurrence_measure, m.avg_return_distance,
+                                   m.variation_type
+                            FROM audio_motif_results m
+                            JOIN audio_analyses a ON a.id = m.analysis_id
+                            WHERE m.song_id = %s ORDER BY m.reuse_count DESC
+                        """, sid),
+                        "summary": fetch("""
+                            SELECT avg_interval_size, stepwise_motion_ratio, motif_density,
+                                   cadence_density, tension_variance, phrase_length_average,
+                                   familiarity_score, novelty_score, motif_return_rate,
+                                   avg_return_distance, cadence_frequency, climax_location,
+                                   full_json, dest_probs_json, sections_json, trajectory_json
+                            FROM audio_analyses WHERE song_id = %s
+                            ORDER BY created_at DESC LIMIT 1
+                        """, sid),
+                        "events": fetch("""
+                            SELECT event_index, measure_number, beat_position,
+                                   pitch, pitch_class, octave, scale_degree,
+                                   duration_quarter_length, duration_type, duration_sec,
+                                   tempo_bpm, tension_score, beat_strength,
+                                   is_rest, is_measure_start,
+                                   note_length_bucket, note_name, audio_file,
+                                   interval_from_previous, interval_to_next,
+                                   melodic_smoothness, connection_score,
+                                   previous_pitch, next_pitch,
+                                   previous_duration_type, next_duration_type,
+                                   absolute_offset_quarters, voice_index,
+                                   local_chord, local_chord_root, local_chord_quality,
+                                   harmonic_function
+                            FROM audio_note_events WHERE song_id = %s
+                            ORDER BY absolute_offset_quarters, voice_index
+                        """, sid),
+                    }
+
+        return jsonify({"success": True, **result})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500

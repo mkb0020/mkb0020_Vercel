@@ -60,13 +60,20 @@ logging .basicConfig (level =logging .INFO ,format ='  %(message)s')
 logger =logging .getLogger (__name__ )
 
 # ── PATHS ─────────────────────────────────────────────────────────────────────
-SCRIPT_DIR =Path (__file__ ).resolve ().parent # VERCEL_APP/SCRIPTS/
-PROJECT_ROOT =SCRIPT_DIR .parent # VERCEL_APP/
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent.parent
 
-load_dotenv (PROJECT_ROOT /".env")
+ENV_PATH = PROJECT_ROOT / ".env"
+
+load_dotenv(ENV_PATH)
+
+
 
 DB_URL =os .environ .get ("DATABASE_URL")
 OUTPUT_JS =PROJECT_ROOT /"forms"/"rules.js"
+
+print(f"ENV_PATH : {ENV_PATH}  (exists={ENV_PATH.exists()})")
+print(f"DB_URL   : {bool(DB_URL)}")
 
 # NOTE SAMPLE NAMES — ORDER MATTERS, MUST MATCH MEOWREMIX.HTML SAMPLE_NAMES
 SAMPLE_NAMES =["g","a","b","c","d","e","f","g2"]
@@ -101,27 +108,44 @@ BUCKET_TENSION_TARGET ={"long":0.15 ,"medium":0.30 ,"short":0.55 }
 # DB HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _connect ():
-    if not DB_URL :
-        raise RuntimeError ("DATABASE_URL not set.  Check vercel_app/.env")
-    return psycopg .connect (DB_URL )
+def _connect():
+    from dotenv import load_dotenv
+    load_dotenv(ENV_PATH, override=True)
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("DATABASE_URL not set.")
+import requests
+
+BASE_URL = os.environ.get("INGEST_URL", "").rstrip("/")
+
+def _fetch_rules_data(all_songs=False, song_id=None):
+    """Fetch all rules data from Vercel instead of connecting to Neon directly."""
+    if not BASE_URL:
+        raise RuntimeError(
+            "INGEST_URL not set in .env\n"
+            "  Add: INGEST_URL=https://mkb0020.vercel.app"
+        )
+    params = {}
+    if all_songs:  params["all_songs"] = "true"
+    if song_id:    params["song_id"]   = str(song_id)
+
+    logger.info(f"  Fetching rules data from {BASE_URL}/api/audio/rules-data ...")
+    r = requests.get(f"{BASE_URL}/api/audio/rules-data", params=params, timeout=120)
+    r.raise_for_status()
+    return r.json()
 
 
-def _rows_as_dicts (cur ):
-    cols =[d [0 ]for d in cur .description ]
-    return [dict (zip (cols ,row ))for row in cur .fetchall ()]
-
-
-def _coerce (row ):
-    """Convert Decimal / other non-JSON-native types to float."""
-    out ={}
-    for k ,v in row .items ():
-        if hasattr (v ,'__float__')and not isinstance (v ,(bool ,int )):
-            out [k ]=float (v )if v is not None else None 
-        else :
-            out [k ]=v 
-    return out 
-
+def _coerce(row):
+    out = {}
+    for k, v in row.items():
+        if k.endswith('_json') and isinstance(v, str):
+            try:    v = json.loads(v)
+            except: pass
+        if hasattr(v, '__float__') and not isinstance(v, (bool, int)):
+            out[k] = float(v) if v is not None else None
+        else:
+            out[k] = v
+    return out
 
 def _safe (v ,fallback =0.0 ):
     """Return v if finite float, else fallback."""
@@ -1244,211 +1268,304 @@ export const ruleLibrary = {json .dumps (comp_library ,indent =indent )};
     # MAIN
     # ══════════════════════════════════════════════════════════════════════════════
 
-def main ():
-    import argparse 
-    parser =argparse .ArgumentParser (
-    description ="meowREMIX Rule Compiler v6.0 — reads Neon DB, writes forms/rules.js"
+# ══════════════════════════════════════════════════════════════════════════════
+# REPLACE EVERYTHING FROM _connect() THROUGH THE LOADER FUNCTIONS WITH THIS
+# (i.e. replace lines ~111 through ~340 in your current rules.py)
+# No psycopg / psycopg2 needed at all — uses requests instead.
+# ══════════════════════════════════════════════════════════════════════════════
+
+import requests
+
+BASE_URL = os.environ.get("INGEST_URL", "").rstrip("/")
+
+
+def _fetch_rules_data(all_songs=False, song_id=None):
+    """
+    Fetch all rules data from the Vercel API endpoint instead of
+    connecting to Neon directly.  Sidesteps all psycopg SSL issues on
+    Windows / Python 3.14 — the DB work stays on Vercel where it works.
+    """
+    if not BASE_URL:
+        raise RuntimeError(
+            "INGEST_URL not set in .env\n"
+            "  Add: INGEST_URL=https://mkb0020.vercel.app"
+        )
+    params = {}
+    if all_songs:       params["all_songs"] = "true"
+    if song_id:         params["song_id"]   = str(song_id)
+
+    url = f"{BASE_URL}/api/audio/rules-data"
+    logger.info(f"  Fetching from {url} ...")
+    try:
+        r = requests.get(url, params=params, timeout=120)
+        r.raise_for_status()
+    except requests.HTTPError as e:
+        raise RuntimeError(f"API returned {e.response.status_code}: {e.response.text[:300]}")
+    except requests.RequestException as e:
+        raise RuntimeError(f"Request failed: {e}")
+
+    payload = r.json()
+    if not payload.get("success"):
+        raise RuntimeError(f"API error: {payload.get('error', 'unknown')}")
+    return payload
+
+
+def _coerce(row):
+    """Convert Decimal / JSONB strings / other non-JSON-native types."""
+    out = {}
+    for k, v in row.items():
+        # psycopg may return JSONB as a string over HTTP — parse it
+        if k.endswith('_json') and isinstance(v, str):
+            try:
+                v = json.loads(v)
+            except Exception:
+                pass
+        if hasattr(v, '__float__') and not isinstance(v, (bool, int)):
+            out[k] = float(v) if v is not None else None
+        else:
+            out[k] = v
+    return out
+
+
+def _safe(v, fallback=0.0):
+    """Return v if finite float, else fallback."""
+    if v is None:
+        return fallback
+    try:
+        f = float(v)
+        return f if math.isfinite(f) else fallback
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _clean_json(obj):
+    """Recursively replace NaN / Infinity so the browser gets valid JSON."""
+    if isinstance(obj, float):
+        return 0.0 if (math.isnan(obj) or math.isinf(obj)) else obj
+    if isinstance(obj, dict):
+        return {k: _clean_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_clean_json(i) for i in obj]
+    return obj
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# REPLACE THE ENTIRE main() FUNCTION WITH THIS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="meowREMIX Rule Compiler v6.0 — fetches from Vercel, writes forms/rules.js"
     )
-    parser .add_argument ("--song-id",type =int ,default =None ,
-    help ="Song ID to compile rules for (default: most recent).")
-    parser .add_argument ("--all-songs",action ="store_true",
-    help ="Blend rules from every analysed song in the DB.")
-    parser .add_argument ("--minify",action ="store_true",
-    help ="Write compact (minified) JS output.")
-    args =parser .parse_args ()
+    parser.add_argument("--song-id", type=int, default=None,
+                        help="Song ID to compile rules for (default: most recent).")
+    parser.add_argument("--all-songs", action="store_true",
+                        help="Blend rules from every analysed song in the DB.")
+    parser.add_argument("--minify", action="store_true",
+                        help="Write compact (minified) JS output.")
+    args = parser.parse_args()
 
-    logger .info ("="*60 )
-    logger .info ("meowREMIX Rule Compiler v6.0  (DB-backed)")
-    logger .info ("="*60 )
-    logger .info (f"Project Root : {PROJECT_ROOT }")
-    logger .info (f"Output       : {OUTPUT_JS }")
+    logger.info("=" * 60)
+    logger.info("meowREMIX Rule Compiler v6.0")
+    logger.info("=" * 60)
+    logger.info(f"Project Root : {PROJECT_ROOT}")
+    logger.info(f"Output       : {OUTPUT_JS}")
+    logger.info(f"Source URL   : {BASE_URL or '(not set — check INGEST_URL in .env)'}")
 
-    logger .info ("\nConnecting to Neon DB...")
-    conn =_connect ()
+    if not BASE_URL:
+        logger.error(
+            "INGEST_URL is not set.\n"
+            "  Add to vercel_app/.env:  INGEST_URL=https://mkb0020.vercel.app"
+        )
+        import sys; sys.exit(1)
 
-    try :
-        song_entries =pick_song (conn ,args .song_id ,all_songs =args .all_songs )
-        blend_mode =len (song_entries )>1 
+    # ── FETCH ALL DATA FROM VERCEL ────────────────────────────────────────────
+    logger.info("\nFetching rules data from Vercel API...")
+    payload    = _fetch_rules_data(all_songs=args.all_songs, song_id=args.song_id)
+    song_ids   = payload["song_ids"]
+    songs_map  = {s["id"]: s["song_name"] for s in payload["songs"]}
+    blend_mode = len(song_ids) > 1
+    song_name  = (
+        "+".join(songs_map[sid] for sid in song_ids)
+        if blend_mode else
+        songs_map[song_ids[0]]
+    )
 
-        if blend_mode :
-            song_name ="+".join (s [1 ]for s in song_entries )
-            logger .info (f"Blending {len (song_entries )} songs: {song_name }")
-        else :
-            song_id ,song_name =song_entries [0 ]
-            logger .info (f"Compiling rules for: '{song_name }'  (id={song_id })")
+    if blend_mode:
+        logger.info(f"  Blending {len(song_ids)} songs: {song_name}")
+    else:
+        logger.info(f"  Compiling rules for: '{song_name}'  (id={song_ids[0]})")
 
-            # ── LOAD DATA ─────────────────────────────────────────────────────────
-        if blend_mode :
-            logger .info ("\n[1-7] Loading + blending data from all songs...")
-            trans_rows =_merge_transitions ([load_transitions (conn ,sid )for sid ,_ in song_entries ])
-            interval_rows =_merge_intervals ([load_intervals (conn ,sid )for sid ,_ in song_entries ])
-            primary_id =song_entries [-1 ][0 ]# USE MOST RECENT FOR PHRASE/SECTION/MOTIF
-            phrase_rows =load_phrases (conn ,primary_id )
-            section_rows =load_sections (conn ,primary_id )
-            motif_rows =load_motifs (conn ,primary_id )
-            summary =load_summary (conn ,primary_id )
-            events =[]
-            for sid ,_ in song_entries :
-                events .extend (load_note_events_aggregated (conn ,sid ))
-            logger .info (f"    {len (events )} total events across {len (song_entries )} songs")
-        else :
-            logger .info ("\n[1] Loading transition matrix...")
-            trans_rows =load_transitions (conn ,song_id )
-            logger .info (f"    {len (trans_rows )} pitch-transition rows")
-            logger .info ("[2] Loading interval distribution...")
-            interval_rows =load_intervals (conn ,song_id )
-            logger .info (f"    {len (interval_rows )} interval rows")
-            logger .info ("[3] Loading phrase analysis...")
-            phrase_rows =load_phrases (conn ,song_id )
-            logger .info (f"    {len (phrase_rows )} phrases")
-            logger .info ("[4] Loading section analysis...")
-            section_rows =load_sections (conn ,song_id )
-            logger .info (f"    {len (section_rows )} sections")
-            logger .info ("[5] Loading motif results...")
-            motif_rows =load_motifs (conn ,song_id )
-            logger .info (f"    {len (motif_rows )} motifs")
-            logger .info ("[6] Loading summary + full_json...")
-            summary =load_summary (conn ,song_id )
-            logger .info ("[7] Loading note events...")
-            events =load_note_events_aggregated (conn ,song_id )
-            logger .info (f"    {len (events )} events")
+    # ── UNPACK PAYLOAD ────────────────────────────────────────────────────────
+    # payload["data"] is keyed by song_id (as string from JSON)
+    all_data = payload["data"]
 
-    finally :
-        conn .close ()
+    def get(sid, key):
+        """Pull a table for a given song_id, coercing all rows."""
+        rows = all_data.get(str(sid), {}).get(key, [])
+        return [_coerce(r) for r in rows]
 
-        # ── BUILD LOW-LEVEL MUSICRULES ────────────────────────────────────────────
-    logger .info ("\n--- Building low-level musicRules ---")
+    if blend_mode:
+        logger.info("[1-7] Blending data from all songs...")
+        trans_rows    = _merge_transitions([get(sid, "transitions") for sid in song_ids])
+        interval_rows = _merge_intervals([get(sid, "intervals")    for sid in song_ids])
+        primary_id    = song_ids[-1]    # most recent song for structural data
+        phrase_rows   = get(primary_id, "phrases")
+        section_rows  = get(primary_id, "sections")
+        motif_rows    = get(primary_id, "motifs")
+        raw_summary   = get(primary_id, "summary")
+        summary       = raw_summary[0] if raw_summary else {}
+        events        = [e for sid in song_ids for e in get(sid, "events")]
+        logger.info(f"    {len(events)} total events across {len(song_ids)} songs")
+    else:
+        sid = song_ids[0]
+        logger.info("[1] Transitions...")
+        trans_rows    = get(sid, "transitions")
+        logger.info(f"    {len(trans_rows)} rows")
+        logger.info("[2] Intervals...")
+        interval_rows = get(sid, "intervals")
+        logger.info(f"    {len(interval_rows)} rows")
+        logger.info("[3] Phrases...")
+        phrase_rows   = get(sid, "phrases")
+        logger.info(f"    {len(phrase_rows)} phrases")
+        logger.info("[4] Sections...")
+        section_rows  = get(sid, "sections")
+        logger.info(f"    {len(section_rows)} sections")
+        logger.info("[5] Motifs...")
+        motif_rows    = get(sid, "motifs")
+        logger.info(f"    {len(motif_rows)} motifs")
+        logger.info("[6] Summary...")
+        raw_summary   = get(sid, "summary")
+        summary       = raw_summary[0] if raw_summary else {}
+        logger.info("[7] Events...")
+        events        = get(sid, "events")
+        logger.info(f"    {len(events)} events")
 
-    logger .info ("[A] Transition rules...")
-    transitions =build_transition_rules (trans_rows )
+    # ── BUILD LOW-LEVEL MUSICRULES ────────────────────────────────────────────
+    logger.info("\n--- Building low-level musicRules ---")
 
-    logger .info ("[B] Interval bias...")
-    interval_bias =build_interval_bias (interval_rows )
+    logger.info("[A] Transition rules...")
+    transitions = build_transition_rules(trans_rows)
 
-    logger .info ("[C] Motif bank...")
-    motifs ,motifs_by_entry =build_motif_bank (motif_rows )
-    logger .info (f"    {len (motifs )} motifs, {len (motifs_by_entry )} entry points")
+    logger.info("[B] Interval bias...")
+    interval_bias = build_interval_bias(interval_rows)
 
-    logger .info ("[D] Rhythm patterns + single durations...")
-    rhythm_patterns ,single_durations =build_rhythm_patterns (events )
+    logger.info("[C] Motif bank...")
+    motifs, motifs_by_entry = build_motif_bank(motif_rows)
+    logger.info(f"    {len(motifs)} motifs, {len(motifs_by_entry)} entry points")
 
-    logger .info ("[E] Beat duration rules...")
-    beat_dur =build_beat_duration_rules (events )
+    logger.info("[D] Rhythm patterns + single durations...")
+    rhythm_patterns, single_durations = build_rhythm_patterns(events)
 
-    logger .info ("[F] Contour rules...")
-    contours =build_contour_rules (events )
+    logger.info("[E] Beat duration rules...")
+    beat_dur = build_beat_duration_rules(events)
 
-    logger .info ("[G] Suspension rules...")
-    suspensions =build_suspension_rules (events )
+    logger.info("[F] Contour rules...")
+    contours = build_contour_rules(events)
 
-    logger .info ("[H] Harmony rules...")
-    harmony_rules ,pc_harmony =build_harmony_rules (events )
+    logger.info("[G] Suspension rules...")
+    suspensions = build_suspension_rules(events)
 
-    logger .info ("[I] Phrase templates + contour arcs...")
-    phrase_templates =build_phrase_templates (phrase_rows )
-    contour_arcs =build_contour_arcs_from_phrases (phrase_rows )
-    style_biases =build_style_biases ()
+    logger.info("[H] Harmony rules...")
+    harmony_rules, pc_harmony = build_harmony_rules(events)
 
-    logger .info ("[J] Bar center rules (full pitch strings — v6.0 fix)...")
-    bar_rules =build_bar_center_rules (section_rows ,events )
-    logger .info (f"    {len (bar_rules )} bar-center pitch anchors")
+    logger.info("[I] Phrase templates + contour arcs...")
+    phrase_templates = build_phrase_templates(phrase_rows)
+    contour_arcs     = build_contour_arcs_from_phrases(phrase_rows)
+    style_biases     = build_style_biases()
 
-    logger .info ("[K] Smoothness rules...")
-    trans_smooth ,rhythm_flow =build_smoothness_rules (events )
+    logger.info("[J] Bar center rules (full pitch strings)...")
+    bar_rules = build_bar_center_rules(section_rows, events)
+    logger.info(f"    {len(bar_rules)} bar-center pitch anchors")
 
-    logger .info ("[L] Note-length bucket rules (long / medium / short)...")
-    bucket_weights ,bucket_by_pitch ,audio_paths =build_note_length_rules (events )
-    logger .info (f"    Bucket weights: {bucket_weights }")
+    logger.info("[K] Smoothness rules...")
+    trans_smooth, rhythm_flow = build_smoothness_rules(events)
 
-    logger .info ("[M] Bucket transition rules (NEW)...")
-    bucket_transitions =build_bucket_transition_rules (events )
+    logger.info("[L] Note-length bucket rules (long / medium / short)...")
+    bucket_weights, bucket_by_pitch, audio_paths = build_note_length_rules(events)
+    logger.info(f"    Bucket weights: {bucket_weights}")
 
-    logger .info ("[N] Bucket × rhythm bias (NEW)...")
-    bucket_rhythm_bias =build_bucket_rhythm_bias (events )
+    logger.info("[M] Bucket transition rules...")
+    bucket_transitions = build_bucket_transition_rules(events)
 
-    logger .info ("[O] Bucket × tension map (NEW)...")
-    bucket_tension_map =build_bucket_tension_map (events )
+    logger.info("[N] Bucket × rhythm bias...")
+    bucket_rhythm_bias = build_bucket_rhythm_bias(events)
+
+    logger.info("[O] Bucket × tension map...")
+    bucket_tension_map = build_bucket_tension_map(events)
 
     # ── ASSEMBLE MUSICRULES ───────────────────────────────────────────────────
-    total_trans =sum (len (v )for v in transitions .values ())
-    meta ={
-    "source":song_name ,
-    "generatedAt":datetime .now ().isoformat (),
-    "totalMotifs":len (motifs ),
-    "totalTransitions":total_trans ,
-    "totalSuspensions":len (suspensions ),
-    "voiceLeadingEnabled":True ,
-    "totalTransitionSmoothnessPairs":sum (len (v )for v in trans_smooth .values ()),
-    "totalRhythmFlowRules":len (rhythm_flow ),
-    "engineVersion":"6.0",
-    "blendMode":blend_mode ,
-    "noteBuckets":list (audio_paths .keys ()),
-    "sampleNames":SAMPLE_NAMES ,
+    total_trans = sum(len(v) for v in transitions.values())
+    meta = {
+        "source":            song_name,
+        "generatedAt":       datetime.now().isoformat(),
+        "totalMotifs":       len(motifs),
+        "totalTransitions":  total_trans,
+        "totalSuspensions":  len(suspensions),
+        "voiceLeadingEnabled": True,
+        "totalTransitionSmoothnessPairs": sum(len(v) for v in trans_smooth.values()),
+        "totalRhythmFlowRules": len(rhythm_flow),
+        "engineVersion":     "6.0",
+        "blendMode":         blend_mode,
+        "noteBuckets":       list(audio_paths.keys()),
+        "sampleNames":       SAMPLE_NAMES,
     }
 
-    music_rules ={
-    # CORE NOTE SELECTION
-    "transitionRules":transitions ,
-    "intervalBias":interval_bias ,
-    "motifs":motifs ,
-    "motifsByEntry":motifs_by_entry ,
-    # RHYTHM
-    "rhythmPatterns":rhythm_patterns ,
-    "singleDurations":single_durations ,
-    "beatDurationRules":beat_dur ,
-    # CONTOUR / SHAPE
-    "contourRules":contours ,
-    "contourArcs":contour_arcs ,
-    # HARMONY
-    "harmonyRules":harmony_rules ,
-    "pitchClassHarmonyRules":pc_harmony ,
-    # SUSPENSION
-    "suspensionRules":suspensions ,
-    # PHRASE / BAR STRUCTURE
-    "phraseTemplates":phrase_templates ,
-    "barCenterRules":bar_rules ,# FIX: FULL PITCH KEYS E.G. "G4"
-    # STYLE
-    "styleBiases":style_biases ,
-    # SMOOTHNESS
-    "smoothnessRules":{
-    "transitionSmoothness":trans_smooth ,
-    "rhythmFlowRules":rhythm_flow ,
-    "smoothnessBias":0.85 ,
-    },
-    # NOTE-LENGTH BUCKET SYSTEM (REPLACES OLD LOW / HIGH / BAR MODEL)
-    "noteLengthBuckets":{
-    "bucketWeights":bucket_weights ,
-    "bucketByPitch":bucket_by_pitch ,
-    "audioPaths":audio_paths ,
-    "sampleNames":SAMPLE_NAMES ,
-    # NEW — THREE EXTRA RULE SETS THE ENGINE CAN CONSUME
-    "bucketTransitions":bucket_transitions ,
-    "bucketRhythmBias":bucket_rhythm_bias ,
-    "bucketTensionMap":bucket_tension_map ,
-    },
+    music_rules = {
+        "transitionRules":        transitions,
+        "intervalBias":           interval_bias,
+        "motifs":                 motifs,
+        "motifsByEntry":          motifs_by_entry,
+        "rhythmPatterns":         rhythm_patterns,
+        "singleDurations":        single_durations,
+        "beatDurationRules":      beat_dur,
+        "contourRules":           contours,
+        "contourArcs":            contour_arcs,
+        "harmonyRules":           harmony_rules,
+        "pitchClassHarmonyRules": pc_harmony,
+        "suspensionRules":        suspensions,
+        "phraseTemplates":        phrase_templates,
+        "barCenterRules":         bar_rules,
+        "styleBiases":            style_biases,
+        "smoothnessRules": {
+            "transitionSmoothness": trans_smooth,
+            "rhythmFlowRules":      rhythm_flow,
+            "smoothnessBias":       0.85,
+        },
+        "noteLengthBuckets": {
+            "bucketWeights":     bucket_weights,
+            "bucketByPitch":     bucket_by_pitch,
+            "audioPaths":        audio_paths,
+            "sampleNames":       SAMPLE_NAMES,
+            "bucketTransitions": bucket_transitions,
+            "bucketRhythmBias":  bucket_rhythm_bias,
+            "bucketTensionMap":  bucket_tension_map,
+        },
     }
 
     # ── BUILD COMPOSITIONAL RULE LIBRARY ──────────────────────────────────────
-    logger .info ("\n--- Building compositional rule library ---")
-    comp_library =build_compositional_rules (summary ,section_rows )
-    logger .info (f"    {len (comp_library .get ('rule_library',{}))} rule families")
+    logger.info("\n--- Building compositional rule library ---")
+    comp_library = build_compositional_rules(summary, section_rows)
+    logger.info(f"    {len(comp_library.get('rule_library', {}))} rule families")
 
     # ── WRITE RULES.JS ────────────────────────────────────────────────────────
-    logger .info ("\n--- Writing output ---")
-    write_rules_js (OUTPUT_JS ,song_name ,music_rules ,comp_library ,meta ,
-    minify =args .minify )
+    logger.info("\n--- Writing output ---")
+    write_rules_js(OUTPUT_JS, song_name, music_rules, comp_library, meta,
+                   minify=args.minify)
 
-    logger .info (f"\n{'─'*60 }")
-    logger .info ("Rule Compiler v6.0 complete.")
-    logger .info (f"  rules.js      → {OUTPUT_JS }")
-    logger .info (f"  Transitions   : {total_trans }")
-    logger .info (f"  Motifs        : {len (motifs )}")
-    logger .info (f"  Suspensions   : {len (suspensions )}")
-    logger .info (f"  Smoothness    : {len (trans_smooth )} pairs")
-    logger .info (f"  Bar centers   : {len (bar_rules )} pitch anchors")
-    logger .info (f"  Note buckets  : {list (bucket_weights .keys ())}")
-    logger .info (f"  Bucket trans  : {list (bucket_transitions .keys ())}")
-    logger .info ('─'*60 )
+    logger.info(f"\n{'─' * 60}")
+    logger.info("Rule Compiler v6.0 complete.")
+    logger.info(f"  rules.js      → {OUTPUT_JS}")
+    logger.info(f"  Transitions   : {total_trans}")
+    logger.info(f"  Motifs        : {len(motifs)}")
+    logger.info(f"  Suspensions   : {len(suspensions)}")
+    logger.info(f"  Smoothness    : {len(trans_smooth)} pairs")
+    logger.info(f"  Bar centers   : {len(bar_rules)} pitch anchors")
+    logger.info(f"  Note buckets  : {list(bucket_weights.keys())}")
+    logger.info(f"  Bucket trans  : {list(bucket_transitions.keys())}")
+    logger.info('─' * 60)
+
 
 
 if __name__ =="__main__":
