@@ -37,7 +37,8 @@
     color: var(--text-bright);
     font-family: 'Share Tech Mono', monospace;
     font-size: 13px;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   body::before {
@@ -74,8 +75,29 @@
     z-index: 1;
     display: flex;
     justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 32px 16px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .column-wrap {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    height: 100vh;
+  }
+
+  .column-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    opacity: 0.7;
+    margin-bottom: 10px;
+    text-align: center;
   }
 
   .glass {
@@ -91,8 +113,8 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 340px;
-    padding: 24px;
+    width: 290px;
+    padding: 20px;
   }
 
   .panel {
@@ -235,75 +257,211 @@
   .badge-long   { background: rgba(0,255,255,0.12);    color: var(--neon-cyan);    border: 1px solid rgba(0,255,255,0.3); }
   .badge-medium { background: rgba(165,90,255,0.12);   color: var(--accent-2);     border: 1px solid rgba(165,90,255,0.3); }
   .badge-short  { background: rgba(255,105,180,0.12);  color: var(--neon-pink);    border: 1px solid rgba(255,105,180,0.3); }
+
+  /* ── NOTE PAIR DISPLAY ── */
+  .note-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 0 4px;
+    min-height: 48px;
+  }
+  .note-chip {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: rgba(55,2,90,0.6);
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--neon-cyan);
+    box-shadow: 0 0 12px rgba(0,255,255,0.2);
+    min-width: 52px;
+    text-align: center;
+  }
+  .note-chip.note-b { color: var(--neon-magenta); text-shadow: 0 0 10px var(--neon-magenta); box-shadow: 0 0 12px rgba(220,76,232,0.2); border-color: rgba(220,76,232,0.3); }
+  .note-sep {
+    color: var(--text-dim);
+    font-size: 14px;
+    opacity: 0.6;
+  }
+  .note-loading { color: var(--text-dim); font-size: 11px; letter-spacing: 0.1em; opacity: 0.5; }
+
 </style>
 </head>
 <body>
 
 <main class="main-grid">
-  <div class="training-container glass">
 
-    <button class="btn-primary" id="playBtn" disabled>GENERATE &amp; PLAY</button>
+  <!-- ── COLUMN 1: PHRASE ── -->
+  <div class="column-wrap">
+    <div class="column-label">Phrase</div>
+    <div class="training-container glass">
+      <button class="btn-primary" id="playBtn" disabled>GENERATE &amp; PLAY</button>
 
-    <div class="panel">
-      <div class="panel-title">Generative Tweaks</div>
-      <div class="control-group">
-        <label>
-          <span>Suspension Risk</span>
-          <span class="val-display" id="suspVal">30%</span>
-        </label>
-        <div class="slider-row">
-          <input type="range" id="suspWeight" min="0" max="1" step="0.05" value="0.30">
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">Mixer Desk</div>
-
-      <div class="control-group slider-long">
-        <label>
-          <span><span class="bucket-badge badge-long">LONG</span> Pad Gain</span>
-          <span class="val-display" id="longVolVal">20%</span>
-        </label>
-        <div class="slider-row">
-          <input id="longVol" type="range" min="0" max="1" step="0.01" value="0.20">
+      <div class="panel">
+        <div class="panel-title">Generative Tweaks</div>
+        <div class="control-group">
+          <label>
+            <span>Suspension Risk</span>
+            <span class="val-display" id="suspVal">30%</span>
+          </label>
+          <div class="slider-row">
+            <input type="range" id="suspWeight" min="0" max="1" step="0.05" value="0.30">
+          </div>
         </div>
       </div>
 
-      <div class="control-group slider-medium">
-        <label>
-          <span><span class="bucket-badge badge-medium">MED</span> Melody Gain</span>
-          <span class="val-display" id="medVolVal">65%</span>
-        </label>
-        <div class="slider-row">
-          <input id="medVol" type="range" min="0" max="1" step="0.01" value="0.65">
+      <div class="panel">
+        <div class="panel-title">Mixer Desk</div>
+        <div class="control-group slider-long">
+          <label>
+            <span><span class="bucket-badge badge-long">LONG</span> Pad Gain</span>
+            <span class="val-display" id="longVolVal">20%</span>
+          </label>
+          <div class="slider-row">
+            <input id="longVol" type="range" min="0" max="1" step="0.01" value="0.20">
+          </div>
+        </div>
+        <div class="control-group slider-medium">
+          <label>
+            <span><span class="bucket-badge badge-medium">MED</span> Melody Gain</span>
+            <span class="val-display" id="medVolVal">65%</span>
+          </label>
+          <div class="slider-row">
+            <input id="medVol" type="range" min="0" max="1" step="0.01" value="0.65">
+          </div>
+        </div>
+        <div class="control-group slider-short">
+          <label>
+            <span><span class="bucket-badge badge-short">SHORT</span> Staccato Gain</span>
+            <span class="val-display" id="shortVolVal">15%</span>
+          </label>
+          <div class="slider-row">
+            <input id="shortVol" type="range" min="0" max="1" step="0.01" value="0.15">
+          </div>
         </div>
       </div>
 
-      <div class="control-group slider-short">
-        <label>
-          <span><span class="bucket-badge badge-short">SHORT</span> Staccato Gain</span>
-          <span class="val-display" id="shortVolVal">15%</span>
-        </label>
-        <div class="slider-row">
-          <input id="shortVol" type="range" min="0" max="1" step="0.01" value="0.15">
+      <div class="panel">
+        <div class="panel-title">Training</div>
+        <div class="training-buttons">
+          <button class="rating-btn like-btn" id="likeBtn" disabled>
+            <img src="/static/images/like.png" alt="Like"> LIKE
+          </button>
+          <button class="rating-btn dislike-btn" id="dislikeBtn" disabled>
+            <img src="/static/images/dislike.png" alt="Dislike"> DISLIKE
+          </button>
         </div>
+        <div id="prefStatus" style="margin-top:10px;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:0.08em;"></div>
       </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">Training</div>
-      <div class="training-buttons">
-        <button class="rating-btn like-btn" id="likeBtn" disabled>
-          <img src="/static/images/like.png" alt="Like"> LIKE
-        </button>
-        <button class="rating-btn dislike-btn" id="dislikeBtn" disabled>
-          <img src="/static/images/dislike.png" alt="Dislike"> DISLIKE
-        </button>
-      </div>
-      <div id="prefStatus" style="margin-top:10px;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:0.08em;"></div>
     </div>
   </div>
+
+  <!-- ── COLUMN 2: HARMONY (simultaneous notes) ── -->
+  <div class="column-wrap">
+    <div class="column-label">Harmony</div>
+    <div class="training-container glass">
+      <button class="btn-primary" id="harmPlayBtn" disabled>PLAY TOGETHER</button>
+
+      <div class="panel">
+        <div class="panel-title">Notes Played Together</div>
+        <div class="note-display">
+          <span class="note-chip" id="harmNoteA"><span class="note-loading">—</span></span>
+          <span class="note-sep">+</span>
+          <span class="note-chip note-b" id="harmNoteB"><span class="note-loading">—</span></span>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);text-align:center;margin-top:6px;letter-spacing:0.08em;">
+          Does this sound good together?
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Mixer</div>
+        <div class="control-group slider-medium">
+          <label>
+            <span><span class="bucket-badge badge-medium">MED</span> Volume</span>
+            <span class="val-display" id="harmMedVolVal">65%</span>
+          </label>
+          <div class="slider-row">
+            <input id="harmMedVol" type="range" min="0" max="1" step="0.01" value="0.65">
+          </div>
+        </div>
+        <div class="control-group slider-short">
+          <label>
+            <span><span class="bucket-badge badge-short">SHORT</span> Volume</span>
+            <span class="val-display" id="harmShortVolVal">65%</span>
+          </label>
+          <div class="slider-row">
+            <input id="harmShortVol" type="range" min="0" max="1" step="0.01" value="0.65">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Training</div>
+        <div class="training-buttons">
+          <button class="rating-btn like-btn" id="harmLikeBtn" disabled>
+            <img src="/static/images/like.png" alt="Like"> LIKE
+          </button>
+          <button class="rating-btn dislike-btn" id="harmDislikeBtn" disabled>
+            <img src="/static/images/dislike.png" alt="Dislike"> DISLIKE
+          </button>
+        </div>
+        <div id="harmStatus" style="margin-top:10px;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:0.08em;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COLUMN 3: SEQUENCE (consecutive notes) ── -->
+  <div class="column-wrap">
+    <div class="column-label">Sequence</div>
+    <div class="training-container glass">
+      <button class="btn-primary" id="seqPlayBtn" disabled>PLAY SEQUENCE</button>
+
+      <div class="panel">
+        <div class="panel-title">2 Consecutive Notes</div>
+        <div class="note-display">
+          <span class="note-chip" id="seqNoteA"><span class="note-loading">—</span></span>
+          <span class="note-sep">→</span>
+          <span class="note-chip note-b" id="seqNoteB"><span class="note-loading">—</span></span>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);text-align:center;margin-top:6px;letter-spacing:0.08em;">
+          Does this transition feel right?
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Mixer</div>
+        <div class="control-group slider-medium">
+          <label>
+            <span><span class="bucket-badge badge-medium">MED</span> Volume</span>
+            <span class="val-display" id="seqMedVolVal">65%</span>
+          </label>
+          <div class="slider-row">
+            <input id="seqMedVol" type="range" min="0" max="1" step="0.01" value="0.65">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Training</div>
+        <div class="training-buttons">
+          <button class="rating-btn like-btn" id="seqLikeBtn" disabled>
+            <img src="/static/images/like.png" alt="Like"> LIKE
+          </button>
+          <button class="rating-btn dislike-btn" id="seqDislikeBtn" disabled>
+            <img src="/static/images/dislike.png" alt="Dislike"> DISLIKE
+          </button>
+        </div>
+        <div id="seqStatus" style="margin-top:10px;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:0.08em;"></div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script type="module">
@@ -938,7 +1096,10 @@ async function loadAllAssets(){
     loadSamples('medium',medBuffers),
     loadSamples('short',shortBuffers),
   ]);
-  playBtn.disabled=false;
+  // Enable all three panel play buttons
+  playBtn.disabled    = false;
+  document.getElementById('harmPlayBtn').disabled = false;
+  document.getElementById('seqPlayBtn').disabled  = false;
 
   // Show how many preference ratings are baked into current rules
   const statusEl = document.getElementById('prefStatus');
@@ -969,9 +1130,181 @@ shortGain = actx.createGain();
 shortGain.gain.value = parseFloat(shortVol.value);
 shortGain.connect(actx.destination);
 
+
 longVol.oninput = e => longGain.gain.value = e.target.value;
 medVol.oninput  = e => medGain.gain.value  = e.target.value;
 shortVol.oninput = e => shortGain.gain.value = e.target.value;
+
+// ── BACKGROUND RULES REBUILD ─────────────────────────────────────────────
+(function pingRebuild() {
+  fetch('/api/audio/rebuild-rules', { method:'POST', keepalive:true }).catch(()=>{});
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL 2 — HARMONY (1 medium + 1 short note played simultaneously)
+// ═══════════════════════════════════════════════════════════════════════════
+{
+  const harmPlayBtn    = document.getElementById('harmPlayBtn');
+  const harmLikeBtn    = document.getElementById('harmLikeBtn');
+  const harmDislikeBtn = document.getElementById('harmDislikeBtn');
+  const harmNoteAEl    = document.getElementById('harmNoteA');
+  const harmNoteBEl    = document.getElementById('harmNoteB');
+  const harmMedVol     = document.getElementById('harmMedVol');
+  const harmShortVol   = document.getElementById('harmShortVol');
+  const harmStatus     = document.getElementById('harmStatus');
+
+  const harmGainMed   = actx.createGain();
+  const harmGainShort = actx.createGain();
+  harmGainMed.gain.value   = parseFloat(harmMedVol.value);
+  harmGainShort.gain.value = parseFloat(harmShortVol.value);
+  harmGainMed.connect(actx.destination);
+  harmGainShort.connect(actx.destination);
+
+  harmMedVol.oninput   = e => { document.getElementById('harmMedVolVal').innerText   = Math.round(e.target.value*100)+'%'; harmGainMed.gain.value   = +e.target.value; };
+  harmShortVol.oninput = e => { document.getElementById('harmShortVolVal').innerText = Math.round(e.target.value*100)+'%'; harmGainShort.gain.value = +e.target.value; };
+
+  let currentHarmPair = null, harmRunning = false;
+
+  function pickRandomNote() {
+    const all = Object.keys(musicRules.transitionRules ?? {}).filter(p => p !== 'REST');
+    return all[Math.floor(Math.random() * all.length)] ?? 'G4';
+  }
+
+  function pickHarmonicPair() {
+    const noteA     = pickRandomNote();
+    const harmRules = musicRules.harmonyRules?.[noteA];
+    let noteB;
+    if (harmRules?.length) {
+      noteB = weightedRandom(harmRules.map(c => ({ item: c.note ?? c, weight: c.weight ?? 1 })));
+    } else {
+      const midiA = pitchToMidi(noteA);
+      const all   = Object.keys(musicRules.transitionRules ?? {}).filter(p => p !== 'REST');
+      const cons  = all.filter(p => { const iv = Math.abs(pitchToMidi(p)-midiA); return [3,4,5,7,8,9,12].includes(iv); });
+      noteB = cons.length ? cons[Math.floor(Math.random()*cons.length)] : pickRandomNote();
+    }
+    return { noteA, noteB };
+  }
+
+  function playBufNote(pitch, buffers, gainNode, bucket, durSec, startTime) {
+    const sample = pitchToSampleName(pitch, bucket); if (!sample) return;
+    const buffer = buffers[sample]; if (!buffer) return;
+    const attack = Math.min(bucket==='short'?0.04:0.12, durSec*0.08);
+    const release= Math.min(bucket==='short'?0.12:0.28, durSec*0.28);
+    const holdEnd= startTime+durSec-release, stopAt=startTime+durSec+0.1;
+    try {
+      const src=actx.createBufferSource(), gain=actx.createGain();
+      src.buffer=buffer; src.connect(gain); gain.connect(gainNode);
+      gain.gain.setValueAtTime(0,startTime);
+      gain.gain.linearRampToValueAtTime(1,startTime+attack);
+      gain.gain.setValueAtTime(1,Math.max(startTime+attack,holdEnd));
+      gain.gain.exponentialRampToValueAtTime(0.0001,stopAt);
+      src.start(startTime); src.stop(stopAt);
+    } catch(e){}
+  }
+
+  harmPlayBtn.addEventListener('click', async () => {
+    if (harmRunning) return;
+    if (actx.state==='suspended') await actx.resume();
+    harmRunning=true; harmPlayBtn.disabled=true; harmPlayBtn.textContent='PLAYING...';
+    harmLikeBtn.disabled=true; harmDislikeBtn.disabled=true;
+    const pair=pickHarmonicPair(); currentHarmPair=pair;
+    harmNoteAEl.textContent=pair.noteA; harmNoteBEl.textContent=pair.noteB;
+    const now=actx.currentTime+0.05, durSec=BEAT_SEC*2;
+    playBufNote(pair.noteA, medBuffers,   harmGainMed,   'medium', durSec, now);
+    playBufNote(pair.noteB, shortBuffers, harmGainShort, 'short',  durSec, now);
+    setTimeout(()=>{ harmRunning=false; harmPlayBtn.disabled=false; harmPlayBtn.textContent='PLAY TOGETHER'; harmLikeBtn.disabled=false; harmDislikeBtn.disabled=false; }, durSec*1000+400);
+  });
+
+  async function saveHarmPref(rating) {
+    if (!currentHarmPair) return;
+    await fetch('/api/audio/preferences',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ trainingType:'harmony', phraseId:crypto.randomUUID(), rating, bpm:BPM, measures:1, phrase:{},
+        noteA:currentHarmPair.noteA, noteB:currentHarmPair.noteB,
+        sliderState:{suspensionRisk:0,longVolume:0,mediumVolume:+harmMedVol.value,shortVolume:+harmShortVol.value},
+        source:'audioTraining-harmony' }) }).catch(e=>console.error(e));
+    harmStatus.innerHTML=rating==='like'?'<span style="color:var(--neon-green)">✓ liked</span>':'<span style="color:var(--neon-hot)">✗ disliked</span>';
+  }
+
+  harmLikeBtn.addEventListener('click',async()=>{ if(!currentHarmPair||harmRunning)return; harmLikeBtn.disabled=true; harmDislikeBtn.disabled=true; await saveHarmPref('like'); currentHarmPair=null; harmPlayBtn.textContent='PLAY TOGETHER'; });
+  harmDislikeBtn.addEventListener('click',async()=>{ if(!currentHarmPair||harmRunning)return; harmLikeBtn.disabled=true; harmDislikeBtn.disabled=true; await saveHarmPref('dislike'); currentHarmPair=null; harmPlayBtn.textContent='PLAY TOGETHER'; });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL 3 — SEQUENCE (2 consecutive medium notes)
+// ═══════════════════════════════════════════════════════════════════════════
+{
+  const seqPlayBtn    = document.getElementById('seqPlayBtn');
+  const seqLikeBtn    = document.getElementById('seqLikeBtn');
+  const seqDislikeBtn = document.getElementById('seqDislikeBtn');
+  const seqNoteAEl    = document.getElementById('seqNoteA');
+  const seqNoteBEl    = document.getElementById('seqNoteB');
+  const seqMedVol     = document.getElementById('seqMedVol');
+  const seqStatus     = document.getElementById('seqStatus');
+
+  const seqGainMed = actx.createGain();
+  seqGainMed.gain.value = parseFloat(seqMedVol.value);
+  seqGainMed.connect(actx.destination);
+  seqMedVol.oninput = e => { document.getElementById('seqMedVolVal').innerText=Math.round(e.target.value*100)+'%'; seqGainMed.gain.value=+e.target.value; };
+
+  let currentSeqPair=null, seqRunning=false;
+
+  function pickSequencePair() {
+    const all  = Object.keys(musicRules.transitionRules ?? {}).filter(p => p!=='REST');
+    const noteA= all[Math.floor(Math.random()*all.length)] ?? 'G4';
+    const trans= musicRules.transitionRules[noteA] ?? [];
+    let noteB;
+    if (trans.length) {
+      const boosted=trans.map(c=>({...c, weight:c.weight*preferenceBoost(noteA,c.note)}));
+      noteB=weightedRandom(boosted.map(c=>({item:c.note,weight:c.weight}))) ?? noteA;
+    } else {
+      noteB=all[Math.floor(Math.random()*all.length)] ?? 'A4';
+    }
+    return { noteA, noteB };
+  }
+
+  function playSeqNote(pitch, startTime, durSec) {
+    const sample=pitchToSampleName(pitch,'medium'); if(!sample)return;
+    const buffer=medBuffers[sample]; if(!buffer)return;
+    const attack=Math.min(0.12,durSec*0.08), release=Math.min(0.28,durSec*0.28);
+    const holdEnd=startTime+durSec-release, stopAt=startTime+durSec+0.08;
+    try {
+      const src=actx.createBufferSource(), gain=actx.createGain();
+      src.buffer=buffer; src.connect(gain); gain.connect(seqGainMed);
+      gain.gain.setValueAtTime(0,startTime);
+      gain.gain.linearRampToValueAtTime(1,startTime+attack);
+      gain.gain.setValueAtTime(1,Math.max(startTime+attack,holdEnd));
+      gain.gain.exponentialRampToValueAtTime(0.0001,stopAt);
+      src.start(startTime); src.stop(stopAt);
+    } catch(e){}
+  }
+
+  seqPlayBtn.addEventListener('click', async () => {
+    if (seqRunning) return;
+    if (actx.state==='suspended') await actx.resume();
+    seqRunning=true; seqPlayBtn.disabled=true; seqPlayBtn.textContent='PLAYING...';
+    seqLikeBtn.disabled=true; seqDislikeBtn.disabled=true;
+    const pair=pickSequencePair(); currentSeqPair=pair;
+    seqNoteAEl.textContent=pair.noteA; seqNoteBEl.textContent=pair.noteB;
+    const now=actx.currentTime+0.05, noteDur=BEAT_SEC*1.5;
+    playSeqNote(pair.noteA, now,          noteDur);
+    playSeqNote(pair.noteB, now+noteDur,  noteDur);
+    setTimeout(()=>{ seqRunning=false; seqPlayBtn.disabled=false; seqPlayBtn.textContent='PLAY SEQUENCE'; seqLikeBtn.disabled=false; seqDislikeBtn.disabled=false; }, noteDur*2*1000+400);
+  });
+
+  async function saveSeqPref(rating) {
+    if (!currentSeqPair) return;
+    await fetch('/api/audio/preferences',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ trainingType:'sequence', phraseId:crypto.randomUUID(), rating, bpm:BPM, measures:1, phrase:{},
+        noteA:currentSeqPair.noteA, noteB:currentSeqPair.noteB,
+        sliderState:{suspensionRisk:0,longVolume:0,mediumVolume:+seqMedVol.value,shortVolume:0},
+        source:'audioTraining-sequence' }) }).catch(e=>console.error(e));
+    seqStatus.innerHTML=rating==='like'?'<span style="color:var(--neon-green)">✓ liked</span>':'<span style="color:var(--neon-hot)">✗ disliked</span>';
+  }
+
+  seqLikeBtn.addEventListener('click',async()=>{ if(!currentSeqPair||seqRunning)return; seqLikeBtn.disabled=true; seqDislikeBtn.disabled=true; await saveSeqPref('like'); currentSeqPair=null; seqPlayBtn.textContent='PLAY SEQUENCE'; });
+  seqDislikeBtn.addEventListener('click',async()=>{ if(!currentSeqPair||seqRunning)return; seqLikeBtn.disabled=true; seqDislikeBtn.disabled=true; await saveSeqPref('dislike'); currentSeqPair=null; seqPlayBtn.textContent='PLAY SEQUENCE'; });
+}
+
 </script>
 </body>
 </html>
