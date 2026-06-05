@@ -15,9 +15,10 @@ from api.responses import responses_bp                         # AI DOPAMINE: A/
 from api.compare import compare_bp                             # AI DOPAMINE: PREFERENCE VOTES 
 from api.AI_score import score_bp                              # AI DOPAMINE
 from api.trueDelta import truedelta_bp                         # TRUE DELTA
-from api.audio.ingest  import audio_ingest_bp                  # meowREMIX
-from api.audio.analyze import audio_analyze_bp                 # meowREMIX
-from api.audio_training import audio_training_bp               # meowREMIX
+from api.audio.ingest       import audio_ingest_bp             # meowREMIX
+from api.audio.analyze      import audio_analyze_bp            # meowREMIX
+from api.audio.rules_serve  import rules_serve_bp              # meowREMIX — serves rules.js from Neon
+from api.audio_training     import audio_training_bp           # meowREMIX
 
 
 
@@ -42,6 +43,7 @@ app.register_blueprint(score_bp)                # AI DOPAMINE
 app.register_blueprint(truedelta_bp)
 app.register_blueprint(audio_ingest_bp)         # meowREMIX
 app.register_blueprint(audio_analyze_bp)        # meowREMIX
+app.register_blueprint(rules_serve_bp)          # meowREMIX — rules.js from Neon
 app.register_blueprint(audio_training_bp)       # meowREMIX
 
  

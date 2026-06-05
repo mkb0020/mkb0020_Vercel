@@ -444,7 +444,7 @@ body::after {
      AUDIO ENGINE
 ════════════════════════════════════════════════════════════════════════════ -->
 <script type="module">
-import { musicRules, ruleLibrary } from '/forms/rules.js';
+import { musicRules, ruleLibrary } from '/api/audio/rules.js';
 
 
 // RULELIBRARY REPLACES THE OLD RULE_LIBRARY.JSON FETCH — IT'S NOW EMBEDDED
@@ -1648,6 +1648,17 @@ function stopEngine() {
 
 playBtn.addEventListener('click', () => running ? stopEngine() : startEngine());
 
+// ── BACKGROUND RULES REBUILD ──────────────────────────────────────────────
+// Fire-and-forget on every page load. Triggers the full pipeline
+// (analyze all songs → compile rules → save to Neon) in the background.
+// The *current* visit uses whatever rules.js is already cached in Neon.
+// The *next* visit will get the freshly compiled rules (~30-60s later).
+(function pingRebuild() {
+  fetch('/api/audio/rebuild-rules', {
+    method: 'POST',
+    keepalive: true,   // survives page unload
+  }).catch(() => {});  // silent fail — never blocks the engine
+})();
 </script>
 </body>
 </html>

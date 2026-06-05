@@ -118,6 +118,65 @@ def _connect():
     db_url = os.environ.get("DATABASE_URL")
     if not db_url:
         raise RuntimeError("DATABASE_URL not set.")
+    return psycopg.connect(db_url)
+
+
+def _rows_as_dicts(cur):
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
+def build_rules_js_string(song_name, music_rules, comp_library, meta, minify=False):
+    """
+    Return the rules.js content as a string (no file I/O).
+    This is the pure version used by both main() and save_to_neon().
+    """
+    music_rules  = _clean_json(music_rules)
+    comp_library = _clean_json(comp_library)
+    meta         = _clean_json(meta)
+    indent = None if minify else 2
+    return (
+        f"// Auto-generated — meowREMIX Rule Engine v6.0\n"
+        f"// Source song  : {song_name}\n"
+        f"// Generated at : {meta['generatedAt']}\n"
+        f"// DO NOT EDIT — regenerate via: POST /api/audio/rebuild-rules\n\n"
+        f"export const metadata = {json.dumps(meta, indent=indent)};\n\n"
+        f"export const musicRules = {json.dumps(music_rules, indent=indent)};\n\n"
+        f"export const ruleLibrary = {json.dumps(comp_library, indent=indent)};\n"
+    )
+
+
+def save_to_neon(rules_js_content: str, song_name: str):
+    """
+    Upsert the compiled rules.js string into audio_rules_cache (single row).
+    Creates the table if it doesn't exist yet.
+    """
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS audio_rules_cache (
+                    id          INTEGER PRIMARY KEY DEFAULT 1,
+                    rules_js    TEXT NOT NULL,
+                    compiled_at TIMESTAMPTZ DEFAULT NOW(),
+                    song_names  TEXT,
+                    CHECK (id = 1)
+                )
+            """)
+            cur.execute("""
+                INSERT INTO audio_rules_cache (id, rules_js, compiled_at, song_names)
+                VALUES (1, %s, NOW(), %s)
+                ON CONFLICT (id) DO UPDATE
+                    SET rules_js    = EXCLUDED.rules_js,
+                        compiled_at = EXCLUDED.compiled_at,
+                        song_names  = EXCLUDED.song_names
+            """, (rules_js_content, song_name))
+        conn.commit()
+        logger.info(f"  ✓ rules.js saved to Neon audio_rules_cache ({len(rules_js_content)//1024} KB)")
+    finally:
+        conn.close()
+
+
 import requests
 
 BASE_URL = os.environ.get("INGEST_URL", "").rstrip("/")
@@ -1384,27 +1443,27 @@ def build_compositional_rules(summary, section_rows):
 # JS WRITER
 # ══════════════════════════════════════════════════════════════════════════════
 
-def write_rules_js(output_path, song_name, music_rules, comp_library, meta, minify=False):
-    """Write forms/rules.js with a JSON safety pass (no NaN / Infinity)."""
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    music_rules = _clean_json(music_rules)
-    comp_library = _clean_json(comp_library)
-    meta = _clean_json(meta)
-    indent = None if minify else 2
-    js = f"""// Auto-generated — meowREMIX Rule Engine v6.0
-// Source song  : {song_name}
-// Generated at : {meta['generatedAt']}
-// DO NOT EDIT — regenerate via:  python scripts/rules.py
+def write_rules_js(output_path, song_name, music_rules, comp_library, meta,
+                   minify=False, save_neon=True):
+    """
+    Build the rules.js string, write it to disk (for local runs), and
+    optionally upsert to Neon so Vercel can serve it dynamically.
+    """
+    js = build_rules_js_string(song_name, music_rules, comp_library, meta, minify)
 
-export const metadata = {json.dumps(meta, indent=indent)};
+    # Always write to disk when called locally
+    if output_path is not None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(js, encoding='utf-8')
+        size_kb = output_path.stat().st_size / 1024
+        logger.info(f"  ✓ {output_path}  ({size_kb:.1f} KB)")
 
-export const musicRules = {json.dumps(music_rules, indent=indent)};
-
-export const ruleLibrary = {json.dumps(comp_library, indent=indent)};
-"""
-    output_path.write_text(js, encoding='utf-8')
-    size_kb = output_path.stat().st_size / 1024
-    logger.info(f"  ✓ {output_path}  ({size_kb:.1f} KB)")
+    # Also push to Neon so /api/audio/rules.js can serve it on Vercel
+    if save_neon:
+        try:
+            save_to_neon(js, song_name)
+        except Exception as e:
+            logger.warning(f"  ⚠ Neon save failed (rules still written to disk): {e}")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1438,9 +1497,42 @@ def main():
         )
         import sys; sys.exit(1)
 
+    stats = compile_rules(all_songs=args.all_songs, song_id=args.song_id,
+                          minify=args.minify, write_file=True)
+
+    logger.info(f"\n{'─' * 60}")
+    logger.info("Rule Compiler v6.0 complete.")
+    logger.info(f"  rules.js      → {OUTPUT_JS}")
+    logger.info(f"  Transitions   : {stats['transitions']}")
+    logger.info(f"  Motifs        : {stats['motifs']}")
+    logger.info(f"  Suspensions   : {stats['suspensions']}")
+    logger.info(f"  Smoothness    : {stats['smoothness_pairs']}")
+    logger.info(f"  Bar centers   : {stats['bar_centers']}")
+    logger.info(f"  Note buckets  : {stats['bucket_weights']}")
+    logger.info(f"  Bucket trans  : {stats['bucket_transitions']}")
+    logger.info(f"  Vertical iv   : {stats['vertical_intervals']}")
+    logger.info('─' * 60)
+
+
+def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) -> dict:
+    """
+    Full pipeline: fetch data from Vercel → build all rule structures →
+    save rules.js string to Neon (always) → optionally write to disk.
+
+    Returns a stats dict so callers (Flask endpoint, main()) can log results.
+    Called by:
+      - main()                         (local manual run, write_file=True)
+      - /api/audio/rebuild-rules       (Vercel trigger, write_file=False)
+    """
+    if not BASE_URL:
+        raise RuntimeError(
+            "INGEST_URL not set in environment.\n"
+            "  Add: INGEST_URL=https://mkb0020.vercel.app"
+        )
+
     # ── FETCH ALL DATA FROM VERCEL ────────────────────────────────────────────
     logger.info("\nFetching rules data from Vercel API...")
-    payload    = _fetch_rules_data(all_songs=args.all_songs, song_id=args.song_id)
+    payload    = _fetch_rules_data(all_songs=all_songs, song_id=song_id)
     song_ids   = payload["song_ids"]
     songs_map  = {s["id"]: s["song_name"] for s in payload["songs"]}
     blend_mode = len(song_ids) > 1
@@ -1552,7 +1644,7 @@ def main():
     logger.info("[O] Bucket × tension map...")
     bucket_tension_map = build_bucket_tension_map(events)
 
-    logger.info("[P] Vertical harmony rules (NEW)...")
+    logger.info("[P] Vertical harmony rules...")
     vertical_harmony = build_vertical_harmony_rules(events)
     logger.info(f"    {len(vertical_harmony.get('preferredIntervals', {}))} pitch classes mapped")
 
@@ -1594,7 +1686,7 @@ def main():
             "rhythmFlowRules":      rhythm_flow,
             "smoothnessBias":       0.85,
         },
-        "verticalHarmonyRules":    vertical_harmony,   # PATCH 5: top-level key
+        "verticalHarmonyRules":    vertical_harmony,
         "noteLengthBuckets": {
             "bucketWeights":     bucket_weights,
             "bucketByPitch":     bucket_by_pitch,
@@ -1611,23 +1703,23 @@ def main():
     comp_library = build_compositional_rules(summary, section_rows)
     logger.info(f"    {len(comp_library.get('rule_library', {}))} rule families")
 
-    # ── WRITE RULES.JS ────────────────────────────────────────────────────────
-    logger.info("\n--- Writing output ---")
-    write_rules_js(OUTPUT_JS, song_name, music_rules, comp_library, meta,
-                   minify=args.minify)
+    # ── WRITE / SAVE ──────────────────────────────────────────────────────────
+    logger.info("\n--- Saving output ---")
+    out_path = OUTPUT_JS if write_file else None
+    write_rules_js(out_path, song_name, music_rules, comp_library, meta,
+                   minify=minify, save_neon=True)
 
-    logger.info(f"\n{'─' * 60}")
-    logger.info("Rule Compiler v6.0 complete.")
-    logger.info(f"  rules.js      → {OUTPUT_JS}")
-    logger.info(f"  Transitions   : {total_trans}")
-    logger.info(f"  Motifs        : {len(motifs)}")
-    logger.info(f"  Suspensions   : {len(suspensions)}")
-    logger.info(f"  Smoothness    : {len(trans_smooth)} pairs")
-    logger.info(f"  Bar centers   : {len(bar_rules)} pitch anchors")
-    logger.info(f"  Note buckets  : {list(bucket_weights.keys())}")
-    logger.info(f"  Bucket trans  : {list(bucket_transitions.keys())}")
-    logger.info(f"  Vertical iv   : {len(vertical_harmony.get('preferredIntervals', {}))}")
-    logger.info('─' * 60)
+    return {
+        "song_name":          song_name,
+        "transitions":        total_trans,
+        "motifs":             len(motifs),
+        "suspensions":        len(suspensions),
+        "smoothness_pairs":   sum(len(v) for v in trans_smooth.values()),
+        "bar_centers":        len(bar_rules),
+        "bucket_weights":     list(bucket_weights.keys()),
+        "bucket_transitions": list(bucket_transitions.keys()),
+        "vertical_intervals": len(vertical_harmony.get("preferredIntervals", {})),
+    }
 
 
 if __name__ == "__main__":
