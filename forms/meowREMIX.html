@@ -1548,6 +1548,7 @@ let dancerStartTime = 0;
 const DANCER_FPS = 9.75; // animation speed
 
 let dancerX = -180;
+let dancerDirection = 1;
 
 const dancerTrail = [];
 const MAX_TRAIL = 10;
@@ -1569,12 +1570,18 @@ function drawDancer() {
           % DANCER_FRAME_COUNT;
   }
 
-  dancerX += 0.25;
+// Horizontal drift
+  dancerX += 0.25 * dancerDirection;
 
-  if (dancerX > canvas.width + 50) {
-    dancerX = -180;
+  // Bounce off right side
+  if (dancerX > canvas.width - 140) {
+      dancerDirection = -1;
   }
 
+  // Bounce off left side
+  if (dancerX < -40) {
+      dancerDirection = 1;
+  }
   // Gentle bobbing
   const bob =
     Math.sin(now * 0.0025) * 6;
