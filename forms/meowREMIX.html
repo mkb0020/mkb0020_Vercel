@@ -1537,11 +1537,13 @@ setTimeout(resizeCanvas, 10);
 const dancerSprite = new Image();
 dancerSprite.src = '../static/images/dance.png';
 
-const DANCER_FRAME_COUNT = 14;
+const DANCER_FRAME_COUNT = 13;
 const DANCER_FRAME_SIZE = 250;
 
 let dancerFrame = 0;
 let dancerLastFrameTime = 0;
+
+let dancerStartTime = 0;
 
 const DANCER_FPS = 9.75; // animation speed
 
@@ -1555,13 +1557,18 @@ function drawDancer() {
 
   const now = performance.now();
 
-  // Advance animation frame
-  if (now - dancerLastFrameTime > (1000 / DANCER_FPS)) {
-    dancerFrame = (dancerFrame + 1) % DANCER_FRAME_COUNT;
-    dancerLastFrameTime = now;
+  if (running) {
+
+      const elapsed =
+          actx.currentTime - dancerStartTime;
+
+      const frameOffset = 6;
+
+      dancerFrame =
+          (Math.floor(elapsed * DANCER_FPS) + frameOffset)
+          % DANCER_FRAME_COUNT;
   }
 
-  // Horizontal drift
   dancerX += 0.25;
 
   if (dancerX > canvas.width + 50) {
@@ -1724,6 +1731,8 @@ async function startEngine() {
   await actx.resume();
   const rawNow    = actx.currentTime + 0.05;
   engineStartTime = Math.ceil(rawNow / MEASURE_DUR_SEC) * MEASURE_DUR_SEC;
+
+  dancerStartTime = engineStartTime;
 
   longGain    = actx.createGain();
   medGain     = actx.createGain();
