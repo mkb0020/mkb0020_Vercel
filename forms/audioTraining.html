@@ -462,6 +462,154 @@
     </div>
   </div>
 
+  <!-- ── COLUMN 4: CHORD (pad + harmony + melody simultaneously) ── -->
+  <div class="column-wrap">
+    <div class="column-label">Chord</div>
+    <div class="training-container glass">
+      <button class="btn-primary" id="chordPlayBtn" disabled>PLAY CHORD</button>
+
+      <div class="panel">
+        <div class="panel-title">3-Voice Chord</div>
+        <div class="note-display">
+          <span class="note-chip" id="chordNotePad"  style="font-size:13px;color:var(--neon-cyan)"><span class="note-loading">—</span></span>
+          <span class="note-sep">+</span>
+          <span class="note-chip" id="chordNoteHarm" style="font-size:13px;color:var(--accent-2)"><span class="note-loading">—</span></span>
+          <span class="note-sep">+</span>
+          <span class="note-chip note-b" id="chordNoteMel"><span class="note-loading">—</span></span>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);text-align:center;margin-top:6px;letter-spacing:0.08em;">
+          Pad · Harmony · Melody — do all 3 blend?
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Mixer</div>
+        <div class="control-group slider-long">
+          <label><span><span class="bucket-badge badge-long">PAD</span> Volume</span>
+          <span class="val-display" id="chordLongVolVal">20%</span></label>
+          <div class="slider-row"><input id="chordLongVol" type="range" min="0" max="1" step="0.01" value="0.20"></div>
+        </div>
+        <div class="control-group slider-medium">
+          <label><span><span class="bucket-badge badge-medium">HARM</span> Volume</span>
+          <span class="val-display" id="chordMedVolVal">65%</span></label>
+          <div class="slider-row"><input id="chordMedVol" type="range" min="0" max="1" step="0.01" value="0.65"></div>
+        </div>
+        <div class="control-group slider-short">
+          <label><span><span class="bucket-badge badge-short">MEL</span> Volume</span>
+          <span class="val-display" id="chordShortVolVal">65%</span></label>
+          <div class="slider-row"><input id="chordShortVol" type="range" min="0" max="1" step="0.01" value="0.65"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Training</div>
+        <div class="training-buttons">
+          <button class="rating-btn like-btn" id="chordLikeBtn" disabled>
+            <img src="/static/images/like.png" alt="Like"> LIKE
+          </button>
+          <button class="rating-btn dislike-btn" id="chordDislikeBtn" disabled>
+            <img src="/static/images/dislike.png" alt="Dislike"> DISLIKE
+          </button>
+        </div>
+        <div id="chordStatus" style="margin-top:10px;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:0.08em;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COLUMN 5: STACCATO PHRASE (4 short notes) ── -->
+  <div class="column-wrap">
+    <div class="column-label">Staccato Phrase</div>
+    <div class="training-container glass">
+      <button class="btn-primary" id="staccPlayBtn" disabled>PLAY STACCATO</button>
+
+      <div class="panel">
+        <div class="panel-title">4 Short Notes</div>
+        <div class="note-display" style="gap:6px;flex-wrap:wrap;justify-content:center;">
+          <span class="note-chip" id="staccNote0" style="font-size:13px;min-width:44px"><span class="note-loading">—</span></span>
+          <span class="note-sep">→</span>
+          <span class="note-chip" id="staccNote1" style="font-size:13px;min-width:44px"><span class="note-loading">—</span></span>
+          <span class="note-sep">→</span>
+          <span class="note-chip" id="staccNote2" style="font-size:13px;min-width:44px"><span class="note-loading">—</span></span>
+          <span class="note-sep">→</span>
+          <span class="note-chip" id="staccNote3" style="font-size:13px;min-width:44px"><span class="note-loading">—</span></span>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);text-align:center;margin-top:6px;letter-spacing:0.08em;">
+          Does this quick run feel good?
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Mixer</div>
+        <div class="control-group slider-long">
+          <label><span><span class="bucket-badge badge-long">LONG</span> Pad Gain</span>
+          <span class="val-display" id="staccLongVolVal">20%</span></label>
+          <div class="slider-row"><input id="staccLongVol" type="range" min="0" max="1" step="0.01" value="0.20"></div>
+        </div>
+        <div class="control-group slider-medium">
+          <label><span><span class="bucket-badge badge-medium">MED</span> Melody Gain</span>
+          <span class="val-display" id="staccMedVolVal">65%</span></label>
+          <div class="slider-row"><input id="staccMedVol" type="range" min="0" max="1" step="0.01" value="0.65"></div>
+        </div>
+        <div class="control-group slider-short">
+          <label><span><span class="bucket-badge badge-short">SHORT</span> Staccato Gain</span>
+          <span class="val-display" id="staccShortVolVal">80%</span></label>
+          <div class="slider-row"><input id="staccShortVol" type="range" min="0" max="1" step="0.01" value="0.80"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Training</div>
+        <div class="training-buttons">
+          <button class="rating-btn like-btn" id="staccLikeBtn" disabled>
+            <img src="/static/images/like.png" alt="Like"> LIKE
+          </button>
+          <button class="rating-btn dislike-btn" id="staccDislikeBtn" disabled>
+            <img src="/static/images/dislike.png" alt="Dislike"> DISLIKE
+          </button>
+        </div>
+        <div id="staccStatus" style="margin-top:10px;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:0.08em;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COLUMN 6: RHYTHM (same note, different rhythmic patterns) ── -->
+  <div class="column-wrap">
+    <div class="column-label">Rhythm</div>
+    <div class="training-container glass">
+      <button class="btn-primary" id="rhythmPlayBtn" disabled>PLAY RHYTHM</button>
+
+      <div class="panel">
+        <div class="panel-title">Rhythmic Pattern</div>
+        <div id="rhythmPatternDisplay" style="text-align:center;padding:12px 0 4px;font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:0.08em;color:var(--neon-cyan);min-height:40px;">—</div>
+        <div style="font-size:10px;color:var(--text-dim);text-align:center;margin-top:6px;letter-spacing:0.08em;">
+          Does this rhythm feel good? (ignore the note)
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Mixer</div>
+        <div class="control-group slider-short">
+          <label><span><span class="bucket-badge badge-short">SHORT</span> Volume</span>
+          <span class="val-display" id="rhythmVolVal">80%</span></label>
+          <div class="slider-row"><input id="rhythmVol" type="range" min="0" max="1" step="0.01" value="0.80"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Training</div>
+        <div class="training-buttons">
+          <button class="rating-btn like-btn" id="rhythmLikeBtn" disabled>
+            <img src="/static/images/like.png" alt="Like"> LIKE
+          </button>
+          <button class="rating-btn dislike-btn" id="rhythmDislikeBtn" disabled>
+            <img src="/static/images/dislike.png" alt="Dislike"> DISLIKE
+          </button>
+        </div>
+        <div id="rhythmStatus" style="margin-top:10px;font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:0.08em;"></div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script type="module">
@@ -1319,10 +1467,13 @@ async function loadAllAssets(){
     loadSamples('medium',medBuffers),
     loadSamples('short',shortBuffers),
   ]);
-  // Enable all three panel play buttons
+  // Enable all panel play buttons
   playBtn.disabled    = false;
-  document.getElementById('harmPlayBtn').disabled = false;
-  document.getElementById('seqPlayBtn').disabled  = false;
+  document.getElementById('harmPlayBtn').disabled   = false;
+  document.getElementById('seqPlayBtn').disabled    = false;
+  document.getElementById('chordPlayBtn').disabled  = false;
+  document.getElementById('staccPlayBtn').disabled  = false;
+  document.getElementById('rhythmPlayBtn').disabled = false;
 
   // Show how many preference ratings are baked into current rules
   const statusEl = document.getElementById('prefStatus');
@@ -1534,7 +1685,394 @@ shortVol.oninput = e => shortGain.gain.value = e.target.value;
   seqLikeBtn.addEventListener('click',async()=>{ if(!currentSeqPair||seqRunning)return; seqLikeBtn.disabled=true; seqDislikeBtn.disabled=true; await saveSeqPref('like'); currentSeqPair=null; seqPlayBtn.textContent='PLAY SEQUENCE'; });
   seqDislikeBtn.addEventListener('click',async()=>{ if(!currentSeqPair||seqRunning)return; seqLikeBtn.disabled=true; seqDislikeBtn.disabled=true; await saveSeqPref('dislike'); currentSeqPair=null; seqPlayBtn.textContent='PLAY SEQUENCE'; });
 }
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL 4 — CHORD (pad + harmony + melody simultaneously)
+// ═══════════════════════════════════════════════════════════════════════════
+{
+  const chordPlayBtn    = document.getElementById('chordPlayBtn');
+  const chordLikeBtn    = document.getElementById('chordLikeBtn');
+  const chordDislikeBtn = document.getElementById('chordDislikeBtn');
+  const chordNotePadEl  = document.getElementById('chordNotePad');
+  const chordNoteHarmEl = document.getElementById('chordNoteHarm');
+  const chordNoteMelEl  = document.getElementById('chordNoteMel');
+  const chordLongVol    = document.getElementById('chordLongVol');
+  const chordMedVol     = document.getElementById('chordMedVol');
+  const chordShortVol   = document.getElementById('chordShortVol');
+  const chordStatus     = document.getElementById('chordStatus');
 
+  const chordGainLong  = actx.createGain();
+  const chordGainMed   = actx.createGain();
+  const chordGainShort = actx.createGain();
+  chordGainLong.gain.value  = parseFloat(chordLongVol.value);
+  chordGainMed.gain.value   = parseFloat(chordMedVol.value);
+  chordGainShort.gain.value = parseFloat(chordShortVol.value);
+  [chordGainLong, chordGainMed, chordGainShort].forEach(g => g.connect(actx.destination));
+
+  chordLongVol.oninput  = e => { document.getElementById('chordLongVolVal').innerText  = Math.round(e.target.value*100)+'%'; chordGainLong.gain.value  = +e.target.value; };
+  chordMedVol.oninput   = e => { document.getElementById('chordMedVolVal').innerText   = Math.round(e.target.value*100)+'%'; chordGainMed.gain.value   = +e.target.value; };
+  chordShortVol.oninput = e => { document.getElementById('chordShortVolVal').innerText = Math.round(e.target.value*100)+'%'; chordGainShort.gain.value = +e.target.value; };
+
+  let currentChord = null, chordRunning = false;
+
+  function pickChord() {
+    // Pad: from barCenterRules (same as bar voice in meowREMIX)
+    const padNote = getSmoothBarCandidate(null, false);
+    // Melody: random from transitionRules
+    const all = Object.keys(musicRules.transitionRules ?? {}).filter(p => p !== 'REST');
+    const melNote = all[Math.floor(Math.random() * all.length)] ?? 'G4';
+    // Harmony: from harmonyRules relative to melody, or pitchClassHarmonyRules
+    const harmNote = getHarmonyNote(melNote, null, null, 0.5);
+    return { padNote, harmNote, melNote };
+  }
+
+  function playChordNote(pitch, buffers, gainNode, bucket, durSec, startTime) {
+    const sample = pitchToSampleName(pitch, bucket); if (!sample) return;
+    const buffer = buffers[sample]; if (!buffer) return;
+    const attack = Math.min(0.15, durSec*0.1), release = Math.min(0.4, durSec*0.3);
+    const holdEnd = startTime+durSec-release, stopAt = startTime+durSec+0.15;
+    try {
+      const src = actx.createBufferSource(), gain = actx.createGain();
+      src.buffer = buffer; src.connect(gain); gain.connect(gainNode);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(1, startTime+attack);
+      gain.gain.setValueAtTime(1, Math.max(startTime+attack, holdEnd));
+      gain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+      src.start(startTime); src.stop(stopAt);
+    } catch(e) {}
+  }
+
+  chordPlayBtn.addEventListener('click', async () => {
+    if (chordRunning) return;
+    if (actx.state === 'suspended') await actx.resume();
+    chordRunning = true;
+    chordPlayBtn.disabled = true; chordPlayBtn.textContent = 'PLAYING...';
+    chordLikeBtn.disabled = true; chordDislikeBtn.disabled = true;
+
+    const chord = pickChord(); currentChord = chord;
+    chordNotePadEl.textContent  = chord.padNote;
+    chordNoteHarmEl.textContent = chord.harmNote;
+    chordNoteMelEl.textContent  = chord.melNote;
+
+    const now = actx.currentTime + 0.05, durSec = BEAT_SEC * 3;
+    playChordNote(chord.padNote,  longBuffers,  chordGainLong,  'long',   durSec, now);
+    playChordNote(chord.harmNote, medBuffers,   chordGainMed,   'medium', durSec, now);
+    playChordNote(chord.melNote,  shortBuffers, chordGainShort, 'short',  durSec, now);
+
+    setTimeout(() => {
+      chordRunning = false;
+      chordPlayBtn.disabled = false; chordPlayBtn.textContent = 'PLAY CHORD';
+      chordLikeBtn.disabled = false; chordDislikeBtn.disabled = false;
+    }, durSec * 1000 + 400);
+  });
+
+  async function saveChordPref(rating) {
+    if (!currentChord) return;
+    await fetch('/api/audio/preferences', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        trainingType: 'chord', phraseId: crypto.randomUUID(), rating,
+        bpm: BPM, measures: 1, phrase: {},
+        noteA: currentChord.melNote, noteB: currentChord.harmNote,
+        noteC: currentChord.padNote,
+        sliderState: { suspensionRisk:0, longVolume:+chordLongVol.value,
+          mediumVolume:+chordMedVol.value, shortVolume:+chordShortVol.value },
+        source: 'audioTraining-chord',
+      })
+    }).catch(e => console.error(e));
+    chordStatus.innerHTML = rating==='like'
+      ? '<span style="color:var(--neon-green)">✓ liked</span>'
+      : '<span style="color:var(--neon-hot)">✗ disliked</span>';
+  }
+
+  chordLikeBtn.addEventListener('click', async () => {
+    if (!currentChord || chordRunning) return;
+    chordLikeBtn.disabled = true; chordDislikeBtn.disabled = true;
+    await saveChordPref('like'); currentChord = null; chordPlayBtn.textContent = 'PLAY CHORD';
+  });
+  chordDislikeBtn.addEventListener('click', async () => {
+    if (!currentChord || chordRunning) return;
+    chordLikeBtn.disabled = true; chordDislikeBtn.disabled = true;
+    await saveChordPref('dislike'); currentChord = null; chordPlayBtn.textContent = 'PLAY CHORD';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL 5 — STACCATO PHRASE (4 short notes via transitionRules + short bias)
+// ═══════════════════════════════════════════════════════════════════════════
+{
+  const staccPlayBtn    = document.getElementById('staccPlayBtn');
+  const staccLikeBtn    = document.getElementById('staccLikeBtn');
+  const staccDislikeBtn = document.getElementById('staccDislikeBtn');
+  const staccNoteEls    = [0,1,2,3].map(i => document.getElementById(`staccNote${i}`));
+  const staccLongVol    = document.getElementById('staccLongVol');
+  const staccMedVol     = document.getElementById('staccMedVol');
+  const staccShortVol   = document.getElementById('staccShortVol');
+  const staccStatus     = document.getElementById('staccStatus');
+
+  const staccGainLong  = actx.createGain();
+  const staccGainMed   = actx.createGain();
+  const staccGainShort = actx.createGain();
+  staccGainLong.gain.value  = parseFloat(staccLongVol.value);
+  staccGainMed.gain.value   = parseFloat(staccMedVol.value);
+  staccGainShort.gain.value = parseFloat(staccShortVol.value);
+  [staccGainLong, staccGainMed, staccGainShort].forEach(g => g.connect(actx.destination));
+
+  staccLongVol.oninput  = e => { document.getElementById('staccLongVolVal').innerText  = Math.round(e.target.value*100)+'%'; staccGainLong.gain.value  = +e.target.value; };
+  staccMedVol.oninput   = e => { document.getElementById('staccMedVolVal').innerText   = Math.round(e.target.value*100)+'%'; staccGainMed.gain.value   = +e.target.value; };
+  staccShortVol.oninput = e => { document.getElementById('staccShortVolVal').innerText = Math.round(e.target.value*100)+'%'; staccGainShort.gain.value = +e.target.value; };
+
+  let currentStaccPhrase = null, staccRunning = false;
+
+  function pickStaccPhrase() {
+    // Build a 4-note run using transitionRules with preference boost
+    // Bias heavily toward short bucket notes — prefer notes that have short samples
+    const allNotes = Object.keys(musicRules.transitionRules ?? {}).filter(p => p !== 'REST');
+    // Prefer notes that have short bucket entries
+    const shortBiased = allNotes.filter(n => {
+      const pc = n.replace(/\d/g,'');
+      return BUCKET_BY_PITCH[pc]?.short != null;
+    });
+    const startPool = shortBiased.length ? shortBiased : allNotes;
+    const first = startPool[Math.floor(Math.random() * startPool.length)] ?? 'G4';
+
+    const notes = [first];
+    for (let i = 0; i < 3; i++) {
+      const prev = notes[notes.length - 1];
+      const trans = musicRules.transitionRules[prev] ?? [];
+      let next;
+      if (trans.length) {
+        // Apply preference boost + short bucket bias
+        const boosted = trans.map(c => {
+          const pc = (c.note ?? '').replace(/\d/g,'');
+          const shortBonus = BUCKET_BY_PITCH[pc]?.short ? 1.4 : 0.7;
+          return { ...c, weight: c.weight * preferenceBoost(prev, c.note) * shortBonus };
+        }).filter(c => c.note !== 'REST');
+        next = weightedRandom(boosted.map(c => ({ item: c.note, weight: c.weight }))) ?? prev;
+      } else {
+        next = startPool[Math.floor(Math.random() * startPool.length)] ?? 'A4';
+      }
+      notes.push(next);
+    }
+    return notes;
+  }
+
+  function playStaccNote(pitch, startTime, durSec) {
+    const sample = pitchToSampleName(pitch, 'short'); if (!sample) return;
+    const buffer = shortBuffers[sample]; if (!buffer) return;
+    const attack = Math.min(0.03, durSec*0.05), release = Math.min(0.08, durSec*0.2);
+    const holdEnd = startTime+durSec-release, stopAt = startTime+durSec+0.05;
+    try {
+      const src = actx.createBufferSource(), gain = actx.createGain();
+      src.buffer = buffer; src.connect(gain); gain.connect(staccGainShort);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(1, startTime+attack);
+      gain.gain.setValueAtTime(1, Math.max(startTime+attack, holdEnd));
+      gain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+      src.start(startTime); src.stop(stopAt);
+    } catch(e) {}
+  }
+
+  staccPlayBtn.addEventListener('click', async () => {
+    if (staccRunning) return;
+    if (actx.state === 'suspended') await actx.resume();
+    staccRunning = true;
+    staccPlayBtn.disabled = true; staccPlayBtn.textContent = 'PLAYING...';
+    staccLikeBtn.disabled = true; staccDislikeBtn.disabled = true;
+
+    const notes = pickStaccPhrase(); currentStaccPhrase = notes;
+    notes.forEach((n, i) => { if (staccNoteEls[i]) staccNoteEls[i].textContent = n; });
+
+    const now = actx.currentTime + 0.05;
+    const noteDur = BEAT_SEC * 0.5; // eighth note spacing — quick staccato
+    notes.forEach((n, i) => playStaccNote(n, now + i * noteDur, noteDur * 0.8));
+
+    setTimeout(() => {
+      staccRunning = false;
+      staccPlayBtn.disabled = false; staccPlayBtn.textContent = 'PLAY STACCATO';
+      staccLikeBtn.disabled = false; staccDislikeBtn.disabled = false;
+    }, (notes.length * noteDur) * 1000 + 400);
+  });
+
+  async function saveStaccPref(rating) {
+    if (!currentStaccPhrase) return;
+    // Build transition pairs for storage
+    const pairs = currentStaccPhrase.slice(0,-1).map((n,i) =>
+      ({ from: n.replace(/\d/g,''), to: currentStaccPhrase[i+1].replace(/\d/g,'') })
+    );
+    await fetch('/api/audio/preferences', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        trainingType: 'staccato_phrase', phraseId: crypto.randomUUID(), rating,
+        bpm: BPM, measures: 1,
+        phrase: { notes: currentStaccPhrase.map(n => ({ pitch: n, bucket: 'short' })),
+                  transitions: pairs },
+        noteA: currentStaccPhrase[0], noteB: currentStaccPhrase[currentStaccPhrase.length-1],
+        sliderState: { suspensionRisk:0, longVolume:+staccLongVol.value,
+          mediumVolume:+staccMedVol.value, shortVolume:+staccShortVol.value },
+        source: 'audioTraining-staccato',
+      })
+    }).catch(e => console.error(e));
+    staccStatus.innerHTML = rating==='like'
+      ? '<span style="color:var(--neon-green)">✓ liked</span>'
+      : '<span style="color:var(--neon-hot)">✗ disliked</span>';
+  }
+
+  staccLikeBtn.addEventListener('click', async () => {
+    if (!currentStaccPhrase || staccRunning) return;
+    staccLikeBtn.disabled = true; staccDislikeBtn.disabled = true;
+    await saveStaccPref('like'); currentStaccPhrase = null; staccPlayBtn.textContent = 'PLAY STACCATO';
+  });
+  staccDislikeBtn.addEventListener('click', async () => {
+    if (!currentStaccPhrase || staccRunning) return;
+    staccLikeBtn.disabled = true; staccDislikeBtn.disabled = true;
+    await saveStaccPref('dislike'); currentStaccPhrase = null; staccPlayBtn.textContent = 'PLAY STACCATO';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PANEL 6 — RHYTHM (same note, different rhythmic patterns)
+// Rating = "does this rhythm feel good?" — NOT about pitch
+// ═══════════════════════════════════════════════════════════════════════════
+{
+  const rhythmPlayBtn    = document.getElementById('rhythmPlayBtn');
+  const rhythmLikeBtn    = document.getElementById('rhythmLikeBtn');
+  const rhythmDislikeBtn = document.getElementById('rhythmDislikeBtn');
+  const rhythmPatternEl  = document.getElementById('rhythmPatternDisplay');
+  const rhythmVol        = document.getElementById('rhythmVol');
+  const rhythmStatus     = document.getElementById('rhythmStatus');
+
+  const rhythmGain = actx.createGain();
+  rhythmGain.gain.value = parseFloat(rhythmVol.value);
+  rhythmGain.connect(actx.destination);
+  rhythmVol.oninput = e => { document.getElementById('rhythmVolVal').innerText = Math.round(e.target.value*100)+'%'; rhythmGain.gain.value = +e.target.value; };
+
+  // Rhythm patterns as beat-fraction arrays (1.0 = quarter note)
+  // Each sub-array is one bar of 4 beats
+  const RHYTHM_PATTERNS = [
+    { name: '4 quarters',          beats: [1,1,1,1] },
+    { name: '2 halves',            beats: [2,2] },
+    { name: 'half + 2 quarters',   beats: [2,1,1] },
+    { name: '2 quarters + half',   beats: [1,1,2] },
+    { name: 'dotted + eighth ×2',  beats: [1.5,0.5,1.5,0.5] },
+    { name: '8ths run',            beats: [0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5] },
+    { name: 'quarter + 4 eighths', beats: [1,0.5,0.5,0.5,0.5,1] },
+    { name: 'syncopated',          beats: [0.5,1,1,1,0.5] },
+    { name: 'long-short-short',    beats: [2,1,1] },
+    { name: 'gallop',              beats: [1.5,0.5,1.5,0.5] },
+    { name: '3+3+2 clave',        beats: [0.75,0.75,0.75,0.75,0.5,0.5] },
+    { name: 'swing feel',          beats: [0.67,0.33,0.67,0.33,0.67,0.33,0.67,0.33] },
+    // Also pull from musicRules.rhythmPatterns if available
+  ];
+
+  // Add patterns from rules.js if they exist
+  if (musicRules.rhythmPatterns?.length) {
+    musicRules.rhythmPatterns.slice(0, 6).forEach(p => {
+      if (p.pattern?.length) {
+        RHYTHM_PATTERNS.push({
+          name: `learned: ${p.pattern.join('-')}`,
+          beats: p.pattern.map(d =>
+            d==='whole'?4:d==='half'?2:d==='quarter'?1:
+            d==='dotted-quarter'?1.5:d==='eighth'?0.5:d==='sixteenth'?0.25:1
+          ),
+          source: 'rules',
+        });
+      }
+    });
+  }
+
+  let currentRhythmPattern = null, rhythmRunning = false;
+  // Use a fixed reference pitch for rhythm panel — it's always the same note
+  const RHYTHM_PITCH = 'G4';
+
+  function pickRhythmPattern() {
+    const idx = Math.floor(Math.random() * RHYTHM_PATTERNS.length);
+    return RHYTHM_PATTERNS[idx];
+  }
+
+  function displayPattern(pat) {
+    // Show beats as visual blocks: ■ = quarter, ■■ = half, ▪ = eighth
+    const symbols = pat.beats.map(b =>
+      b >= 2    ? '━━' :
+      b >= 1.5  ? '━·' :
+      b >= 1    ? '━'  :
+      b >= 0.5  ? '·'  : '˙'
+    );
+    rhythmPatternEl.textContent = symbols.join(' ') + `\n${pat.name}`;
+  }
+
+  function playRhythmNote(startTime, durSec) {
+    const sample = pitchToSampleName(RHYTHM_PITCH, 'short'); if (!sample) return;
+    const buffer = shortBuffers[sample]; if (!buffer) return;
+    const noteDur = Math.min(durSec * 0.75, durSec - 0.05); // slight articulation gap
+    const attack = 0.01, release = Math.min(0.05, noteDur * 0.15);
+    const holdEnd = startTime+noteDur-release, stopAt = startTime+noteDur+0.03;
+    try {
+      const src = actx.createBufferSource(), gain = actx.createGain();
+      src.buffer = buffer; src.connect(gain); gain.connect(rhythmGain);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(1, startTime+attack);
+      gain.gain.setValueAtTime(1, Math.max(startTime+attack, holdEnd));
+      gain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+      src.start(startTime); src.stop(stopAt);
+    } catch(e) {}
+  }
+
+  rhythmPlayBtn.addEventListener('click', async () => {
+    if (rhythmRunning) return;
+    if (actx.state === 'suspended') await actx.resume();
+    rhythmRunning = true;
+    rhythmPlayBtn.disabled = true; rhythmPlayBtn.textContent = 'PLAYING...';
+    rhythmLikeBtn.disabled = true; rhythmDislikeBtn.disabled = true;
+
+    const pat = pickRhythmPattern(); currentRhythmPattern = pat;
+    displayPattern(pat);
+
+    const now = actx.currentTime + 0.05;
+    let t = now;
+    for (const beatFrac of pat.beats) {
+      const durSec = beatFrac * BEAT_SEC;
+      playRhythmNote(t, durSec);
+      t += durSec;
+    }
+    const totalDur = t - now;
+
+    setTimeout(() => {
+      rhythmRunning = false;
+      rhythmPlayBtn.disabled = false; rhythmPlayBtn.textContent = 'PLAY RHYTHM';
+      rhythmLikeBtn.disabled = false; rhythmDislikeBtn.disabled = false;
+    }, totalDur * 1000 + 400);
+  });
+
+  async function saveRhythmPref(rating) {
+    if (!currentRhythmPattern) return;
+    await fetch('/api/audio/preferences', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        trainingType: 'rhythm', phraseId: crypto.randomUUID(), rating,
+        bpm: BPM, measures: 1, phrase: {},
+        noteA: RHYTHM_PITCH,
+        // Store the beat pattern as noteB JSON string so analyze.py can read it
+        noteB: JSON.stringify(currentRhythmPattern.beats),
+        sliderState: { suspensionRisk:0, longVolume:0, mediumVolume:0,
+          shortVolume:+rhythmVol.value },
+        source: 'audioTraining-rhythm',
+        rhythmPattern: currentRhythmPattern.name,
+        rhythmBeats:   currentRhythmPattern.beats,
+      })
+    }).catch(e => console.error(e));
+    rhythmStatus.innerHTML = rating==='like'
+      ? '<span style="color:var(--neon-green)">✓ liked</span>'
+      : '<span style="color:var(--neon-hot)">✗ disliked</span>';
+  }
+
+  rhythmLikeBtn.addEventListener('click', async () => {
+    if (!currentRhythmPattern || rhythmRunning) return;
+    rhythmLikeBtn.disabled = true; rhythmDislikeBtn.disabled = true;
+    await saveRhythmPref('like'); currentRhythmPattern = null; rhythmPlayBtn.textContent = 'PLAY RHYTHM';
+  });
+  rhythmDislikeBtn.addEventListener('click', async () => {
+    if (!currentRhythmPattern || rhythmRunning) return;
+    rhythmLikeBtn.disabled = true; rhythmDislikeBtn.disabled = true;
+    await saveRhythmPref('dislike'); currentRhythmPattern = null; rhythmPlayBtn.textContent = 'PLAY RHYTHM';
+  });
+}
 </script>
 </body>
 </html>
