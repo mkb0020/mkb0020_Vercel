@@ -465,17 +465,17 @@
 </main>
 
 <script type="module">
-import { musicRules, ruleLibrary } from '/api/audio/rules.js';
+import { musicRules, ruleLibrary, metadata } from '/api/audio/rules.js';
 
 // ── RULES DIAGNOSTICS ────────────────────────────────────────────────────
 console.group('🎵 meowREMIX Rules Diagnostics');
 
 // ── SOURCE INFO ──────────────────────────────────────────────────────────
 console.group('📀 Source & Metadata');
-console.log('Songs blended:', metadata.source);
-console.log('Generated at:', metadata.generatedAt);
-console.log('Engine version:', metadata.engineVersion);
-console.log('Blend mode:', metadata.blendMode);
+console.log('Songs blended:', metadata?.source ?? '(metadata not imported)');
+console.log('Generated at:', metadata?.generatedAt);
+console.log('Engine version:', metadata?.engineVersion);
+console.log('Blend mode:', metadata?.blendMode);
 console.groupEnd();
 
 // ── MXL-DERIVED RULES ────────────────────────────────────────────────────
