@@ -773,6 +773,76 @@ function getBucketRhythmDuration(bucket, atTime, prevDurType) {
   return durTypeSec(picked ?? 'quarter');
 }
 
+// ── RHYTHM MOTIF LOCK ─────────────────────────────────────────────────────────
+// Picks a rhythmic pattern at phrase start and cycles through it for
+// MOTIF_LOCK_BARS bars before selecting a new one.
+// This gives the melody a consistent groove instead of per-note randomness.
+
+const MOTIF_LOCK_BARS   = 2;    // how many bars to repeat a motif before varying
+const MOTIF_VAR_CHANCE  = 0.15; // chance of a one-note deviation within the motif
+
+// Built-in rhythm patterns as fallback if musicRules.rhythmPatterns is sparse
+const FALLBACK_RHYTHMS = [
+  ['quarter','quarter','quarter','quarter'],
+  ['half','quarter','quarter'],
+  ['quarter','quarter','half'],
+  ['dotted-quarter','eighth','quarter','quarter'],
+  ['quarter','eighth','eighth','quarter','quarter'],
+  ['half','half'],
+  ['quarter','dotted-quarter','eighth','quarter'],
+  ['eighth','eighth','quarter','quarter','quarter'],
+];
+
+let rhythmMotifState = {
+  pattern:      [],   // array of seconds
+  pos:          0,    // current index in pattern
+  barsOnMotif:  0,    // how many bars we've played this motif
+  barStartTime: 0,    // engineStartTime-relative time when we entered this bar
+};
+
+function selectRhythmMotif() {
+  // Prefer patterns from rules.js; fall back to built-ins
+  const rulesPatterns = musicRules.rhythmPatterns ?? [];
+  let durTypes;
+  if (rulesPatterns.length) {
+    const pat = weightedRandom(rulesPatterns.map(p => ({ item: p, weight: p.weight ?? 1 })));
+    durTypes = pat?.pattern ?? FALLBACK_RHYTHMS[Math.floor(Math.random()*FALLBACK_RHYTHMS.length)];
+  } else {
+    durTypes = FALLBACK_RHYTHMS[Math.floor(Math.random()*FALLBACK_RHYTHMS.length)];
+  }
+  rhythmMotifState.pattern = durTypes.map(d => durTypeSec(d));
+  rhythmMotifState.pos     = 0;
+}
+
+function getLockedRhythmDuration(bucket, atTime, prevDurType) {
+  // Only lock rhythm for melody voice — bars/harmony use free rhythm
+  if (!rhythmMotifState.pattern.length) selectRhythmMotif();
+
+  // Detect bar boundary — if we've crossed into a new bar, increment counter
+  const elapsed = atTime - engineStartTime;
+  const currentBar = Math.floor(elapsed / MEASURE_DUR_SEC);
+  if (currentBar > 0 && atTime > rhythmMotifState.barStartTime + MEASURE_DUR_SEC * 0.9) {
+    rhythmMotifState.barStartTime = engineStartTime + currentBar * MEASURE_DUR_SEC;
+    rhythmMotifState.barsOnMotif++;
+    if (rhythmMotifState.barsOnMotif >= MOTIF_LOCK_BARS) {
+      // Time to pick a new motif
+      selectRhythmMotif();
+      rhythmMotifState.barsOnMotif = 0;
+    }
+  }
+
+  // Occasional variation — deviate from the pattern for one note
+  if (Math.random() < MOTIF_VAR_CHANCE) {
+    return getBucketRhythmDuration(bucket, atTime, prevDurType);
+  }
+
+  // Serve next duration from the locked pattern
+  const dur = rhythmMotifState.pattern[rhythmMotifState.pos % rhythmMotifState.pattern.length];
+  rhythmMotifState.pos++;
+  return dur;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ── COMPOSITIONAL BIAS HELPERS ────────────────────────────────────────────────
 
 function applyGravityBias(note, base) {
@@ -1119,13 +1189,43 @@ function getSuspensionResolution(fromNote) {
 
 // ── HARMONY ───────────────────────────────────────────────────────────────────
 
-function getHarmonyNote(melodyNote, currentHarmonyNote) {
+// ── MELODY NOTE LOG — shared buffer for voice leading coordination ────────────
+const MELODY_LOG_SIZE = 8;
+const melodyNoteLog   = [];   // [{note, midi, time}]
+
+function logMelodyNote(note, atTime) {
+  if (!note || note === 'REST') return;
+  const midi = pitchToMidi(note);
+  melodyNoteLog.push({ note, midi, time: atTime });
+  if (melodyNoteLog.length > MELODY_LOG_SIZE) melodyNoteLog.shift();
+}
+
+function getMelodyContext(atTime) {
+  // Returns { currentNote, currentMidi, prevMidi, direction }
+  // direction: -1=melody went down, 0=same, 1=melody went up
+  if (!melodyNoteLog.length) return { currentNote: null, currentMidi: null, prevMidi: null, direction: 0 };
+  // Find the most recent log entry at or before atTime
+  let current = melodyNoteLog[melodyNoteLog.length - 1];
+  for (let i = melodyNoteLog.length - 1; i >= 0; i--) {
+    if (melodyNoteLog[i].time <= atTime + 0.1) { current = melodyNoteLog[i]; break; }
+  }
+  const prev = melodyNoteLog.length >= 2
+    ? melodyNoteLog[melodyNoteLog.length - 2]
+    : null;
+  const direction = (current.midi !== null && prev?.midi !== null)
+    ? Math.sign(current.midi - prev.midi)
+    : 0;
+  return { currentNote: current.note, currentMidi: current.midi, prevMidi: prev?.midi ?? null, direction };
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getHarmonyNote(melodyNote, currentHarmonyNote, atTime = null, phrasePos = 0) {
   if (!melodyNote || melodyNote === 'REST') return 'REST';
   const melPc   = melodyNote.replace(/\d/g, '');
   const melMidi = pitchToMidi(melodyNote);
   let candidates = [];
 
-  // ── Candidate collection (unchanged) ───────────────────────────────────────
+  // ── Candidate collection ──────────────────────────────────────────────────
   if (musicRules.harmonyRules?.[melodyNote]) {
     candidates = musicRules.harmonyRules[melodyNote];
     if (!Array.isArray(candidates) || !candidates.length || typeof candidates[0] !== 'object')
@@ -1137,85 +1237,107 @@ function getHarmonyNote(melodyNote, currentHarmonyNote) {
   if (candidates.length) {
     const prevH = currentHarmonyNote || melodyNote;
 
-    // ── Consonance table (interval class → multiplier) ──────────────────────
-    const CONSONANCE = {
-      0: 0.5,  1: 0.05, 2: 0.15, 3: 0.95, 4: 1.0,
-      5: 0.85, 6: 0.05, 7: 1.0,  8: 0.75, 9: 0.80,
-      10: 0.25, 11: 0.10,
-    };
+    // Melody motion context for contrary motion
+    const melCtx   = getMelodyContext(atTime ?? actx?.currentTime ?? 0);
+    const melDir   = melCtx.direction;   // -1 down, 0 same, 1 up
+    const isResolving = phrasePos >= 0.85;
 
-    // ── Preferred intervals for this pitch class from verticalHarmonyRules ──
-    const vhr = musicRules.verticalHarmonyRules?.preferredIntervals?.[melPc] ?? [];
+    // ── Consonance table ──────────────────────────────────────────────────────
+    const CONSONANCE = {
+      0: 0.5,  1: 0.05, 2: 0.15, 3: 1.0,  4: 1.0,
+      5: 0.9,  6: 0.05, 7: 1.0,  8: 0.85, 9: 0.90,
+      10: 0.2, 11: 0.08,
+    };
+    // Intervals that are "sweet" for parallel motion (3rds and 6ths)
+    const PARALLEL_SWEET = new Set([3, 4, 8, 9]);
+
+    const vhr    = musicRules.verticalHarmonyRules?.preferredIntervals?.[melPc] ?? [];
     const vhrMap = {};
     vhr.forEach(v => { vhrMap[v.interval] = v.weight; });
     const hasVhr = vhr.length > 0;
 
-    const smoothed = candidates.map(c => {
+    const prevHMidi = pitchToMidi(prevH);
+
+    const scored = candidates.map(c => {
       const hm = pitchToMidi(c.note);
-      if (hm === null || melMidi === null) {
-        return { note: c.note, weight: c.weight * 0.3 };
-      }
+      if (hm === null || melMidi === null) return { note: c.note, weight: c.weight * 0.1 };
 
       const ivRaw   = Math.abs(melMidi - hm);
       const ivClass = ivRaw % 12;
 
-      // 1. Base consonance gate — dissonant intervals get heavily penalised
-      const consonanceMult = CONSONANCE[ivClass] ?? 0.3;
+      // 1. Consonance gate
+      const consonanceMult = CONSONANCE[ivClass] ?? 0.2;
 
-      // 2. Vertical harmony rules tiebreaker — boost if analyzer confirmed
-      //    this interval class sounds good above this pitch class
+      // 2. Vertical harmony rules boost
       const vhrBoost = hasVhr ? (1.0 + (vhrMap[ivClass] ?? 0) * 0.8) : 1.0;
 
-      // 3. Width penalty — harmony note too far below melody sounds muddy
-      //    Ideal range: within an octave below the melody
-      const widthMult = ivRaw <= 12 ? 1.0
-                      : ivRaw <= 16 ? 0.7
-                      : 0.3;
+      // 3. Width — harmony should sit 3–14 semitones below melody (sweet spot)
+      const diff = melMidi - hm;
+      const widthMult = diff >= 3 && diff <= 7  ? 1.0   // 3rd to 5th below — ideal
+                      : diff >= 1 && diff <= 14 ? 0.8   // within octave — fine
+                      : diff > 14               ? 0.3   // too low — muddy
+                      : diff < 0                ? 0.15  // above melody — avoid
+                      : 0.5;
 
-      // 4. Voice leading — penalise large leaps from previous harmony note
+      // 4. Voice leading — leap from previous harmony note
       let leapMult = 1.0;
-      if (prevH && prevH !== 'REST') {
-        const pm   = pitchToMidi(prevH);
-        const leap = pm !== null ? Math.abs(hm - pm) : 0;
-        leapMult = leap === 0 ? 0.7   // same note — slightly boring
-                 : leap <= 2  ? 1.0   // stepwise — ideal
-                 : leap <= 5  ? 0.9   // small leap — fine
-                 : leap <= 7  ? 0.75  // leap — ok
-                 : leap <= 12 ? 0.5   // large leap — penalise
-                 : 0.2;               // very large — strongly penalise
+      if (prevHMidi !== null) {
+        const leap = Math.abs(hm - prevHMidi);
+        leapMult = leap === 0 ? 0.6   // unison repeat — slightly boring
+                 : leap <= 2  ? 1.0   // step — ideal
+                 : leap <= 4  ? 0.95  // small leap — fine
+                 : leap <= 7  ? 0.7   // leap — ok
+                 : leap <= 9  ? 0.35  // large leap — penalise strongly
+                 : 0.05;              // very large — almost never
       }
 
-      const finalWeight = c.weight * consonanceMult * vhrBoost * widthMult * leapMult;
-      return { note: c.note, weight: finalWeight };
+      // 5. Contrary motion — strongly prefer moving opposite to melody
+      let contraryMult = 1.0;
+      if (prevHMidi !== null && melDir !== 0) {
+        const harmDir = Math.sign(hm - prevHMidi);
+        if (harmDir === 0) {
+          contraryMult = 0.7;           // harmony holds while melody moves — ok
+        } else if (harmDir === -melDir) {
+          contraryMult = 1.5;           // contrary motion — strongly prefer
+        } else {
+          // Parallel motion — only sweet if interval is a 3rd or 6th
+          contraryMult = PARALLEL_SWEET.has(ivClass) ? 1.1 : 0.5;
+        }
+      }
+
+      // 6. Resolution bias — phrase ending, push toward tonic intervals (3rd, 5th, octave)
+      const resolveMult = isResolving
+        ? ([0, 3, 4, 7].includes(ivClass) ? 1.8 : 0.3)
+        : 1.0;
+
+      const finalWeight = c.weight * consonanceMult * vhrBoost * widthMult
+                        * leapMult * contraryMult * resolveMult;
+      return { note: c.note, weight: Math.max(0, finalWeight) };
     });
 
-    // ── Consonance gate — drop anything below threshold before selection ────
-    const threshold = musicRules.verticalHarmonyRules?.consonanceThreshold ?? 0.5;
-    const consonanceGate = smoothed.filter(c => {
+    // Consonance gate
+    const threshold = musicRules.verticalHarmonyRules?.consonanceThreshold ?? 0.4;
+    const gated = scored.filter(c => {
       const hm      = pitchToMidi(c.note);
       const ivClass = hm !== null && melMidi !== null ? Math.abs(melMidi - hm) % 12 : 6;
       return (CONSONANCE[ivClass] ?? 0) >= threshold;
     });
-    // Only apply gate if it leaves at least one candidate
-    const pool = consonanceGate.length ? consonanceGate : smoothed;
-
+    const pool  = gated.length ? gated : scored;
     const total = pool.reduce((s, i) => s + i.weight, 0);
     if (total > 0) pool.forEach(c => c.weight /= total);
 
     const sel = weightedRandom(pool.map(c => ({ item: c.note, weight: c.weight })));
     if (sel) {
-      // If sel already has an octave number, return it directly
       if (sel.match(/\d$/)) return sel;
-      // Otherwise find the best octave — harmony should sit below melody
       if (melMidi !== null) {
-        // Try to land within a 4th to octave below melody (sweet spot)
-        for (const oct of [3, 4, 2]) {
+        // Prefer landing 3–7 semitones below melody (3rd to 5th)
+        for (const oct of [3, 4, 2, 5]) {
           const cand = `${sel}${oct}`;
           const cm   = pitchToMidi(cand);
-          if (cm !== null && melMidi - cm >= 3 && melMidi - cm <= 12) return cand;
+          if (cm !== null && melMidi - cm >= 3 && melMidi - cm <= 7) return cand;
         }
-        // Fallback: anything below melody
-        for (const oct of [3, 4, 2]) {
+        // Fallback: within octave below
+        for (const oct of [3, 4, 2, 5]) {
           const cand = `${sel}${oct}`;
           const cm   = pitchToMidi(cand);
           if (cm !== null && cm < melMidi) return cand;
@@ -1225,8 +1347,8 @@ function getHarmonyNote(melodyNote, currentHarmonyNote) {
     }
   }
 
-  // Last resort — a perfect fourth below is always consonant
-  return getNoteAtInterval(melodyNote, -5) ?? melodyNote;
+  // Last resort — a perfect third below
+  return getNoteAtInterval(melodyNote, -4) ?? getNoteAtInterval(melodyNote, -5) ?? melodyNote;
 }
 // ── SAMPLE MAPPING → BUCKET-BASED ────────────────────────────────────────────
 // OLD: PITCHTOSAMPLENAME(PITCH, VOICE) USING LOWBUFFERS/HIGHBUFFERS/BARBUFFERS
@@ -1396,7 +1518,9 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
   state.currentBucket = bucket;
 
   // ── DURATION — BIASED BY BUCKET ────────────────────────────────────────────
-  const durSec = getBucketRhythmDuration(bucket, atTime, state.lastDurationType);
+  const durSec = voiceRole === 'melody'
+    ? getLockedRhythmDuration(bucket, atTime, state.lastDurationType)
+    : getBucketRhythmDuration(bucket, atTime, state.lastDurationType);
 
   // ── NOTE SELECTION ─────────────────────────────────────────────────────────
   let noteToPlay = null;
@@ -1428,7 +1552,7 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
 
     if (!noteToPlay) {
       if (voiceRole === 'harmony' && currentMelodyNote) {
-        noteToPlay = getHarmonyNote(currentMelodyNote, state.currentNote);
+        noteToPlay = getHarmonyNote(currentMelodyNote, state.currentNote, atTime, phrasePos);
       } else if (voiceRole === 'bar') {
         noteToPlay = getSmoothBarCandidate(state.currentNote, false);
       } else {
@@ -1470,6 +1594,7 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
   // KEY DETECTION — update on melody voice only, every N notes
   if (voiceRole === 'melody' && noteToPlay !== 'REST') {
     addToNoteHistory(noteToPlay);
+    logMelodyNote(noteToPlay, atTime);   // for harmony voice leading
     keyUpdateCounter++;
     if (keyUpdateCounter >= KEY_UPDATE_EVERY) {
       keyUpdateCounter = 0;
@@ -1889,10 +2014,12 @@ function stopEngine() {
   const keyEl = document.getElementById('telemetryKeyVal');
   if (keyEl) keyEl.innerText = '—';
   noteHistory.length     = 0;
+  melodyNoteLog.length   = 0;
   currentImpliedKey      = null;
   keyUpdateCounter       = 0;
   currentPhraseArc       = null;
   lastPhraseIndex        = -1;
+  rhythmMotifState       = { pattern:[], pos:0, barsOnMotif:0, barStartTime:0 };
   logToConsole('Engine halted.');
 }
 

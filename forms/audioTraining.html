@@ -855,41 +855,74 @@ function getSuspensionResolution(fromNote){
   const match=sus.filter(r=>r.from===fromNote); if(!match.length)return null;
   return weightedRandom(match.map(r=>({item:r.to,weight:r.weight})));
 }
-function getHarmonyNote(melodyNote,currentHarmonyNote){
+// ── MELODY NOTE LOG ──────────────────────────────────────────────────────────
+const MELODY_LOG_SIZE=8;
+const melodyNoteLog=[];
+function logMelodyNote(note,atTime){
+  if(!note||note==='REST')return;
+  const midi=pitchToMidi(note);
+  melodyNoteLog.push({note,midi,time:atTime});
+  if(melodyNoteLog.length>MELODY_LOG_SIZE)melodyNoteLog.shift();
+}
+function getMelodyContext(atTime){
+  if(!melodyNoteLog.length)return{currentNote:null,currentMidi:null,prevMidi:null,direction:0};
+  let current=melodyNoteLog[melodyNoteLog.length-1];
+  for(let i=melodyNoteLog.length-1;i>=0;i--){ if(melodyNoteLog[i].time<=atTime+0.1){current=melodyNoteLog[i];break;} }
+  const prev=melodyNoteLog.length>=2?melodyNoteLog[melodyNoteLog.length-2]:null;
+  const direction=(current.midi!==null&&prev?.midi!==null)?Math.sign(current.midi-prev.midi):0;
+  return{currentNote:current.note,currentMidi:current.midi,prevMidi:prev?.midi??null,direction};
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getHarmonyNote(melodyNote,currentHarmonyNote,atTime=null,phrasePos=0){
   if(!melodyNote||melodyNote==='REST')return'REST';
   const melPc=melodyNote.replace(/\d/g,''), melMidi=pitchToMidi(melodyNote);
   let candidates=[];
   if(musicRules.harmonyRules?.[melodyNote]) candidates=musicRules.harmonyRules[melodyNote].map(c=>({note:c.note??c,weight:c.weight??1}));
   if(!candidates.length&&musicRules.pitchClassHarmonyRules?.[melPc]) candidates=musicRules.pitchClassHarmonyRules[melPc].map(c=>({note:c.note,weight:c.weight}));
   if(candidates.length){
-    const CONSONANCE={0:0.5,1:0.05,2:0.15,3:0.95,4:1.0,5:0.85,6:0.05,7:1.0,8:0.75,9:0.80,10:0.25,11:0.10};
+    const prevH=currentHarmonyNote||melodyNote;
+    const melCtx=getMelodyContext(atTime??0);
+    const melDir=melCtx.direction;
+    const isResolving=phrasePos>=0.85;
+    const CONSONANCE={0:0.5,1:0.05,2:0.15,3:1.0,4:1.0,5:0.9,6:0.05,7:1.0,8:0.85,9:0.90,10:0.2,11:0.08};
+    const PARALLEL_SWEET=new Set([3,4,8,9]);
     const vhr=musicRules.verticalHarmonyRules?.preferredIntervals?.[melPc]??[];
     const vhrMap={}; vhr.forEach(v=>{vhrMap[v.interval]=v.weight;});
-    const prevH=currentHarmonyNote||melodyNote;
-    const smoothed=candidates.map(c=>{
-      const hm=pitchToMidi(c.note); if(hm===null||melMidi===null)return{note:c.note,weight:c.weight*0.3};
+    const prevHMidi=pitchToMidi(prevH);
+    const scored=candidates.map(c=>{
+      const hm=pitchToMidi(c.note); if(hm===null||melMidi===null)return{note:c.note,weight:c.weight*0.1};
       const ivRaw=Math.abs(melMidi-hm), ivClass=ivRaw%12;
-      const consonanceMult=CONSONANCE[ivClass]??0.3;
+      const consonanceMult=CONSONANCE[ivClass]??0.2;
       const vhrBoost=(vhr.length>0)?(1.0+(vhrMap[ivClass]??0)*0.8):1.0;
-      const widthMult=ivRaw<=12?1.0:ivRaw<=16?0.7:0.3;
+      const diff=melMidi-hm;
+      const widthMult=diff>=3&&diff<=7?1.0:diff>=1&&diff<=14?0.8:diff>14?0.3:diff<0?0.15:0.5;
       let leapMult=1.0;
-      if(prevH&&prevH!=='REST'){ const pm=pitchToMidi(prevH); const leap=pm!==null?Math.abs(hm-pm):0;
-        leapMult=leap===0?0.7:leap<=2?1.0:leap<=5?0.9:leap<=7?0.75:leap<=12?0.5:0.2; }
-      return {note:c.note,weight:c.weight*consonanceMult*vhrBoost*widthMult*leapMult};
+      if(prevHMidi!==null){ const leap=Math.abs(hm-prevHMidi);
+        leapMult=leap===0?0.6:leap<=2?1.0:leap<=4?0.95:leap<=7?0.7:leap<=9?0.35:0.05; }
+      let contraryMult=1.0;
+      if(prevHMidi!==null&&melDir!==0){ const harmDir=Math.sign(hm-prevHMidi);
+        if(harmDir===0)contraryMult=0.7;
+        else if(harmDir===-melDir)contraryMult=1.5;
+        else contraryMult=PARALLEL_SWEET.has(ivClass)?1.1:0.5; }
+      const resolveMult=isResolving?([0,3,4,7].includes(ivClass)?1.8:0.3):1.0;
+      return{note:c.note,weight:Math.max(0,c.weight*consonanceMult*vhrBoost*widthMult*leapMult*contraryMult*resolveMult)};
     });
-    const threshold=musicRules.verticalHarmonyRules?.consonanceThreshold??0.5;
-    const consonanceGate=smoothed.filter(c=>{const hm=pitchToMidi(c.note); const ivClass=hm!==null&&melMidi!==null?Math.abs(melMidi-hm)%12:6; return(CONSONANCE[ivClass]??0)>=threshold;});
-    const pool=consonanceGate.length?consonanceGate:smoothed;
+    const threshold=musicRules.verticalHarmonyRules?.consonanceThreshold??0.4;
+    const gated=scored.filter(c=>{const hm=pitchToMidi(c.note);const ivClass=hm!==null&&melMidi!==null?Math.abs(melMidi-hm)%12:6;return(CONSONANCE[ivClass]??0)>=threshold;});
+    const pool=gated.length?gated:scored;
     const total=pool.reduce((s,i)=>s+i.weight,0); if(total>0)pool.forEach(c=>c.weight/=total);
     const sel=weightedRandom(pool.map(c=>({item:c.note,weight:c.weight})));
     if(sel){
-      if(sel.match(/\d$/)) return sel;
-      if(melMidi!==null){ for(const oct of[3,4,2]){ const cand=`${sel}${oct}`; const cm=pitchToMidi(cand); if(cm!==null&&melMidi-cm>=3&&melMidi-cm<=12)return cand; }
-        for(const oct of[3,4,2]){ const cand=`${sel}${oct}`; const cm=pitchToMidi(cand); if(cm!==null&&cm<melMidi)return cand; } }
-      return `${sel}4`;
+      if(sel.match(/\d$/))return sel;
+      if(melMidi!==null){
+        for(const oct of[3,4,2,5]){const cand=`${sel}${oct}`;const cm=pitchToMidi(cand);if(cm!==null&&melMidi-cm>=3&&melMidi-cm<=7)return cand;}
+        for(const oct of[3,4,2,5]){const cand=`${sel}${oct}`;const cm=pitchToMidi(cand);if(cm!==null&&cm<melMidi)return cand;}
+      }
+      return`${sel}4`;
     }
   }
-  return getNoteAtInterval(melodyNote,-5)??melodyNote;
+  return getNoteAtInterval(melodyNote,-4)??getNoteAtInterval(melodyNote,-5)??melodyNote;
 }
 function getNoteAtInterval(base,semitones){
   const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -1089,7 +1122,7 @@ function tickVoiceSim(state,voiceRole,atTime,currentMelodyNote=null){
       }
     }
     if(!noteToPlay){
-      if(voiceRole==='harmony'&&currentMelodyNote) noteToPlay=getHarmonyNote(currentMelodyNote,state.currentNote);
+      if(voiceRole==='harmony'&&currentMelodyNote) noteToPlay=getHarmonyNote(currentMelodyNote,state.currentNote,atTime,phrasePos);
       else if(voiceRole==='bar') noteToPlay=getSmoothBarCandidate(state.currentNote,false);
       else{
         const phraseEnd=isResolution||(totalMeasures%4)>3.0;
@@ -1105,9 +1138,10 @@ function tickVoiceSim(state,voiceRole,atTime,currentMelodyNote=null){
   state.prevNote=state.currentNote; state.currentNote=noteToPlay;
   state.nextNoteTime=atTime+durSec;
 
-  // KEY DETECTION — track melody notes, re-detect every N notes
+  // KEY DETECTION + MELODY LOG
   if (voiceRole === 'melody' && noteToPlay !== 'REST') {
     addToNoteHistory(noteToPlay);
+    logMelodyNote(noteToPlay, atTime);
     keyUpdateCounter++;
     if (keyUpdateCounter >= KEY_UPDATE_EVERY) {
       keyUpdateCounter = 0;
@@ -1125,13 +1159,14 @@ function generatePhrase(){
   const MEASURE_COUNT = 2;          // <-- SHORTER PHRASE: 2 bars
   const totalTime = MEASURE_COUNT * MEASURE_DUR_SEC;
 
-  // Reset key detection and phrase shape for each fresh phrase
-  noteHistory.length  = 0;
-  currentImpliedKey   = null;
-  keyUpdateCounter    = 0;
-  currentPhraseArc    = null;
-  lastPhraseIndex     = -1;
-  rhythmMotifState    = { pattern:[], pos:0, barsOnMotif:0, barStartTime:0 };
+  // Reset key detection, phrase shape, rhythm motif, and melody log for each fresh phrase
+  noteHistory.length    = 0;
+  melodyNoteLog.length  = 0;
+  currentImpliedKey     = null;
+  keyUpdateCounter      = 0;
+  currentPhraseArc      = null;
+  lastPhraseIndex       = -1;
+  rhythmMotifState      = { pattern:[], pos:0, barsOnMotif:0, barStartTime:0 };
   const beatSec=BEAT_SEC;
   generationState={
     currentStructuralRole:'setup', measuresSinceRoleChange:0, nextRoleChangeMeasure:4,
