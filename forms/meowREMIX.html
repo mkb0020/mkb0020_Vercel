@@ -444,7 +444,7 @@ body::after {
      AUDIO ENGINE
 ════════════════════════════════════════════════════════════════════════════ -->
 <script type="module">
-import { musicRules, ruleLibrary } from '/api/audio/rules.js';
+import { musicRules, ruleLibrary, metadata } from '/api/audio/rules.js';
 
 
 // RULELIBRARY REPLACES THE OLD RULE_LIBRARY.JSON FETCH — IT'S NOW EMBEDDED
@@ -514,6 +514,34 @@ const smoothnessRules = musicRules.smoothnessRules ?? {
   transitionSmoothness:{}, rhythmFlowRules:[], smoothnessBias:0.85,
 };
 const SMOOTHNESS_BIAS = smoothnessRules.smoothnessBias ?? 0.85;
+
+// ── RLHF PREFERENCE BOOST ────────────────────────────────────────────────────
+const PREF            = musicRules.preferenceSignals ?? {};
+const PREF_TOTAL      = PREF.total_ratings ?? 0;
+const PREF_BOOST_STRENGTH = 2.5;
+const PREF_PEN_STRENGTH   = 0.3;
+const LIKED_TRANS_BOOST   = {};
+const DISLIKED_TRANS_PEN  = {};
+
+(PREF.note_transition_signals?.top_liked ?? []).forEach(t => {
+  const key = `${t.from}->${t.to}`;
+  LIKED_TRANS_BOOST[key] = 1 + (PREF_BOOST_STRENGTH - 1) * t.preference_score;
+});
+(PREF.note_transition_signals?.top_disliked ?? []).forEach(t => {
+  const key = `${t.from}->${t.to}`;
+  DISLIKED_TRANS_PEN[key] = PREF_PEN_STRENGTH + (1 - PREF_PEN_STRENGTH) * (1 + t.preference_score);
+});
+
+function preferenceBoost(fromPitch, toPitch) {
+  if (!fromPitch || !toPitch || PREF_TOTAL === 0) return 1.0;
+  const from = fromPitch.replace(/\d/g, '');
+  const to   = toPitch.replace(/\d/g, '');
+  const key  = `${from}->${to}`;
+  if (LIKED_TRANS_BOOST[key])  return LIKED_TRANS_BOOST[key];
+  if (DISLIKED_TRANS_PEN[key]) return DISLIKED_TRANS_PEN[key];
+  return 1.0;
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function getTransitionSmoothness(prev, next) {
   if (!prev || !next) return 0.5;
@@ -885,7 +913,6 @@ function getWeightedNextNote(currentNote, prevNote=null, forceDiff=false, forceN
     return all[Math.floor(Math.random()*all.length)] ?? 'G4';
   }
   let filtered = [...candidates];
-  if (forceDiff)    filtered = filtered.filter(c => c.note !== currentNote);
   if (forceNonRest) filtered = filtered.filter(c => c.note !== 'REST');
   if (!filtered.length) filtered = candidates;
 
@@ -901,9 +928,26 @@ function getWeightedNextNote(currentNote, prevNote=null, forceDiff=false, forceN
     note: c.note,
     weight: applySmoothnessWeight(c.weight, getTransitionSmoothness(prevForSmooth, c.note)),
   }));
-  const total = smoothed.reduce((s,i) => s+i.weight, 0);
-  if (total <= 0) return filtered[0]?.note ?? currentNote;
-  const norm = smoothed.map(c => ({ ...c, weight: c.weight/total }));
+
+  // APPLY RLHF PREFERENCE BOOST
+  const boosted = smoothed.map(c => ({
+    ...c,
+    weight: c.weight * preferenceBoost(currentNote, c.note),
+  }));
+
+  // HARD-ZERO same-note repeats when forceDiff — done after all boosts so
+  // a boosted B→B can't sneak past the repeat limiter via fallback
+  const final = forceDiff
+    ? boosted.map(c => ({ ...c, weight: c.note === currentNote ? 0 : c.weight }))
+    : boosted;
+
+  const total = final.reduce((s,i) => s+i.weight, 0);
+  if (total <= 0) {
+    // All weights zeroed (e.g. only candidate was same note) — pick any different note
+    const all = Object.keys(rules).filter(p => p !== currentNote && p !== 'REST');
+    return all[Math.floor(Math.random()*all.length)] ?? currentNote;
+  }
+  const norm = final.map(c => ({ ...c, weight: c.weight/total }));
   return weightedRandom(norm.map(c => ({ item:c.note, weight:c.weight }))) ?? currentNote;
 }
 
