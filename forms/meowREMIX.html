@@ -288,6 +288,7 @@ body::after {
 #telemetryMedium .metric-value { color: var(--accent-2); }
 #telemetryShort  .metric-value { color: var(--neon-pink); }
 #telemetryTension .metric-value { color: var(--neon-amber); }
+#telemetryKey     .metric-value { color: var(--neon-green); font-size: 11px; letter-spacing: 0.05em; }
 
 /* BUCKET BADGE NEXT TO SLIDER LABELS */
 .bucket-badge {
@@ -434,6 +435,10 @@ body::after {
           <div class="metric-label">Sys Tension</div>
           <div class="metric-value" id="telemetryTensionVal">0.00</div>
         </div>
+        <div class="metric-box" id="telemetryKey">
+          <div class="metric-label">Implied Key</div>
+          <div class="metric-value" id="telemetryKeyVal">—</div>
+        </div>
       </div>
     </div>
 
@@ -445,96 +450,7 @@ body::after {
 ════════════════════════════════════════════════════════════════════════════ -->
 <script type="module">
 import { musicRules, ruleLibrary, metadata } from '/api/audio/rules.js';
-// ── RULES DIAGNOSTICS ────────────────────────────────────────────────────
-console.group('🎵 meowREMIX Rules Diagnostics');
 
-// ── SOURCE INFO ──────────────────────────────────────────────────────────
-console.group('📀 Source & Metadata');
-console.log('Songs blended:', metadata.source);
-console.log('Generated at:', metadata.generatedAt);
-console.log('Engine version:', metadata.engineVersion);
-console.log('Blend mode:', metadata.blendMode);
-console.groupEnd();
-
-// ── MXL-DERIVED RULES ────────────────────────────────────────────────────
-console.group('🎼 MXL-Derived Rules');
-const transKeys = Object.keys(musicRules.transitionRules ?? {});
-console.log('Transition rule pitches:', transKeys.length, '→', transKeys.slice(0,8).join(', ') + '...');
-console.log('Total motifs:', metadata.totalMotifs);
-console.log('Total transitions:', metadata.totalTransitions);
-console.log('Total suspensions:', metadata.totalSuspensions);
-console.log('Note buckets:', metadata.noteBuckets);
-console.log('Harmony rule pitches:', Object.keys(musicRules.harmonyRules ?? {}).length);
-console.log('Smoothness pairs:', metadata.totalTransitionSmoothnessPairs);
-console.log('Rhythm flow rules:', metadata.totalRhythmFlowRules);
-console.log('Contour arcs:', (musicRules.contourArcs ?? []).length);
-console.log('Phrase templates:', (musicRules.phraseTemplates ?? []).length);
-console.log('Bar center rules:', Object.keys(musicRules.barCenterRules ?? {}).length);
-console.groupEnd();
-
-// ── RLHF PREFERENCE SIGNALS ───────────────────────────────────────────────
-console.group('🧠 RLHF Preference Signals');
-const pref = musicRules.preferenceSignals ?? {};
-if (!pref.total_ratings) {
-  console.warn('⚠ No preference data baked in — run python rules.py --all-songs after training');
-} else {
-  console.log('Total ratings:', pref.total_ratings, `(${Math.round((pref.overall_like_rate??0)*100)}% liked)`);
-  const bt = pref.by_type ?? {};
-  console.log('By type → phrase:', bt.phrase ?? 0, '| harmony:', bt.harmony ?? 0, '| sequence:', bt.sequence ?? 0);
-
-  // Top liked transitions
-  const topLiked = pref.note_transition_signals?.top_liked ?? [];
-  if (topLiked.length) {
-    console.group('✅ Top liked transitions (merged phrase+sequence)');
-    topLiked.slice(0,5).forEach(t => console.log(`  ${t.from} → ${t.to}  score=${t.preference_score}  (👍${t.liked_count} 👎${t.disliked_count})`));
-    console.groupEnd();
-  }
-
-  // Top disliked transitions
-  const topDisliked = pref.note_transition_signals?.top_disliked ?? [];
-  if (topDisliked.length) {
-    console.group('❌ Top disliked transitions');
-    topDisliked.slice(0,5).forEach(t => console.log(`  ${t.from} → ${t.to}  score=${t.preference_score}  (👍${t.liked_count} 👎${t.disliked_count})`));
-    console.groupEnd();
-  }
-
-  // Harmony signals
-  const harmLiked = pref.harmony_signals?.top_liked ?? [];
-  if (harmLiked.length) {
-    console.group('🎹 Top liked note pairs (harmony panel)');
-    harmLiked.slice(0,5).forEach(h => console.log(`  ${h.note_a} + ${h.note_b}  score=${h.preference_score}  (👍${h.liked_count} 👎${h.disliked_count})`));
-    console.groupEnd();
-  }
-
-  // Sequence signals
-  const seqLiked = pref.sequence_signals?.top_liked ?? [];
-  if (seqLiked.length) {
-    console.group('➡️ Top liked sequences (sequence panel)');
-    seqLiked.slice(0,5).forEach(s => console.log(`  ${s.from} → ${s.to}  score=${s.preference_score}  (👍${s.liked_count} 👎${s.disliked_count})`));
-    console.groupEnd();
-  }
-
-  // Slider correlations
-  const sc = pref.slider_correlations ?? {};
-  if (sc.liked && Object.keys(sc.liked).length) {
-    console.group('🎚️ Slider correlations');
-    console.log('Liked avg:',    sc.liked);
-    console.log('Disliked avg:', sc.disliked);
-    console.groupEnd();
-  }
-}
-console.groupEnd();
-
-// ── SPOT CHECK: verify a specific transition was boosted ──────────────────
-console.group('🔬 Spot-check: transition weight sample');
-const samplePitch = Object.keys(musicRules.transitionRules ?? {})[0];
-if (samplePitch) {
-  const candidates = musicRules.transitionRules[samplePitch].slice(0,5);
-  console.log(`transitionRules["${samplePitch}"] top 5:`, candidates);
-}
-console.groupEnd();
-
-console.groupEnd(); // end Rules Diagnostics
 
 // RULELIBRARY REPLACES THE OLD RULE_LIBRARY.JSON FETCH — IT'S NOW EMBEDDED
 // IN RULES.JS AS A NAMED EXPORT BY RULES.PY V6.0
@@ -629,6 +545,101 @@ function preferenceBoost(fromPitch, toPitch) {
   if (LIKED_TRANS_BOOST[key])  return LIKED_TRANS_BOOST[key];
   if (DISLIKED_TRANS_PEN[key]) return DISLIKED_TRANS_PEN[key];
   return 1.0;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── KEY DETECTION (Krumhansl-Schmuckler profiles) ─────────────────────────────
+// Major and minor key profiles — how well each pitch class fits the key
+const KS_MAJOR = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+const KS_MINOR = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+const PC_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+// Enharmonic normalizer — maps flat spellings to sharp equivalents for PC lookup
+const ENHARMONIC = {
+  'Db':'C#','Eb':'D#','Fb':'E','Gb':'F#','Ab':'G#','Bb':'A#','Cb':'B',
+  'B#':'C','E#':'F',
+  // music21 double-flat/sharp spellings that appear in MXL-derived pitch names
+  'B-':'A#','E-':'D#','A-':'G#','D-':'C#','G-':'F#','C-':'B','F-':'E',
+  'B--':'A','E--':'D','A--':'G','D--':'C','G--':'F','C--':'B-1','F--':'E-1',
+};
+
+function pitchToPC(pitch) {
+  // Returns 0-11 pitch class, or null if unrecognized
+  if (!pitch || pitch === 'REST') return null;
+  const m = pitch.match(/^([A-Ga-g][#b\-]*)/);
+  if (!m) return null;
+  let pc = m[1];
+  // normalize to sharp spelling
+  if (ENHARMONIC[pc] !== undefined) pc = ENHARMONIC[pc];
+  const idx = PC_NAMES.indexOf(pc);
+  return idx >= 0 ? idx : null;
+}
+
+// Rolling note history — last 16 melody notes
+const NOTE_HISTORY_SIZE = 16;
+const noteHistory = [];
+
+function addToNoteHistory(pitch) {
+  if (!pitch || pitch === 'REST') return;
+  noteHistory.push(pitch);
+  if (noteHistory.length > NOTE_HISTORY_SIZE) noteHistory.shift();
+}
+
+// Detect implied key from recent note history using KS correlation
+let currentImpliedKey = null;   // { root: 'G', mode: 'major', rootPC: 7 }
+let keyUpdateCounter  = 0;
+const KEY_UPDATE_EVERY = 4;     // re-detect every 4 melody notes
+
+function detectImpliedKey() {
+  if (noteHistory.length < 4) return currentImpliedKey;
+
+  // Build pitch class histogram from recent notes
+  const hist = new Array(12).fill(0);
+  for (const p of noteHistory) {
+    const pc = pitchToPC(p);
+    if (pc !== null) hist[pc]++;
+  }
+  const total = hist.reduce((a,b) => a+b, 0) || 1;
+  const norm  = hist.map(v => v / total);
+
+  // Score all 24 keys (12 major + 12 minor)
+  let bestScore = -Infinity, bestRoot = 0, bestMode = 'major';
+  for (let root = 0; root < 12; root++) {
+    // Major
+    let scoreMaj = 0, scoreMin = 0;
+    for (let i = 0; i < 12; i++) {
+      scoreMaj += norm[(i + root) % 12] * KS_MAJOR[i];
+      scoreMin += norm[(i + root) % 12] * KS_MINOR[i];
+    }
+    if (scoreMaj > bestScore) { bestScore = scoreMaj; bestRoot = root; bestMode = 'major'; }
+    if (scoreMin > bestScore) { bestScore = scoreMin; bestRoot = root; bestMode = 'minor'; }
+  }
+
+  currentImpliedKey = { root: PC_NAMES[bestRoot], mode: bestMode, rootPC: bestRoot };
+  return currentImpliedKey;
+}
+
+// Scale membership lookup — returns set of pitch class indices in the key
+function getScalePCs(rootPC, mode) {
+  const MAJOR_INTERVALS = [0,2,4,5,7,9,11];
+  const MINOR_INTERVALS = [0,2,3,5,7,8,10];
+  const intervals = mode === 'major' ? MAJOR_INTERVALS : MINOR_INTERVALS;
+  return new Set(intervals.map(i => (rootPC + i) % 12));
+}
+
+// Weight multiplier for a candidate note given current implied key
+// In-scale: 1.0 (unchanged), out-of-scale: KEY_OUT_PENALTY
+const KEY_STRENGTH    = 0.75;  // 0=ignore key, 1=strongly enforce — tune this!
+const KEY_OUT_PENALTY = 0.15;  // out-of-scale notes get this weight multiplier
+
+function keyBias(toPitch) {
+  if (!currentImpliedKey) return 1.0;
+  const pc = pitchToPC(toPitch);
+  if (pc === null) return 1.0;
+  const scalePCs = getScalePCs(currentImpliedKey.rootPC, currentImpliedKey.mode);
+  const inScale  = scalePCs.has(pc);
+  // Blend between no-bias (1.0) and full-bias based on KEY_STRENGTH
+  return inScale ? 1.0 : (1.0 - KEY_STRENGTH) + KEY_STRENGTH * KEY_OUT_PENALTY;
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1024,11 +1035,17 @@ function getWeightedNextNote(currentNote, prevNote=null, forceDiff=false, forceN
     weight: c.weight * preferenceBoost(currentNote, c.note),
   }));
 
+  // APPLY KEY BIAS — nudge toward implied key, allow occasional chromaticism
+  const keyed = boosted.map(c => ({
+    ...c,
+    weight: c.weight * keyBias(c.note),
+  }));
+
   // HARD-ZERO same-note repeats when forceDiff — done after all boosts so
   // a boosted B→B can't sneak past the repeat limiter via fallback
   const final = forceDiff
-    ? boosted.map(c => ({ ...c, weight: c.note === currentNote ? 0 : c.weight }))
-    : boosted;
+    ? keyed.map(c => ({ ...c, weight: c.note === currentNote ? 0 : c.weight }))
+    : keyed;
 
   const total = final.reduce((s,i) => s+i.weight, 0);
   if (total <= 0) {
@@ -1391,6 +1408,20 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
   state.prevNote     = state.currentNote;
   state.currentNote  = noteToPlay;
   state.nextNoteTime = atTime + durSec;
+
+  // KEY DETECTION — update on melody voice only, every N notes
+  if (voiceRole === 'melody' && noteToPlay !== 'REST') {
+    addToNoteHistory(noteToPlay);
+    keyUpdateCounter++;
+    if (keyUpdateCounter >= KEY_UPDATE_EVERY) {
+      keyUpdateCounter = 0;
+      const key = detectImpliedKey();
+      if (key) {
+        const keyEl = document.getElementById('telemetryKeyVal');
+        if (keyEl) keyEl.innerText = `${key.root} ${key.mode === 'major' ? 'maj' : 'min'}`;
+      }
+    }
+  }
 
   // RESYNC SNAP
   const measIdx    = (state.nextNoteTime - engineStartTime) / MEASURE_DUR_SEC;
@@ -1776,6 +1807,11 @@ function stopEngine() {
   telemetryMedium.innerText  = '—';
   telemetryShort.innerText   = '—';
   telemetryTension.innerText = '0.00';
+  const keyEl = document.getElementById('telemetryKeyVal');
+  if (keyEl) keyEl.innerText = '—';
+  noteHistory.length     = 0;
+  currentImpliedKey      = null;
+  keyUpdateCounter       = 0;
   logToConsole('Engine halted.');
 }
 
