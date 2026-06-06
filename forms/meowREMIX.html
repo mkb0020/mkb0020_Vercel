@@ -1547,7 +1547,7 @@ let dancerStartTime = 0;
 
 const DANCER_FPS = 9.75; // animation speed
 
-let dancerX = -180;
+let dancerX = -250;
 let dancerDirection = 1;
 
 const dancerTrail = [];
@@ -1570,19 +1570,19 @@ function drawDancer() {
           % DANCER_FRAME_COUNT;
   }
 
-// Horizontal drift
+
+  if (!running) return;
+
   dancerX += 0.25 * dancerDirection;
 
-  // Bounce off right side
   if (dancerX > canvas.width - 140) {
       dancerDirection = -1;
   }
 
-  // Bounce off left side
   if (dancerX < -40) {
       dancerDirection = 1;
   }
-  // Gentle bobbing
+
   const bob =
     Math.sin(now * 0.0025) * 6;
 
@@ -1797,6 +1797,10 @@ async function startEngine() {
     expectationDelayActive:  false,
     currentBucket:           'medium',
   };
+
+  dancerX = -250;
+  dancerDirection = 1;
+  dancerTrail.length = 0;
 
   running = true;
   scheduleMelody();
