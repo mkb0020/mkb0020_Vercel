@@ -866,20 +866,17 @@ def _write_to_db(conn, song_id: int,
 def _load_preference_signals(conn, song_id: int) -> list[dict]:
     """
     Load all rows from audio_preferences as a global training corpus.
-
-    Preferences are generated procedurally by audioTraining.html from rules.js
-    and are not tied to any specific song — phraseId is a UUID, not an
-    audio_phrase_analysis integer.  We therefore treat the whole table as a
-    shared signal pool for rule generation.
-
-    song_id is accepted for API consistency but is not used as a filter.
+    Includes training_type, note_a, note_b added for harmony/sequence panels.
+    song_id accepted for API consistency but not used as a filter.
     """
     try:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT
                     phrase_id, rating, bpm, measures, phrase_json,
-                    suspension_risk, long_volume, medium_volume, short_volume
+                    suspension_risk, long_volume, medium_volume, short_volume,
+                    COALESCE(training_type, 'phrase') AS training_type,
+                    note_a, note_b
                 FROM audio_preferences
                 ORDER BY created_at DESC
             """)
@@ -909,29 +906,23 @@ def _analyze_preference_signals(
     phrases: list[dict],
 ) -> dict:
     """
-    Aggregate RLHF like/dislike signals from audio_preferences into a
-    structured summary for rules.js generation.
+    Aggregate RLHF like/dislike signals from all three audioTraining panels:
 
-    Because preferences are generated procedurally (phraseId = UUID, not an
-    integer from audio_phrase_analysis), phrase_meta joining is skipped.
-    Instead, musical features are derived directly from phrase_json stored
-    alongside each preference row.
-
-    Args:
-        prefs:   rows from audio_preferences (output of _load_preference_signals)
-        phrases: unused — kept for API compatibility, may be empty
+      training_type='phrase'   — multi-note procedural phrase (original panel)
+      training_type='harmony'  — two notes played simultaneously (Panel 2)
+      training_type='sequence' — two consecutive notes          (Panel 3)
 
     Returns a dict with:
-        total_ratings            — total # of preference records
-        like_count / dislike_count
-        overall_like_rate        — 0-1
-        liked_patterns           — aggregated note/tension stats for liked phrases
-        disliked_patterns        — aggregated note/tension stats for disliked phrases
-        slider_correlations      — avg slider values for liked vs disliked
-        top_liked_phrases        — top-5 phrase UUIDs by preference_score
-        top_disliked_phrases     — top-5 phrase UUIDs by preference_score (asc)
-        bpm_preference           — avg bpm for liked vs disliked
-        note_transition_signals  — which pitch transitions appear more in liked phrases
+      total_ratings            — all rows
+      by_type                  — counts per training_type
+      overall_like_rate
+      phrase_signals           — UUID→stats for phrase panel (existing)
+      note_transition_signals  — pitch transitions liked/disliked (phrase + sequence)
+      harmony_signals          — note pairs liked/disliked (harmony panel)
+      sequence_signals         — explicit note→note transitions (sequence panel)
+      liked_patterns / disliked_patterns  — feature summaries (phrase panel)
+      slider_correlations
+      bpm_preference
     """
     from collections import defaultdict, Counter
 
@@ -947,156 +938,237 @@ def _analyze_preference_signals(
         keys = ["suspension_risk", "long_volume", "medium_volume", "short_volume"]
         return {k: round(sum(s[k] for s in slider_list) / len(slider_list), 4) for k in keys}
 
-    def _extract_phrase_features(phrase_json):
-        """Pull musical features out of the stored phrase_json blob."""
-        if not phrase_json or not isinstance(phrase_json, dict):
-            return {}
-        notes = phrase_json.get("notes", [])
-        if not notes:
-            return {}
-        pitches    = [n["pitch"] for n in notes if n.get("pitch") and n["pitch"] != "REST"]
-        buckets    = [n.get("bucket") for n in notes if n.get("bucket")]
-        tensions   = [TENSION_MAP_SIMPLE.get(p.replace(r"\d", ""), 0.3)
-                      for p in pitches]
-        transitions = list(zip(pitches, pitches[1:])) if len(pitches) > 1 else []
-        bucket_counts = Counter(buckets)
-        total_b = sum(bucket_counts.values()) or 1
-        return {
-            "note_count":       len(pitches),
-            "avg_tension":      _avg_list(tensions),
-            "pitch_variety":    len(set(pitches)),
-            "transitions":      transitions,
-            "bucket_dist":      {k: round(v / total_b, 4) for k, v in bucket_counts.items()},
-            "rest_count":       sum(1 for n in notes if n.get("pitch") == "REST"),
-        }
-
-    # Simple tension map mirroring audioTraining.html's TENSION_MAP
     TENSION_MAP_SIMPLE = {
         'G':0.0,'A':0.2,'B':0.1,'C':0.3,'D':0.1,
         'E':0.2,'F#':0.5,'G#':0.8,'A#':0.7,'C#':0.9,'D#':0.7,'F':0.6,
     }
 
-    # Aggregate per phrase UUID
-    by_phrase  = defaultdict(lambda: {"like": 0, "dislike": 0, "sliders": [], "features": None})
-    all_bpms   = {"like": [], "dislike": []}
-    liked_sliders, disliked_sliders     = [], []
-    liked_features, disliked_features   = [], []
-    liked_transitions, disliked_transitions = Counter(), Counter()
+    def _strip_oct(p):
+        """'G4' → 'G',  'F#3' → 'F#'"""
+        import re
+        return re.sub(r'\d', '', p) if p else p
 
-    for row in prefs:
+    def _extract_phrase_features(phrase_json):
+        if not phrase_json or not isinstance(phrase_json, dict):
+            return {}
+        notes = phrase_json.get("notes", [])
+        if not notes:
+            return {}
+        pitches     = [n["pitch"] for n in notes if n.get("pitch") and n["pitch"] != "REST"]
+        buckets     = [n.get("bucket") for n in notes if n.get("bucket")]
+        tensions    = [TENSION_MAP_SIMPLE.get(_strip_oct(p), 0.3) for p in pitches]
+        transitions = list(zip(pitches, pitches[1:])) if len(pitches) > 1 else []
+        from collections import Counter as _C
+        bc = _C(buckets); total_b = sum(bc.values()) or 1
+        return {
+            "note_count":    len(pitches),
+            "avg_tension":   _avg_list(tensions),
+            "pitch_variety": len(set(pitches)),
+            "transitions":   transitions,
+            "bucket_dist":   {k: round(v/total_b, 4) for k, v in bc.items()},
+            "rest_count":    sum(1 for n in notes if n.get("pitch") == "REST"),
+        }
+
+    # ── SPLIT BY TRAINING TYPE ────────────────────────────────────────────────
+    phrase_prefs   = [r for r in prefs if r.get("training_type", "phrase") == "phrase"]
+    harmony_prefs  = [r for r in prefs if r.get("training_type") == "harmony"]
+    sequence_prefs = [r for r in prefs if r.get("training_type") == "sequence"]
+
+    # ── PHRASE PANEL (existing logic) ─────────────────────────────────────────
+    by_phrase = defaultdict(lambda: {"like": 0, "dislike": 0, "sliders": [], "features": None})
+    all_bpms  = {"like": [], "dislike": []}
+    liked_sliders, disliked_sliders   = [], []
+    liked_features, disliked_features = [], []
+    liked_trans_phrase, disliked_trans_phrase = Counter(), Counter()
+
+    for row in phrase_prefs:
         pid    = row.get("phrase_id")
         rating = row.get("rating")
         if pid is None or rating not in ("like", "dislike"):
             continue
-
         by_phrase[pid][rating] += 1
-        slider = {
-            "suspension_risk": row.get("suspension_risk") or 0.0,
-            "long_volume":     row.get("long_volume")     or 0.0,
-            "medium_volume":   row.get("medium_volume")   or 0.0,
-            "short_volume":    row.get("short_volume")    or 0.0,
-        }
+        slider = {k: row.get(k) or 0.0 for k in
+                  ("suspension_risk","long_volume","medium_volume","short_volume")}
         by_phrase[pid]["sliders"].append(slider)
-
         if by_phrase[pid]["features"] is None:
             by_phrase[pid]["features"] = _extract_phrase_features(row.get("phrase_json"))
-
         if row.get("bpm") is not None:
             all_bpms[rating].append(row["bpm"])
-
         feats = by_phrase[pid]["features"] or {}
         if rating == "like":
             liked_sliders.append(slider)
-            if feats:
-                liked_features.append(feats)
-            for t in feats.get("transitions", []):
-                liked_transitions[t] += 1
+            if feats: liked_features.append(feats)
+            for t in feats.get("transitions", []): liked_trans_phrase[t] += 1
         else:
             disliked_sliders.append(slider)
-            if feats:
-                disliked_features.append(feats)
-            for t in feats.get("transitions", []):
-                disliked_transitions[t] += 1
+            if feats: disliked_features.append(feats)
+            for t in feats.get("transitions", []): disliked_trans_phrase[t] += 1
 
     def _feature_summary(feat_list):
-        if not feat_list:
-            return {}
-        tensions  = [f["avg_tension"]   for f in feat_list if f.get("avg_tension")   is not None]
-        varieties = [f["pitch_variety"]  for f in feat_list if f.get("pitch_variety") is not None]
-        # aggregate bucket distributions
+        if not feat_list: return {}
+        tensions  = [f["avg_tension"]  for f in feat_list if f.get("avg_tension")  is not None]
+        varieties = [f["pitch_variety"] for f in feat_list if f.get("pitch_variety") is not None]
         bucket_agg = defaultdict(list)
         for f in feat_list:
             for b, v in (f.get("bucket_dist") or {}).items():
                 bucket_agg[b].append(v)
         return {
-            "count":            len(feat_list),
-            "avg_tension":      _avg_list(tensions),
+            "count":             len(feat_list),
+            "avg_tension":       _avg_list(tensions),
             "avg_pitch_variety": _avg_list(varieties),
-            "avg_bucket_dist":  {b: _avg_list(vs) for b, vs in bucket_agg.items()},
+            "avg_bucket_dist":   {b: _avg_list(vs) for b, vs in bucket_agg.items()},
         }
 
-    # Build per-phrase signal summary
     phrase_signals = {}
     for pid, agg in by_phrase.items():
-        likes    = agg["like"]
-        dislikes = agg["dislike"]
-        total    = likes + dislikes or 1
-        pref_score = round((likes - dislikes) / total, 4)
+        likes = agg["like"]; dislikes = agg["dislike"]; total = likes + dislikes or 1
         feats = agg["features"] or {}
         phrase_signals[pid] = {
             "like_count":       likes,
             "dislike_count":    dislikes,
-            "like_rate":        round(likes / total, 4),
-            "preference_score": pref_score,
+            "like_rate":        round(likes/total, 4),
+            "preference_score": round((likes-dislikes)/total, 4),
             "avg_tension":      feats.get("avg_tension"),
             "pitch_variety":    feats.get("pitch_variety"),
             "bucket_dist":      feats.get("bucket_dist"),
         }
 
-    sorted_signals   = sorted(phrase_signals.items(), key=lambda x: x[1]["preference_score"], reverse=True)
-    top_liked        = [{"phrase_id": pid, **sig} for pid, sig in sorted_signals[:5]  if sig["preference_score"] > 0]
-    top_disliked     = [{"phrase_id": pid, **sig} for pid, sig in sorted_signals[-5:] if sig["preference_score"] < 0]
-
-    # Transition signals: transitions that appear in liked but not disliked phrases
-    all_trans = set(liked_transitions) | set(disliked_transitions)
-    transition_signals = []
-    for t in all_trans:
-        lc = liked_transitions.get(t, 0)
-        dc = disliked_transitions.get(t, 0)
-        total_t = lc + dc or 1
-        transition_signals.append({
+    # Phrase-derived transition signals
+    all_pt = set(liked_trans_phrase) | set(disliked_trans_phrase)
+    phrase_trans_signals = []
+    for t in all_pt:
+        lc = liked_trans_phrase.get(t, 0); dc = disliked_trans_phrase.get(t, 0)
+        tot = lc + dc or 1
+        phrase_trans_signals.append({
             "from": t[0], "to": t[1],
-            "liked_count":    lc,
-            "disliked_count": dc,
-            "preference_score": round((lc - dc) / total_t, 4),
+            "liked_count": lc, "disliked_count": dc,
+            "preference_score": round((lc-dc)/tot, 4),
+            "source": "phrase",
         })
-    transition_signals.sort(key=lambda x: x["preference_score"], reverse=True)
+    phrase_trans_signals.sort(key=lambda x: x["preference_score"], reverse=True)
 
+    # ── HARMONY PANEL — note pairs played simultaneously ──────────────────────
+    harm_pair_liked    = Counter()   # (noteA_pc, noteB_pc) → liked count
+    harm_pair_disliked = Counter()
+
+    for row in harmony_prefs:
+        na = row.get("note_a"); nb = row.get("note_b")
+        if not na or not nb: continue
+        rating = row.get("rating")
+        pair = (_strip_oct(na), _strip_oct(nb))
+        if rating == "like":    harm_pair_liked[pair]    += 1
+        elif rating == "dislike": harm_pair_disliked[pair] += 1
+
+    all_harm_pairs = set(harm_pair_liked) | set(harm_pair_disliked)
+    harmony_signals_list = []
+    for pair in all_harm_pairs:
+        lc = harm_pair_liked.get(pair, 0); dc = harm_pair_disliked.get(pair, 0)
+        tot = lc + dc or 1
+        harmony_signals_list.append({
+            "note_a": pair[0], "note_b": pair[1],
+            "liked_count": lc, "disliked_count": dc,
+            "like_rate": round(lc/tot, 4),
+            "preference_score": round((lc-dc)/tot, 4),
+        })
+    harmony_signals_list.sort(key=lambda x: x["preference_score"], reverse=True)
+
+    # ── SEQUENCE PANEL — explicit note→note transitions ───────────────────────
+    seq_liked    = Counter()   # (from_pc, to_pc) → liked count
+    seq_disliked = Counter()
+
+    for row in sequence_prefs:
+        na = row.get("note_a"); nb = row.get("note_b")
+        if not na or not nb: continue
+        rating = row.get("rating")
+        pair = (_strip_oct(na), _strip_oct(nb))
+        if rating == "like":    seq_liked[pair]    += 1
+        elif rating == "dislike": seq_disliked[pair] += 1
+
+    all_seq_pairs = set(seq_liked) | set(seq_disliked)
+    sequence_signals_list = []
+    for pair in all_seq_pairs:
+        lc = seq_liked.get(pair, 0); dc = seq_disliked.get(pair, 0)
+        tot = lc + dc or 1
+        sequence_signals_list.append({
+            "from": pair[0], "to": pair[1],
+            "liked_count": lc, "disliked_count": dc,
+            "like_rate": round(lc/tot, 4),
+            "preference_score": round((lc-dc)/tot, 4),
+            "source": "sequence",
+        })
+    sequence_signals_list.sort(key=lambda x: x["preference_score"], reverse=True)
+
+    # ── MERGED TRANSITION SIGNALS (phrase + sequence combined) ────────────────
+    # Sequence ratings are direct single-pair votes — stronger signal per rating.
+    # Weight them 2x when merging with phrase-derived transitions.
+    merged_liked    = Counter(liked_trans_phrase)
+    merged_disliked = Counter(disliked_trans_phrase)
+    for row in sequence_prefs:
+        na = row.get("note_a"); nb = row.get("note_b")
+        if not na or not nb: continue
+        pair = (_strip_oct(na), _strip_oct(nb))
+        if row.get("rating") == "like":    merged_liked[pair]    += 2
+        elif row.get("rating") == "dislike": merged_disliked[pair] += 2
+
+    all_merged = set(merged_liked) | set(merged_disliked)
+    merged_trans_signals = []
+    for t in all_merged:
+        lc = merged_liked.get(t, 0); dc = merged_disliked.get(t, 0)
+        tot = lc + dc or 1
+        merged_trans_signals.append({
+            "from": t[0], "to": t[1],
+            "liked_count": lc, "disliked_count": dc,
+            "preference_score": round((lc-dc)/tot, 4),
+        })
+    merged_trans_signals.sort(key=lambda x: x["preference_score"], reverse=True)
+
+    # ── TOTALS ────────────────────────────────────────────────────────────────
     total_ratings  = len(prefs)
     total_likes    = sum(1 for r in prefs if r.get("rating") == "like")
     total_dislikes = total_ratings - total_likes
 
+    sorted_signals = sorted(phrase_signals.items(), key=lambda x: x[1]["preference_score"], reverse=True)
+
     return {
-        "total_ratings":          total_ratings,
-        "like_count":             total_likes,
-        "dislike_count":          total_dislikes,
-        "overall_like_rate":      round(total_likes / total_ratings, 4) if total_ratings else 0.0,
-        "phrase_signals":         phrase_signals,
-        "liked_patterns":         _feature_summary(liked_features),
-        "disliked_patterns":      _feature_summary(disliked_features),
-        "slider_correlations":    {
+        "total_ratings":     total_ratings,
+        "like_count":        total_likes,
+        "dislike_count":     total_dislikes,
+        "overall_like_rate": round(total_likes/total_ratings, 4) if total_ratings else 0.0,
+        "by_type": {
+            "phrase":   len(phrase_prefs),
+            "harmony":  len(harmony_prefs),
+            "sequence": len(sequence_prefs),
+        },
+        # Phrase panel
+        "phrase_signals":      phrase_signals,
+        "liked_patterns":      _feature_summary(liked_features),
+        "disliked_patterns":   _feature_summary(disliked_features),
+        "slider_correlations": {
             "liked":    _avg_sliders(liked_sliders),
             "disliked": _avg_sliders(disliked_sliders),
         },
-        "top_liked_phrases":      top_liked,
-        "top_disliked_phrases":   top_disliked,
+        "top_liked_phrases":    [{"phrase_id": pid, **sig} for pid, sig in sorted_signals[:5]  if sig["preference_score"] > 0],
+        "top_disliked_phrases": [{"phrase_id": pid, **sig} for pid, sig in sorted_signals[-5:] if sig["preference_score"] < 0],
         "bpm_preference": {
             "avg_liked_bpm":    _avg_list(all_bpms["like"]),
             "avg_disliked_bpm": _avg_list(all_bpms["dislike"]),
         },
+        # Transition signals — merged (phrase + sequence, sequence weighted 2x)
         "note_transition_signals": {
-            "top_liked":    transition_signals[:10],
-            "top_disliked": transition_signals[-10:][::-1],
+            "top_liked":    merged_trans_signals[:10],
+            "top_disliked": merged_trans_signals[-10:][::-1],
+        },
+        # Harmony panel — simultaneous note pairs
+        "harmony_signals": {
+            "top_liked":    harmony_signals_list[:10],
+            "top_disliked": harmony_signals_list[-10:][::-1],
+            "total_ratings": len(harmony_prefs),
+        },
+        # Sequence panel — explicit note→note transitions
+        "sequence_signals": {
+            "top_liked":    sequence_signals_list[:10],
+            "top_disliked": sequence_signals_list[-10:][::-1],
+            "total_ratings": len(sequence_prefs),
         },
     }
 
@@ -1268,6 +1340,70 @@ def get_analysis_full(song_id: int):
 
 @audio_analyze_bp.route("/api/audio/analyze/<int:song_id>/preferences", methods=["GET"])
 def get_preference_signals(song_id: int):
+    """
+    Return RLHF preference signal analysis for a song.
+
+    Reads audio_preferences (like/dislike ratings from audioTraining.html) and
+    joins them with audio_phrase_analysis to produce a structured summary that
+    rules.js generation can consume directly.
+
+    Response shape:
+      {
+        success: true,
+        song_id: <int>,
+        preferences: {
+          total_ratings, like_count, dislike_count, overall_like_rate,
+          phrase_signals: { <phrase_id>: { like_count, dislike_count,
+                             like_rate, preference_score,
+                             avg_tension, curve_type, cadence_type, ... } },
+          liked_patterns:    { count, avg_tension, dominant_curve_type, ... },
+          disliked_patterns: { count, avg_tension, dominant_curve_type, ... },
+          slider_correlations: { liked: {...}, disliked: {...} },
+          top_liked_phrases:    [...],
+          top_disliked_phrases: [...],
+          bpm_preference: { avg_liked_bpm, avg_disliked_bpm },
+        }
+      }
+
+    Note: if the full analysis has been run at least once, phrase metadata
+    (tension, curve type, cadence) will be enriched from audio_phrase_analysis.
+    Run POST /api/audio/analyze/<song_id> first for the richest output.
+    """
+    try:
+        conn = _connect()
+
+        # Load phrase metadata from the most recent analysis
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT phrase_id, avg_tension, peak_tension,
+                       curve_type, cadence_type,
+                       phrase_start_degree, phrase_end_degree, length_beats
+                FROM audio_phrase_analysis
+                WHERE song_id = %s
+            """, (song_id,))
+            phrase_rows = _rows_as_dicts(cur)
+
+        phrases = []
+        for p in phrase_rows:
+            p["avg_tension"]  = _safe_float(p.get("avg_tension"))
+            p["peak_tension"] = _safe_float(p.get("peak_tension"))
+            p["length_beats"] = _safe_float(p.get("length_beats"))
+            p["phrase_id"]    = _safe_int(p.get("phrase_id"))
+            phrases.append(p)
+
+        prefs        = _load_preference_signals(conn, song_id)
+        pref_signals = _analyze_preference_signals(prefs, phrases)
+        conn.close()
+
+        return jsonify({
+            "success":     True,
+            "song_id":     song_id,
+            "preferences": pref_signals,
+        })
+
+    except Exception as e:
+        logger.exception(f"Preference signal fetch failed for song_id={song_id}")
+        return jsonify({"success": False, "error": str(e)}), 500
     """
     Return RLHF preference signal analysis for a song.
 

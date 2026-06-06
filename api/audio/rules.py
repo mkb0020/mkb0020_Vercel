@@ -1514,6 +1514,122 @@ def main():
     logger.info('─' * 60)
 
 
+def _fetch_preference_signals() -> dict:
+    """
+    Fetch the RLHF preference signal summary from the Vercel API.
+    Uses /api/audio/analyze/0/preferences which returns the global corpus
+    (song_id=0 triggers the fallback that reads all rows).
+    Returns empty dict on any failure so compile_rules degrades gracefully.
+    """
+    if not BASE_URL:
+        return {}
+    try:
+        r = requests.get(f"{BASE_URL}/api/audio/analyze/0/preferences", timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        return data.get("preferences", {})
+    except Exception as e:
+        logger.warning(f"  ⚠ Could not fetch preference signals: {e}")
+        return {}
+
+
+def _apply_transition_boosts(transitions: dict, pref: dict) -> dict:
+    """
+    Boost / penalise transition rule weights using merged RLHF signals
+    (phrase-derived transitions + sequence panel direct ratings, sequence 2x).
+
+    transition_rules shape: { "G4": [{"note":"A4","weight":0.3}, ...], ... }
+    We strip octaves from signal keys to match pitch-class level.
+    """
+    top_liked    = pref.get("note_transition_signals", {}).get("top_liked",    [])
+    top_disliked = pref.get("note_transition_signals", {}).get("top_disliked", [])
+
+    if not top_liked and not top_disliked:
+        return transitions
+
+    BOOST_STRENGTH = 2.0   # liked transitions get up to 2× weight
+    PEN_STRENGTH   = 0.35  # disliked transitions get down to 0.35× weight
+
+    # Build pc→pc lookup: (from_pc, to_pc) → multiplier
+    boost_map = {}
+    for sig in top_liked:
+        score = sig.get("preference_score", 0)
+        if score > 0:
+            boost_map[(sig["from"], sig["to"])] = 1 + (BOOST_STRENGTH - 1) * score
+    for sig in top_disliked:
+        score = sig.get("preference_score", 0)
+        if score < 0:
+            # score is negative; penalty scales with abs value
+            boost_map[(sig["from"], sig["to"])] = PEN_STRENGTH + (1 - PEN_STRENGTH) * (1 + score)
+
+    if not boost_map:
+        return transitions
+
+    import re
+    def _pc(p): return re.sub(r'\d', '', p) if p else p
+
+    boosted = {}
+    for from_note, candidates in transitions.items():
+        from_pc = _pc(from_note)
+        new_cands = []
+        for c in candidates:
+            to_pc = _pc(c.get("note", ""))
+            mult  = boost_map.get((from_pc, to_pc), 1.0)
+            new_cands.append({**c, "weight": round(c.get("weight", 1.0) * mult, 6)})
+        boosted[from_note] = new_cands
+
+    return boosted
+
+
+def _apply_harmony_boosts(harmony_rules: dict, pref: dict) -> dict:
+    """
+    Boost / penalise harmony rule weights using harmony panel RLHF signals.
+
+    harmony_rules shape: { "G4": [{"note":"B4","weight":0.4}, ...], ... }
+    harmony_signals are pitch-class level: {"note_a":"G","note_b":"B", ...}
+    """
+    harm_sig = pref.get("harmony_signals", {})
+    top_liked    = harm_sig.get("top_liked",    [])
+    top_disliked = harm_sig.get("top_disliked", [])
+
+    if not top_liked and not top_disliked:
+        return harmony_rules
+
+    BOOST_STRENGTH = 2.5
+    PEN_STRENGTH   = 0.3
+
+    pair_map = {}
+    for sig in top_liked:
+        score = sig.get("preference_score", 0)
+        if score > 0:
+            pair_map[(sig["note_a"], sig["note_b"])] = 1 + (BOOST_STRENGTH - 1) * score
+            pair_map[(sig["note_b"], sig["note_a"])] = 1 + (BOOST_STRENGTH - 1) * score  # symmetric
+    for sig in top_disliked:
+        score = sig.get("preference_score", 0)
+        if score < 0:
+            mult = PEN_STRENGTH + (1 - PEN_STRENGTH) * (1 + score)
+            pair_map[(sig["note_a"], sig["note_b"])] = mult
+            pair_map[(sig["note_b"], sig["note_a"])] = mult
+
+    if not pair_map:
+        return harmony_rules
+
+    import re
+    def _pc(p): return re.sub(r'\d', '', p) if p else p
+
+    boosted = {}
+    for from_note, candidates in harmony_rules.items():
+        from_pc = _pc(from_note)
+        new_cands = []
+        for c in candidates:
+            to_pc = _pc(c.get("note", ""))
+            mult  = pair_map.get((from_pc, to_pc), 1.0)
+            new_cands.append({**c, "weight": round(c.get("weight", 1.0) * mult, 6)})
+        boosted[from_note] = new_cands
+
+    return boosted
+
+
 def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) -> dict:
     """
     Full pipeline: fetch data from Vercel → build all rule structures →
@@ -1648,6 +1764,21 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
     vertical_harmony = build_vertical_harmony_rules(events)
     logger.info(f"    {len(vertical_harmony.get('preferredIntervals', {}))} pitch classes mapped")
 
+    logger.info("[Q] Fetching RLHF preference signals...")
+    pref_signals = _fetch_preference_signals()
+    if pref_signals.get("total_ratings", 0) > 0:
+        by_type = pref_signals.get("by_type", {})
+        logger.info(f"    {pref_signals['total_ratings']} total ratings — "
+                    f"phrase={by_type.get('phrase',0)}, "
+                    f"harmony={by_type.get('harmony',0)}, "
+                    f"sequence={by_type.get('sequence',0)}")
+        logger.info("[R] Applying RLHF boosts to transition + harmony rules...")
+        transitions   = _apply_transition_boosts(transitions,   pref_signals)
+        harmony_rules = _apply_harmony_boosts(harmony_rules,    pref_signals)
+        logger.info("    ✓ Preference boosts applied")
+    else:
+        logger.info("    No preference data yet — skipping boosts")
+
     # ── ASSEMBLE MUSICRULES ───────────────────────────────────────────────────
     total_trans = sum(len(v) for v in transitions.values())
     meta = {
@@ -1696,6 +1827,7 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
             "bucketRhythmBias":  bucket_rhythm_bias,
             "bucketTensionMap":  bucket_tension_map,
         },
+        "preferenceSignals": pref_signals,  # RLHF — read by audioTraining.html + meowREMIX.html
     }
 
     # ── BUILD COMPOSITIONAL RULE LIBRARY ──────────────────────────────────────
