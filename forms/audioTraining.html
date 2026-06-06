@@ -970,6 +970,52 @@ function getRhythmSequence(atTime=null,prevDurType=null){
   return [HALF_QUARTER_SEC];
 }
 
+// ── RHYTHM MOTIF LOCK ─────────────────────────────────────────────────────────
+const MOTIF_LOCK_BARS  = 2;
+const MOTIF_VAR_CHANCE = 0.15;
+const FALLBACK_RHYTHMS = [
+  ['quarter','quarter','quarter','quarter'],
+  ['half','quarter','quarter'],
+  ['quarter','quarter','half'],
+  ['dotted-quarter','eighth','quarter','quarter'],
+  ['quarter','eighth','eighth','quarter','quarter'],
+  ['half','half'],
+  ['quarter','dotted-quarter','eighth','quarter'],
+  ['eighth','eighth','quarter','quarter','quarter'],
+];
+let rhythmMotifState={pattern:[],pos:0,barsOnMotif:0,barStartTime:0};
+
+function selectRhythmMotif(){
+  const rulesPatterns=musicRules.rhythmPatterns??[];
+  let durTypes;
+  if(rulesPatterns.length){
+    const pat=weightedRandom(rulesPatterns.map(p=>({item:p,weight:p.weight??1})));
+    durTypes=pat?.pattern??FALLBACK_RHYTHMS[Math.floor(Math.random()*FALLBACK_RHYTHMS.length)];
+  } else {
+    durTypes=FALLBACK_RHYTHMS[Math.floor(Math.random()*FALLBACK_RHYTHMS.length)];
+  }
+  rhythmMotifState.pattern=durTypes.map(d=>durTypeSec(d));
+  rhythmMotifState.pos=0;
+}
+
+function getLockedRhythmDuration(bucket,atTime,prevDurType){
+  if(!rhythmMotifState.pattern.length) selectRhythmMotif();
+  const elapsed=atTime-engineStartTime;
+  const currentBar=Math.floor(elapsed/MEASURE_DUR_SEC);
+  if(currentBar>0&&atTime>rhythmMotifState.barStartTime+MEASURE_DUR_SEC*0.9){
+    rhythmMotifState.barStartTime=engineStartTime+currentBar*MEASURE_DUR_SEC;
+    rhythmMotifState.barsOnMotif++;
+    if(rhythmMotifState.barsOnMotif>=MOTIF_LOCK_BARS){
+      selectRhythmMotif(); rhythmMotifState.barsOnMotif=0;
+    }
+  }
+  if(Math.random()<MOTIF_VAR_CHANCE) return getBucketRhythmDuration(bucket,atTime,prevDurType)[0]??BEAT_SEC;
+  const dur=rhythmMotifState.pattern[rhythmMotifState.pos%rhythmMotifState.pattern.length];
+  rhythmMotifState.pos++;
+  return dur;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ── MOTIF INJECTION ──────────────────────────────────────────────────────────
 function maybeInjectMotif(currentPitch){
   if(!compRules?.emotional_memory_rules)return null;
@@ -1025,7 +1071,9 @@ function tickVoiceSim(state,voiceRole,atTime,currentMelodyNote=null){
   if(voiceRole==='bar') bucket='long';
   else bucket=pickNextBucket(state.currentBucket);
   state.currentBucket=bucket;
-  const durSec=getBucketRhythmDuration(bucket,atTime,state.lastDurationType);
+  const durSec=voiceRole==='melody'
+    ? getLockedRhythmDuration(bucket,atTime,state.lastDurationType)
+    : getBucketRhythmDuration(bucket,atTime,state.lastDurationType)[0]??BEAT_SEC;
   let noteToPlay=null;
   if(state.pendingSuspension){
     noteToPlay=state.pendingSuspension; state.pendingSuspension=null;
@@ -1083,6 +1131,7 @@ function generatePhrase(){
   keyUpdateCounter    = 0;
   currentPhraseArc    = null;
   lastPhraseIndex     = -1;
+  rhythmMotifState    = { pattern:[], pos:0, barsOnMotif:0, barStartTime:0 };
   const beatSec=BEAT_SEC;
   generationState={
     currentStructuralRole:'setup', measuresSinceRoleChange:0, nextRoleChangeMeasure:4,
