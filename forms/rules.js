@@ -1,11 +1,11 @@
 // Auto-generated — meowREMIX Rule Engine v6.0
 // Source song  : amazinggrace+clair+greensleeves+hallelujah+house+itiswell+sacredhead+scarborough+shenandoah+wateriswide
-// Generated at : 2026-06-05T20:33:17.693234
+// Generated at : 2026-06-05T22:15:47.006972
 // DO NOT EDIT — regenerate via: POST /api/audio/rebuild-rules
 
 export const metadata = {
   "source": "amazinggrace+clair+greensleeves+hallelujah+house+itiswell+sacredhead+scarborough+shenandoah+wateriswide",
-  "generatedAt": "2026-06-05T20:33:17.693234",
+  "generatedAt": "2026-06-05T22:15:47.006972",
   "totalMotifs": 7,
   "totalTransitions": 689,
   "totalSuspensions": 65,
@@ -944,7 +944,7 @@ export const musicRules = {
       },
       {
         "note": "G3",
-        "weight": 0.148867
+        "weight": 0.052103
       },
       {
         "note": "D3",
@@ -956,7 +956,7 @@ export const musicRules = {
       },
       {
         "note": "G4",
-        "weight": 0.032362
+        "weight": 0.011327
       },
       {
         "note": "E3",
@@ -998,7 +998,7 @@ export const musicRules = {
       },
       {
         "note": "G4",
-        "weight": 0.216092
+        "weight": 0.075632
       },
       {
         "note": "A4",
@@ -1054,7 +1054,7 @@ export const musicRules = {
       },
       {
         "note": "G3",
-        "weight": 0.018391
+        "weight": 0.006437
       },
       {
         "note": "E-4",
@@ -1086,7 +1086,7 @@ export const musicRules = {
       },
       {
         "note": "G5",
-        "weight": 0.214285
+        "weight": 0.075
       },
       {
         "note": "A5",
@@ -1294,7 +1294,7 @@ export const musicRules = {
       },
       {
         "note": "E5",
-        "weight": 0.333333
+        "weight": 0.666666
       },
       {
         "note": "A4",
@@ -1706,7 +1706,7 @@ export const musicRules = {
       },
       {
         "note": "B--5",
-        "weight": 0.081081
+        "weight": 0.162162
       },
       {
         "note": "A--5",
@@ -1722,7 +1722,7 @@ export const musicRules = {
       },
       {
         "note": "B--4",
-        "weight": 0.054055
+        "weight": 0.10811
       }
     ],
     "B--4": [
@@ -1732,7 +1732,7 @@ export const musicRules = {
       },
       {
         "note": "B--4",
-        "weight": 0.129411
+        "weight": 0.258822
       },
       {
         "note": "F-4",
@@ -2160,11 +2160,11 @@ export const musicRules = {
       },
       {
         "note": "B--5",
-        "weight": 0.275862
+        "weight": 0.551724
       },
       {
         "note": "B--6",
-        "weight": 0.103448
+        "weight": 0.206896
       },
       {
         "note": "C-7",
@@ -2740,7 +2740,7 @@ export const musicRules = {
       },
       {
         "note": "G2",
-        "weight": 0.23077
+        "weight": 0.080769
       },
       {
         "note": "E3",
@@ -5043,11 +5043,11 @@ export const musicRules = {
       },
       {
         "note": "B-3",
-        "weight": 0.115037
+        "weight": 0.287593
       },
       {
         "note": "B-4",
-        "weight": 0.082169
+        "weight": 0.205423
       },
       {
         "note": "G2",
@@ -5123,7 +5123,7 @@ export const musicRules = {
       },
       {
         "note": "B-3",
-        "weight": 0.314843
+        "weight": 0.787107
       },
       {
         "note": "F3",
@@ -5131,7 +5131,7 @@ export const musicRules = {
       },
       {
         "note": "B-2",
-        "weight": 0.074963
+        "weight": 0.187408
       },
       {
         "note": "G2",
@@ -5219,7 +5219,7 @@ export const musicRules = {
       },
       {
         "note": "F#4",
-        "weight": 0.082771
+        "weight": 0.024831
       },
       {
         "note": "F3",
@@ -5247,7 +5247,7 @@ export const musicRules = {
       },
       {
         "note": "F#3",
-        "weight": 0.013795
+        "weight": 0.004138
       },
       {
         "note": "E3",
@@ -5469,7 +5469,7 @@ export const musicRules = {
       },
       {
         "note": "F#4",
-        "weight": 0.090452
+        "weight": 0.027136
       },
       {
         "note": "A4",
@@ -5477,7 +5477,7 @@ export const musicRules = {
       },
       {
         "note": "F#5",
-        "weight": 0.060302
+        "weight": 0.018091
       },
       {
         "note": "D5",
@@ -5493,7 +5493,7 @@ export const musicRules = {
       },
       {
         "note": "C#5",
-        "weight": 0.015075
+        "weight": 0.004522
       }
     ],
     "C4": [
@@ -5549,7 +5549,7 @@ export const musicRules = {
       },
       {
         "note": "B-3",
-        "weight": 0.039683
+        "weight": 0.099208
       }
     ],
     "G#4": [
@@ -5569,7 +5569,7 @@ export const musicRules = {
     "C#5": [
       {
         "note": "A4",
-        "weight": 0.307692
+        "weight": 0.092308
       },
       {
         "note": "F4",
@@ -5581,7 +5581,7 @@ export const musicRules = {
       },
       {
         "note": "C#4",
-        "weight": 0.153846
+        "weight": 0.046154
       }
     ],
     "E4": [
@@ -5613,7 +5613,7 @@ export const musicRules = {
     "C#4": [
       {
         "note": "B-3",
-        "weight": 1.0
+        "weight": 2.5
       }
     ],
     "F#4": [
@@ -5759,7 +5759,7 @@ export const musicRules = {
     "B-6": [
       {
         "note": "B-6",
-        "weight": 1.0
+        "weight": 2.5
       }
     ],
     "D7": [
@@ -5781,7 +5781,7 @@ export const musicRules = {
       },
       {
         "note": "F#3",
-        "weight": 0.311419
+        "weight": 0.093426
       },
       {
         "note": "F3",
@@ -5905,11 +5905,11 @@ export const musicRules = {
     "C#6": [
       {
         "note": "A4",
-        "weight": 0.652174
+        "weight": 0.195652
       },
       {
         "note": "A3",
-        "weight": 0.217391
+        "weight": 0.065217
       },
       {
         "note": "F#4",
@@ -9090,12 +9090,1058 @@ export const musicRules = {
       }
     }
   },
-  "preferenceSignals": {}
+  "preferenceSignals": {
+    "bpm_preference": {
+      "avg_disliked_bpm": 90.0,
+      "avg_liked_bpm": 90.0
+    },
+    "by_type": {
+      "harmony": 12,
+      "phrase": 29,
+      "sequence": 9
+    },
+    "dislike_count": 31,
+    "disliked_patterns": {
+      "avg_bucket_dist": {
+        "long": 0.2415,
+        "medium": 0.4336,
+        "short": 0.3575
+      },
+      "avg_pitch_variety": 8.3182,
+      "avg_tension": 0.2467,
+      "count": 22
+    },
+    "harmony_signals": {
+      "top_disliked": [
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "C#",
+          "note_b": "C#",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "C#",
+          "note_b": "A",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "B--",
+          "note_b": "A-",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "E-",
+          "note_b": "F#",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "A",
+          "note_b": "F#",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "C-",
+          "note_b": "D-",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "G-",
+          "note_b": "E--",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "C#",
+          "note_b": "B-",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "E--",
+          "note_b": "E--",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "E-",
+          "note_b": "C-",
+          "preference_score": 1.0
+        }
+      ],
+      "top_liked": [
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "B-",
+          "note_b": "B-",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "E-",
+          "note_b": "B",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "E-",
+          "note_b": "C-",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "E--",
+          "note_b": "E--",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "C#",
+          "note_b": "B-",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "G-",
+          "note_b": "E--",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "C-",
+          "note_b": "D-",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "A",
+          "note_b": "F#",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "E-",
+          "note_b": "F#",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "B--",
+          "note_b": "A-",
+          "preference_score": -1.0
+        }
+      ],
+      "total_ratings": 12
+    },
+    "like_count": 19,
+    "liked_patterns": {
+      "avg_bucket_dist": {
+        "long": 0.4214,
+        "medium": 0.2999,
+        "short": 0.4502
+      },
+      "avg_pitch_variety": 5.7143,
+      "avg_tension": 0.2487,
+      "count": 7
+    },
+    "note_transition_signals": {
+      "top_disliked": [
+        {
+          "disliked_count": 1,
+          "from": "G3",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "B2"
+        },
+        {
+          "disliked_count": 1,
+          "from": "E-4",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "D4"
+        },
+        {
+          "disliked_count": 2,
+          "from": "B-3",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "G3"
+        },
+        {
+          "disliked_count": 1,
+          "from": "G4",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "F4"
+        },
+        {
+          "disliked_count": 1,
+          "from": "G-4",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "G3"
+        },
+        {
+          "disliked_count": 2,
+          "from": "A",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "G"
+        },
+        {
+          "disliked_count": 1,
+          "from": "F#4",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "D4"
+        },
+        {
+          "disliked_count": 11,
+          "from": "E-4",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "E-4"
+        },
+        {
+          "disliked_count": 1,
+          "from": "G-5",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "F5"
+        },
+        {
+          "disliked_count": 1,
+          "from": "C4",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "G-4"
+        }
+      ],
+      "top_liked": [
+        {
+          "disliked_count": 0,
+          "from": "E--7",
+          "liked_count": 9,
+          "preference_score": 1.0,
+          "to": "E--7"
+        },
+        {
+          "disliked_count": 0,
+          "from": "F5",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "D4"
+        },
+        {
+          "disliked_count": 0,
+          "from": "D3",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "B-3"
+        },
+        {
+          "disliked_count": 0,
+          "from": "B--",
+          "liked_count": 2,
+          "preference_score": 1.0,
+          "to": "B--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "F3",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "D3"
+        },
+        {
+          "disliked_count": 0,
+          "from": "E--7",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "A-3"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C#",
+          "liked_count": 2,
+          "preference_score": 1.0,
+          "to": "E"
+        },
+        {
+          "disliked_count": 0,
+          "from": "A3",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "F3"
+        },
+        {
+          "disliked_count": 0,
+          "from": "E-3",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "F3"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C3",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "F4"
+        }
+      ]
+    },
+    "overall_like_rate": 0.38,
+    "phrase_signals": {
+      "0c65b9d1-bcee-41ea-b0b4-98c6a94af4b2": {
+        "avg_tension": 0.1,
+        "bucket_dist": {
+          "long": 0.2222,
+          "medium": 0.5556,
+          "short": 0.2222
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 6,
+        "preference_score": -1.0
+      },
+      "13458643-f1d1-4c99-a7a8-7b5957d5420d": {
+        "avg_tension": 0.1909,
+        "bucket_dist": {
+          "long": 0.3636,
+          "medium": 0.4545,
+          "short": 0.1818
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 6,
+        "preference_score": -1.0
+      },
+      "18fe97ce-088a-4376-a9d6-0c765a7a1467": {
+        "avg_tension": 0.2333,
+        "bucket_dist": {
+          "long": 0.1667,
+          "medium": 0.5,
+          "short": 0.3333
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 9,
+        "preference_score": -1.0
+      },
+      "26ae7151-8197-4338-9129-c7bb899fa54f": {
+        "avg_tension": 0.1444,
+        "bucket_dist": {
+          "long": 0.3333,
+          "medium": 0.6667
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 7,
+        "preference_score": -1.0
+      },
+      "2cc0f973-17a0-4d59-bac6-242afef06d18": {
+        "avg_tension": 0.3154,
+        "bucket_dist": {
+          "long": 0.2308,
+          "medium": 0.3077,
+          "short": 0.4615
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 6,
+        "preference_score": -1.0
+      },
+      "39ff717d-f1a8-4e43-8195-210b7b588430": {
+        "avg_tension": 0.2632,
+        "bucket_dist": {
+          "long": 0.1053,
+          "medium": 0.2632,
+          "short": 0.6316
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 8,
+        "preference_score": -1.0
+      },
+      "3c857d41-628d-4d86-a505-6f342d9ccdbf": {
+        "avg_tension": 0.2583,
+        "bucket_dist": {
+          "long": 0.25,
+          "medium": 0.3333,
+          "short": 0.4167
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "pitch_variety": 5,
+        "preference_score": 1.0
+      },
+      "48f27f97-4866-42bd-be89-d79a80a57107": {
+        "avg_tension": 0.225,
+        "bucket_dist": {
+          "long": 0.125,
+          "medium": 0.25,
+          "short": 0.625
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 9,
+        "preference_score": -1.0
+      },
+      "49e68b96-4309-4d48-8c98-7f7269e0eca4": {
+        "avg_tension": 0.2455,
+        "bucket_dist": {
+          "long": 0.2727,
+          "medium": 0.6364,
+          "short": 0.0909
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 7,
+        "preference_score": -1.0
+      },
+      "4c61d20b-71b6-482e-aecf-90edae41eafc": {
+        "avg_tension": 0.31,
+        "bucket_dist": {
+          "long": 0.3,
+          "medium": 0.4,
+          "short": 0.3
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 6,
+        "preference_score": -1.0
+      },
+      "4de86db6-bd7a-4252-8a86-1935f357db5f": {
+        "avg_tension": 0.2455,
+        "bucket_dist": {
+          "long": 0.2727,
+          "medium": 0.4545,
+          "short": 0.2727
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 5,
+        "preference_score": -1.0
+      },
+      "4f165cfa-73cf-4f97-ad19-0d48a5bd65fa": {
+        "avg_tension": 0.3034,
+        "bucket_dist": {
+          "long": 0.3333,
+          "medium": 0.2667,
+          "short": 0.4
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 15,
+        "preference_score": -1.0
+      },
+      "5467e528-5235-4b2b-9ab1-63dabfbbbf30": {
+        "avg_tension": 0.26,
+        "bucket_dist": {
+          "long": 1.0
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "pitch_variety": 4,
+        "preference_score": 1.0
+      },
+      "5d30c002-5647-48a3-a1b9-a01284529c4c": {
+        "avg_tension": 0.2429,
+        "bucket_dist": {
+          "long": 0.1905,
+          "medium": 0.5238,
+          "short": 0.2857
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 15,
+        "preference_score": -1.0
+      },
+      "5e0508d4-658b-4bcc-8288-9752b29b35c6": {
+        "avg_tension": 0.2929,
+        "bucket_dist": {
+          "long": 0.2143,
+          "medium": 0.2143,
+          "short": 0.5714
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "pitch_variety": 3,
+        "preference_score": 1.0
+      },
+      "61f9d0e4-6e9d-44f4-af88-23f0fed9172a": {
+        "avg_tension": 0.31,
+        "bucket_dist": {
+          "long": 0.35,
+          "medium": 0.25,
+          "short": 0.4
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 11,
+        "preference_score": -1.0
+      },
+      "748923c1-6a28-4ec9-8c34-1cfa4353979f": {
+        "avg_tension": 0.3417,
+        "bucket_dist": {
+          "long": 0.1667,
+          "medium": 0.4167,
+          "short": 0.4167
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "pitch_variety": 6,
+        "preference_score": 1.0
+      },
+      "74e8ae5f-3769-4ae8-a36d-26bd4e5ff21a": {
+        "avg_tension": 0.1769,
+        "bucket_dist": {
+          "long": 0.2308,
+          "medium": 0.3846,
+          "short": 0.3846
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "pitch_variety": 10,
+        "preference_score": 1.0
+      },
+      "7dcad7df-abce-4e8c-b323-b677d1eb4554": {
+        "avg_tension": 0.29,
+        "bucket_dist": {
+          "long": 0.3,
+          "medium": 0.5,
+          "short": 0.2
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 6,
+        "preference_score": -1.0
+      },
+      "8ef93403-de1e-4146-9b73-a5971a5e8908": {
+        "avg_tension": 0.3136,
+        "bucket_dist": {
+          "long": 0.3636,
+          "medium": 0.2273,
+          "short": 0.4091
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 10,
+        "preference_score": -1.0
+      },
+      "9a310e09-2a63-4254-bcaf-425235a98585": {
+        "avg_tension": 0.3538,
+        "bucket_dist": {
+          "long": 0.2308,
+          "medium": 0.3077,
+          "short": 0.4615
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "pitch_variety": 7,
+        "preference_score": 1.0
+      },
+      "9b1cb605-2ef0-43a2-89d3-87bbb3ae2d93": {
+        "avg_tension": 0.2455,
+        "bucket_dist": {
+          "long": 0.1818,
+          "medium": 0.6364,
+          "short": 0.1818
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 9,
+        "preference_score": -1.0
+      },
+      "9c2fa89c-0bc6-478b-a8ce-59ca9a16125f": {
+        "avg_tension": 0.2833,
+        "bucket_dist": {
+          "long": 0.0833,
+          "medium": 0.4167,
+          "short": 0.5
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 6,
+        "preference_score": -1.0
+      },
+      "aa285ab6-e1cf-44db-81ef-588a847b3ac9": {
+        "avg_tension": 0.1778,
+        "bucket_dist": {
+          "long": 0.4444,
+          "medium": 0.5556
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 6,
+        "preference_score": -1.0
+      },
+      "b7515b8c-17e6-4205-9ee0-df76069d6dd1": {
+        "avg_tension": 0.2643,
+        "bucket_dist": {
+          "long": 0.1429,
+          "medium": 0.3571,
+          "short": 0.5
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 9,
+        "preference_score": -1.0
+      },
+      "bcadb6a6-a28e-4cca-8111-3ed3dde58e77": {
+        "avg_tension": 0.0571,
+        "bucket_dist": {
+          "long": 0.8571,
+          "medium": 0.1429
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "pitch_variety": 5,
+        "preference_score": 1.0
+      },
+      "bf15c64f-1508-44f2-85bb-f21676164494": {
+        "avg_tension": 0.2437,
+        "bucket_dist": {
+          "long": 0.1875,
+          "medium": 0.1875,
+          "short": 0.625
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 9,
+        "preference_score": -1.0
+      },
+      "d8609155-c534-49d3-80f2-bca130fa6f7d": {
+        "avg_tension": 0.25,
+        "bucket_dist": {
+          "long": 0.2,
+          "medium": 0.7,
+          "short": 0.1
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 6,
+        "preference_score": -1.0
+      },
+      "ea7c5ff9-e649-4d63-b04b-9c62e8418e13": {
+        "avg_tension": 0.2286,
+        "bucket_dist": {
+          "long": 0.1429,
+          "medium": 0.4286,
+          "short": 0.4286
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 12,
+        "preference_score": -1.0
+      }
+    },
+    "sequence_signals": {
+      "top_disliked": [
+        {
+          "disliked_count": 1,
+          "from": "A",
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "source": "sequence",
+          "to": "G"
+        },
+        {
+          "disliked_count": 1,
+          "from": "B-",
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "source": "sequence",
+          "to": "G"
+        },
+        {
+          "disliked_count": 1,
+          "from": "D",
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "source": "sequence",
+          "to": "G"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C--",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "E--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "B--",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "D--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C#",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "E"
+        },
+        {
+          "disliked_count": 0,
+          "from": "B--",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "B--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "D--",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "A--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C-",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "D-"
+        }
+      ],
+      "top_liked": [
+        {
+          "disliked_count": 0,
+          "from": "C-",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "D-"
+        },
+        {
+          "disliked_count": 0,
+          "from": "D--",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "A--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "B--",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "B--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C#",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "E"
+        },
+        {
+          "disliked_count": 0,
+          "from": "B--",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "D--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C--",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "E--"
+        },
+        {
+          "disliked_count": 1,
+          "from": "D",
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "source": "sequence",
+          "to": "G"
+        },
+        {
+          "disliked_count": 1,
+          "from": "B-",
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "source": "sequence",
+          "to": "G"
+        },
+        {
+          "disliked_count": 1,
+          "from": "A",
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "source": "sequence",
+          "to": "G"
+        }
+      ],
+      "total_ratings": 9
+    },
+    "slider_correlations": {
+      "disliked": {
+        "long_volume": 0.2,
+        "medium_volume": 0.65,
+        "short_volume": 0.15,
+        "suspension_risk": 0.3
+      },
+      "liked": {
+        "long_volume": 0.2,
+        "medium_volume": 0.65,
+        "short_volume": 0.15,
+        "suspension_risk": 0.3
+      }
+    },
+    "top_disliked_phrases": [
+      {
+        "avg_tension": 0.2437,
+        "bucket_dist": {
+          "long": 0.1875,
+          "medium": 0.1875,
+          "short": 0.625
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "phrase_id": "bf15c64f-1508-44f2-85bb-f21676164494",
+        "pitch_variety": 9,
+        "preference_score": -1.0
+      },
+      {
+        "avg_tension": 0.3034,
+        "bucket_dist": {
+          "long": 0.3333,
+          "medium": 0.2667,
+          "short": 0.4
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "phrase_id": "4f165cfa-73cf-4f97-ad19-0d48a5bd65fa",
+        "pitch_variety": 15,
+        "preference_score": -1.0
+      },
+      {
+        "avg_tension": 0.31,
+        "bucket_dist": {
+          "long": 0.35,
+          "medium": 0.25,
+          "short": 0.4
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "phrase_id": "61f9d0e4-6e9d-44f4-af88-23f0fed9172a",
+        "pitch_variety": 11,
+        "preference_score": -1.0
+      },
+      {
+        "avg_tension": 0.2429,
+        "bucket_dist": {
+          "long": 0.1905,
+          "medium": 0.5238,
+          "short": 0.2857
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "phrase_id": "5d30c002-5647-48a3-a1b9-a01284529c4c",
+        "pitch_variety": 15,
+        "preference_score": -1.0
+      },
+      {
+        "avg_tension": 0.3136,
+        "bucket_dist": {
+          "long": 0.3636,
+          "medium": 0.2273,
+          "short": 0.4091
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "phrase_id": "8ef93403-de1e-4146-9b73-a5971a5e8908",
+        "pitch_variety": 10,
+        "preference_score": -1.0
+      }
+    ],
+    "top_liked_phrases": [
+      {
+        "avg_tension": 0.3538,
+        "bucket_dist": {
+          "long": 0.2308,
+          "medium": 0.3077,
+          "short": 0.4615
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "phrase_id": "9a310e09-2a63-4254-bcaf-425235a98585",
+        "pitch_variety": 7,
+        "preference_score": 1.0
+      },
+      {
+        "avg_tension": 0.26,
+        "bucket_dist": {
+          "long": 1.0
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "phrase_id": "5467e528-5235-4b2b-9ab1-63dabfbbbf30",
+        "pitch_variety": 4,
+        "preference_score": 1.0
+      },
+      {
+        "avg_tension": 0.3417,
+        "bucket_dist": {
+          "long": 0.1667,
+          "medium": 0.4167,
+          "short": 0.4167
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "phrase_id": "748923c1-6a28-4ec9-8c34-1cfa4353979f",
+        "pitch_variety": 6,
+        "preference_score": 1.0
+      },
+      {
+        "avg_tension": 0.2929,
+        "bucket_dist": {
+          "long": 0.2143,
+          "medium": 0.2143,
+          "short": 0.5714
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "phrase_id": "5e0508d4-658b-4bcc-8288-9752b29b35c6",
+        "pitch_variety": 3,
+        "preference_score": 1.0
+      },
+      {
+        "avg_tension": 0.1769,
+        "bucket_dist": {
+          "long": 0.2308,
+          "medium": 0.3846,
+          "short": 0.3846
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "phrase_id": "74e8ae5f-3769-4ae8-a36d-26bd4e5ff21a",
+        "pitch_variety": 10,
+        "preference_score": 1.0
+      }
+    ],
+    "total_ratings": 50
+  }
 };
 
 export const ruleLibrary = {
   "schema_version": "6.0",
-  "generated_at": "2026-06-05T20:33:17.693842",
+  "generated_at": "2026-06-05T22:15:47.007417",
   "tempo_independent": true,
   "description": "Compositional rule library \u2013 meowREMIX v6.0.",
   "rule_library": {
