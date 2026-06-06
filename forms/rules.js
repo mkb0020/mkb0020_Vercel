@@ -1,11 +1,11 @@
 // Auto-generated — meowREMIX Rule Engine v6.0
 // Source song  : amazinggrace+clair+greensleeves+hallelujah+house+itiswell+sacredhead+scarborough+shenandoah+wateriswide
-// Generated at : 2026-06-06T00:40:34.798241
+// Generated at : 2026-06-06T01:27:46.851677
 // DO NOT EDIT — regenerate via: POST /api/audio/rebuild-rules
 
 export const metadata = {
   "source": "amazinggrace+clair+greensleeves+hallelujah+house+itiswell+sacredhead+scarborough+shenandoah+wateriswide",
-  "generatedAt": "2026-06-06T00:40:34.798241",
+  "generatedAt": "2026-06-06T01:27:46.851677",
   "totalMotifs": 7,
   "totalTransitions": 689,
   "totalSuspensions": 65,
@@ -1596,7 +1596,7 @@ export const musicRules = {
       },
       {
         "note": "D--4",
-        "weight": 0.15
+        "weight": 0.075
       },
       {
         "note": "D-4",
@@ -1680,7 +1680,7 @@ export const musicRules = {
       },
       {
         "note": "A--4",
-        "weight": 0.06
+        "weight": 0.12
       },
       {
         "note": "C-5",
@@ -1702,11 +1702,11 @@ export const musicRules = {
       },
       {
         "note": "D--6",
-        "weight": 0.378378
+        "weight": 0.189189
       },
       {
         "note": "B--5",
-        "weight": 0.162162
+        "weight": 0.081081
       },
       {
         "note": "A--5",
@@ -1722,17 +1722,17 @@ export const musicRules = {
       },
       {
         "note": "B--4",
-        "weight": 0.10811
+        "weight": 0.054055
       }
     ],
     "B--4": [
       {
         "note": "D--5",
-        "weight": 0.611762
+        "weight": 0.305881
       },
       {
         "note": "B--4",
-        "weight": 0.258822
+        "weight": 0.129411
       },
       {
         "note": "F-4",
@@ -1752,7 +1752,7 @@ export const musicRules = {
       },
       {
         "note": "D--4",
-        "weight": 0.094118
+        "weight": 0.047059
       },
       {
         "note": "E--4",
@@ -1764,7 +1764,7 @@ export const musicRules = {
       },
       {
         "note": "D--6",
-        "weight": 0.094118
+        "weight": 0.047059
       },
       {
         "note": "C-4",
@@ -1926,7 +1926,7 @@ export const musicRules = {
       },
       {
         "note": "A--5",
-        "weight": 0.097561
+        "weight": 0.195122
       },
       {
         "note": "E-6",
@@ -2160,11 +2160,11 @@ export const musicRules = {
       },
       {
         "note": "B--5",
-        "weight": 0.551724
+        "weight": 0.275862
       },
       {
         "note": "B--6",
-        "weight": 0.206896
+        "weight": 0.103448
       },
       {
         "note": "C-7",
@@ -2282,7 +2282,7 @@ export const musicRules = {
       },
       {
         "note": "A--4",
-        "weight": 0.153846
+        "weight": 0.307692
       }
     ],
     "A--5": [
@@ -2568,7 +2568,7 @@ export const musicRules = {
     "D--3": [
       {
         "note": "A--3",
-        "weight": 0.666667
+        "weight": 1.333334
       },
       {
         "note": "D--3",
@@ -2868,7 +2868,7 @@ export const musicRules = {
     "D#3": [
       {
         "note": "A#3",
-        "weight": 1.0
+        "weight": 2.0
       }
     ],
     "D#4": [
@@ -4865,7 +4865,7 @@ export const musicRules = {
       },
       {
         "note": "G3",
-        "weight": 0.158842
+        "weight": 0.397105
       },
       {
         "note": "E4",
@@ -4877,7 +4877,7 @@ export const musicRules = {
       },
       {
         "note": "G4",
-        "weight": 0.066184
+        "weight": 0.16546
       },
       {
         "note": "C4",
@@ -4901,7 +4901,7 @@ export const musicRules = {
       },
       {
         "note": "G2",
-        "weight": 0.022061
+        "weight": 0.055153
       },
       {
         "note": "B3",
@@ -4919,7 +4919,7 @@ export const musicRules = {
     "G3": [
       {
         "note": "G3",
-        "weight": 0.417084
+        "weight": 1.04271
       },
       {
         "note": "D3",
@@ -4931,7 +4931,7 @@ export const musicRules = {
       },
       {
         "note": "G2",
-        "weight": 0.066733
+        "weight": 0.166832
       },
       {
         "note": "B-2",
@@ -4973,7 +4973,7 @@ export const musicRules = {
       },
       {
         "note": "B4",
-        "weight": 0.040993
+        "weight": 0.102483
       },
       {
         "note": "F#4",
@@ -4985,7 +4985,7 @@ export const musicRules = {
       },
       {
         "note": "B3",
-        "weight": 0.030745
+        "weight": 0.076863
       },
       {
         "note": "D5",
@@ -5009,7 +5009,7 @@ export const musicRules = {
       },
       {
         "note": "B2",
-        "weight": 0.010248
+        "weight": 0.02562
       },
       {
         "note": "A2",
@@ -5089,7 +5089,7 @@ export const musicRules = {
       },
       {
         "note": "D4",
-        "weight": 0.075033
+        "weight": 0.187583
       },
       {
         "note": "G3",
@@ -5097,7 +5097,7 @@ export const musicRules = {
       },
       {
         "note": "D3",
-        "weight": 0.042876
+        "weight": 0.10719
       },
       {
         "note": "E4",
@@ -5315,7 +5315,7 @@ export const musicRules = {
       },
       {
         "note": "G4",
-        "weight": 0.106527
+        "weight": 0.266317
       },
       {
         "note": "C5",
@@ -5339,7 +5339,7 @@ export const musicRules = {
       },
       {
         "note": "G3",
-        "weight": 0.038737
+        "weight": 0.096842
       },
       {
         "note": "B-3",
@@ -5347,7 +5347,7 @@ export const musicRules = {
       },
       {
         "note": "G5",
-        "weight": 0.019369
+        "weight": 0.048423
       },
       {
         "note": "B-4",
@@ -5363,7 +5363,7 @@ export const musicRules = {
       },
       {
         "note": "G2",
-        "weight": 0.009684
+        "weight": 0.02421
       }
     ],
     "F4": [
@@ -5423,7 +5423,7 @@ export const musicRules = {
       },
       {
         "note": "B3",
-        "weight": 0.083333
+        "weight": 0.208333
       },
       {
         "note": "B-2",
@@ -5435,7 +5435,7 @@ export const musicRules = {
       },
       {
         "note": "B2",
-        "weight": 0.02381
+        "weight": 0.059525
       },
       {
         "note": "G2",
@@ -5711,7 +5711,7 @@ export const musicRules = {
     "D6": [
       {
         "note": "B3",
-        "weight": 0.412844
+        "weight": 1.03211
       },
       {
         "note": "G4",
@@ -5723,7 +5723,7 @@ export const musicRules = {
       },
       {
         "note": "B4",
-        "weight": 0.082569
+        "weight": 0.206423
       },
       {
         "note": "A4",
@@ -5749,7 +5749,7 @@ export const musicRules = {
     "G6": [
       {
         "note": "G6",
-        "weight": 0.675676
+        "weight": 1.68919
       },
       {
         "note": "B-5",
@@ -5771,7 +5771,7 @@ export const musicRules = {
     "G7": [
       {
         "note": "G7",
-        "weight": 1.0
+        "weight": 2.5
       }
     ],
     "A3": [
@@ -5863,7 +5863,7 @@ export const musicRules = {
       },
       {
         "note": "D4",
-        "weight": 0.119403
+        "weight": 0.298507
       },
       {
         "note": "E5",
@@ -5879,7 +5879,7 @@ export const musicRules = {
       },
       {
         "note": "D5",
-        "weight": 0.059701
+        "weight": 0.149252
       }
     ],
     "F#5": [
@@ -9096,23 +9096,39 @@ export const musicRules = {
       "avg_liked_bpm": 90.0
     },
     "by_type": {
-      "harmony": 12,
-      "phrase": 29,
-      "sequence": 9
+      "harmony": 18,
+      "phrase": 33,
+      "sequence": 24
     },
-    "dislike_count": 31,
+    "dislike_count": 41,
     "disliked_patterns": {
       "avg_bucket_dist": {
-        "long": 0.2415,
-        "medium": 0.4336,
-        "short": 0.3575
+        "long": 0.2636,
+        "medium": 0.4415,
+        "short": 0.351
       },
-      "avg_pitch_variety": 8.3182,
-      "avg_tension": 0.2467,
-      "count": 22
+      "avg_pitch_variety": 7.92,
+      "avg_tension": 0.2433,
+      "count": 25
     },
     "harmony_signals": {
       "top_disliked": [
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "E--",
+          "note_b": "C",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "C-",
+          "note_b": "A--",
+          "preference_score": -1.0
+        },
         {
           "disliked_count": 1,
           "like_rate": 0.0,
@@ -9133,6 +9149,30 @@ export const musicRules = {
           "disliked_count": 1,
           "like_rate": 0.0,
           "liked_count": 0,
+          "note_a": "C#",
+          "note_b": "C#",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "C-",
+          "note_b": "B--",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "note_a": "C-",
+          "note_b": "F-",
+          "preference_score": -1.0
+        },
+        {
+          "disliked_count": 1,
+          "like_rate": 0.0,
+          "liked_count": 0,
           "note_a": "C-",
           "note_b": "D-",
           "preference_score": -1.0
@@ -9152,15 +9192,9 @@ export const musicRules = {
           "note_a": "B--",
           "note_b": "A-",
           "preference_score": -1.0
-        },
-        {
-          "disliked_count": 1,
-          "like_rate": 0.0,
-          "liked_count": 0,
-          "note_a": "C#",
-          "note_b": "C#",
-          "preference_score": -1.0
-        },
+        }
+      ],
+      "top_liked": [
         {
           "disliked_count": 0,
           "like_rate": 1.0,
@@ -9169,32 +9203,6 @@ export const musicRules = {
           "note_b": "E--",
           "preference_score": 1.0
         },
-        {
-          "disliked_count": 0,
-          "like_rate": 1.0,
-          "liked_count": 1,
-          "note_a": "E-",
-          "note_b": "B",
-          "preference_score": 1.0
-        },
-        {
-          "disliked_count": 0,
-          "like_rate": 1.0,
-          "liked_count": 1,
-          "note_a": "E--",
-          "note_b": "E--",
-          "preference_score": 1.0
-        },
-        {
-          "disliked_count": 0,
-          "like_rate": 1.0,
-          "liked_count": 1,
-          "note_a": "E-",
-          "note_b": "C-",
-          "preference_score": 1.0
-        }
-      ],
-      "top_liked": [
         {
           "disliked_count": 0,
           "like_rate": 1.0,
@@ -9207,6 +9215,30 @@ export const musicRules = {
           "disliked_count": 0,
           "like_rate": 1.0,
           "liked_count": 1,
+          "note_a": "B",
+          "note_b": "D",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "G",
+          "note_b": "G",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "note_a": "E-",
+          "note_b": "B",
+          "preference_score": 1.0
+        },
+        {
+          "disliked_count": 0,
+          "like_rate": 1.0,
+          "liked_count": 1,
           "note_a": "C#",
           "note_b": "B-",
           "preference_score": 1.0
@@ -9228,30 +9260,6 @@ export const musicRules = {
           "preference_score": 1.0
         },
         {
-          "disliked_count": 0,
-          "like_rate": 1.0,
-          "liked_count": 1,
-          "note_a": "E-",
-          "note_b": "B",
-          "preference_score": 1.0
-        },
-        {
-          "disliked_count": 0,
-          "like_rate": 1.0,
-          "liked_count": 1,
-          "note_a": "G-",
-          "note_b": "E--",
-          "preference_score": 1.0
-        },
-        {
-          "disliked_count": 1,
-          "like_rate": 0.0,
-          "liked_count": 0,
-          "note_a": "C#",
-          "note_b": "C#",
-          "preference_score": -1.0
-        },
-        {
           "disliked_count": 1,
           "like_rate": 0.0,
           "liked_count": 0,
@@ -9266,48 +9274,40 @@ export const musicRules = {
           "note_a": "A",
           "note_b": "F#",
           "preference_score": -1.0
-        },
-        {
-          "disliked_count": 1,
-          "like_rate": 0.0,
-          "liked_count": 0,
-          "note_a": "C-",
-          "note_b": "D-",
-          "preference_score": -1.0
         }
       ],
-      "total_ratings": 12
+      "total_ratings": 18
     },
-    "like_count": 19,
+    "like_count": 34,
     "liked_patterns": {
       "avg_bucket_dist": {
-        "long": 0.4214,
-        "medium": 0.2999,
+        "long": 0.4104,
+        "medium": 0.3523,
         "short": 0.4502
       },
-      "avg_pitch_variety": 5.7143,
-      "avg_tension": 0.2487,
-      "count": 7
+      "avg_pitch_variety": 5.375,
+      "avg_tension": 0.2495,
+      "count": 8
     },
     "note_transition_signals": {
       "top_disliked": [
         {
           "disliked_count": 2,
-          "from": "D4",
+          "from": "F3",
           "liked_count": 0,
           "preference_score": -1.0,
-          "to": "B-3"
+          "to": "D4"
+        },
+        {
+          "disliked_count": 2,
+          "from": "G3",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "G3"
         },
         {
           "disliked_count": 1,
-          "from": "F#4",
-          "liked_count": 0,
-          "preference_score": -1.0,
-          "to": "F#4"
-        },
-        {
-          "disliked_count": 3,
-          "from": "A3",
+          "from": "G3",
           "liked_count": 0,
           "preference_score": -1.0,
           "to": "F#3"
@@ -9320,49 +9320,77 @@ export const musicRules = {
           "to": "A4"
         },
         {
-          "disliked_count": 2,
-          "from": "G4",
-          "liked_count": 0,
-          "preference_score": -1.0,
-          "to": "G3"
-        },
-        {
-          "disliked_count": 2,
-          "from": "B--3",
-          "liked_count": 0,
-          "preference_score": -1.0,
-          "to": "B--3"
-        },
-        {
           "disliked_count": 1,
-          "from": "F4",
-          "liked_count": 0,
-          "preference_score": -1.0,
-          "to": "B4"
-        },
-        {
-          "disliked_count": 1,
-          "from": "F#3",
+          "from": "A#3",
           "liked_count": 0,
           "preference_score": -1.0,
           "to": "F3"
         },
         {
-          "disliked_count": 1,
-          "from": "A5",
+          "disliked_count": 2,
+          "from": "C4",
           "liked_count": 0,
           "preference_score": -1.0,
-          "to": "F#5"
+          "to": "D4"
+        },
+        {
+          "disliked_count": 1,
+          "from": "F#5",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "E4"
+        },
+        {
+          "disliked_count": 1,
+          "from": "E5",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "B5"
         },
         {
           "disliked_count": 1,
           "from": "E-4",
           "liked_count": 0,
           "preference_score": -1.0,
-          "to": "A3"
+          "to": "B-3"
+        },
+        {
+          "disliked_count": 1,
+          "from": "E5",
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "to": "E-5"
         }
       ],
       "top_liked": [
+        {
+          "disliked_count": 0,
+          "from": "D#",
+          "liked_count": 2,
+          "preference_score": 1.0,
+          "to": "A#"
+        },
+        {
+          "disliked_count": 0,
+          "from": "F3",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "F3"
+        },
+        {
+          "disliked_count": 0,
+          "from": "F3",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "C3"
+        },
+        {
+          "disliked_count": 0,
+          "from": "G3",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "D-3"
+        },
         {
           "disliked_count": 0,
           "from": "C3",
@@ -9375,42 +9403,7 @@ export const musicRules = {
           "from": "F3",
           "liked_count": 1,
           "preference_score": 1.0,
-          "to": "C3"
-        },
-        {
-          "disliked_count": 0,
-          "from": "A4",
-          "liked_count": 1,
-          "preference_score": 1.0,
-          "to": "E--7"
-        },
-        {
-          "disliked_count": 0,
-          "from": "B--",
-          "liked_count": 2,
-          "preference_score": 1.0,
-          "to": "D--"
-        },
-        {
-          "disliked_count": 0,
-          "from": "F4",
-          "liked_count": 1,
-          "preference_score": 1.0,
-          "to": "C3"
-        },
-        {
-          "disliked_count": 0,
-          "from": "D5",
-          "liked_count": 1,
-          "preference_score": 1.0,
-          "to": "D6"
-        },
-        {
-          "disliked_count": 0,
-          "from": "B--",
-          "liked_count": 2,
-          "preference_score": 1.0,
-          "to": "B--"
+          "to": "B5"
         },
         {
           "disliked_count": 0,
@@ -9421,21 +9414,28 @@ export const musicRules = {
         },
         {
           "disliked_count": 0,
-          "from": "B-3",
-          "liked_count": 1,
+          "from": "D--",
+          "liked_count": 2,
           "preference_score": 1.0,
-          "to": "F2"
+          "to": "A--"
         },
         {
           "disliked_count": 0,
-          "from": "A3",
+          "from": "D4",
           "liked_count": 1,
           "preference_score": 1.0,
-          "to": "F3"
+          "to": "G3"
+        },
+        {
+          "disliked_count": 0,
+          "from": "D4",
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "to": "D--3"
         }
       ]
     },
-    "overall_like_rate": 0.38,
+    "overall_like_rate": 0.4533,
     "phrase_signals": {
       "0c65b9d1-bcee-41ea-b0b4-98c6a94af4b2": {
         "avg_tension": 0.1,
@@ -9642,6 +9642,18 @@ export const musicRules = {
         "pitch_variety": 11,
         "preference_score": -1.0
       },
+      "701909be-ecc7-4bc6-a94f-7386ded0d737": {
+        "avg_tension": 0.2556,
+        "bucket_dist": {
+          "long": 0.3333,
+          "medium": 0.6667
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "pitch_variety": 3,
+        "preference_score": 1.0
+      },
       "748923c1-6a28-4ec9-8c34-1cfa4353979f": {
         "avg_tension": 0.3417,
         "bucket_dist": {
@@ -9783,6 +9795,19 @@ export const musicRules = {
         "pitch_variety": 9,
         "preference_score": -1.0
       },
+      "c5a825f3-04b7-4603-8514-3bfe969cd7ef": {
+        "avg_tension": 0.1556,
+        "bucket_dist": {
+          "long": 0.5556,
+          "medium": 0.2222,
+          "short": 0.2222
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 5,
+        "preference_score": -1.0
+      },
       "d8609155-c534-49d3-80f2-bca130fa6f7d": {
         "avg_tension": 0.25,
         "bucket_dist": {
@@ -9808,18 +9833,60 @@ export const musicRules = {
         "like_rate": 0.0,
         "pitch_variety": 12,
         "preference_score": -1.0
+      },
+      "f12cf168-7c2d-4e61-ba17-51501865744d": {
+        "avg_tension": 0.3,
+        "bucket_dist": {
+          "long": 0.5,
+          "medium": 0.5
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 3,
+        "preference_score": -1.0
+      },
+      "f460f25c-5abf-4c4d-8034-af524e728699": {
+        "avg_tension": 0.2,
+        "bucket_dist": {
+          "long": 0.2222,
+          "medium": 0.7778
+        },
+        "dislike_count": 1,
+        "like_count": 0,
+        "like_rate": 0.0,
+        "pitch_variety": 7,
+        "preference_score": -1.0
       }
     },
     "sequence_signals": {
       "top_disliked": [
         {
           "disliked_count": 1,
-          "from": "A",
+          "from": "A#",
           "like_rate": 0.0,
           "liked_count": 0,
           "preference_score": -1.0,
           "source": "sequence",
-          "to": "G"
+          "to": "D#"
+        },
+        {
+          "disliked_count": 1,
+          "from": "F#",
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "source": "sequence",
+          "to": "C"
+        },
+        {
+          "disliked_count": 1,
+          "from": "A--",
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "source": "sequence",
+          "to": "E--"
         },
         {
           "disliked_count": 1,
@@ -9840,49 +9907,31 @@ export const musicRules = {
           "to": "G"
         },
         {
+          "disliked_count": 1,
+          "from": "A",
+          "like_rate": 0.0,
+          "liked_count": 0,
+          "preference_score": -1.0,
+          "source": "sequence",
+          "to": "G"
+        },
+        {
           "disliked_count": 0,
-          "from": "C--",
+          "from": "C",
           "like_rate": 1.0,
           "liked_count": 1,
           "preference_score": 1.0,
           "source": "sequence",
-          "to": "E--"
+          "to": "C"
         },
         {
           "disliked_count": 0,
-          "from": "B--",
-          "like_rate": 1.0,
-          "liked_count": 1,
-          "preference_score": 1.0,
-          "source": "sequence",
-          "to": "D--"
-        },
-        {
-          "disliked_count": 0,
-          "from": "C#",
+          "from": "E",
           "like_rate": 1.0,
           "liked_count": 1,
           "preference_score": 1.0,
           "source": "sequence",
           "to": "E"
-        },
-        {
-          "disliked_count": 0,
-          "from": "B--",
-          "like_rate": 1.0,
-          "liked_count": 1,
-          "preference_score": 1.0,
-          "source": "sequence",
-          "to": "B--"
-        },
-        {
-          "disliked_count": 0,
-          "from": "C-",
-          "like_rate": 1.0,
-          "liked_count": 1,
-          "preference_score": 1.0,
-          "source": "sequence",
-          "to": "D-"
         },
         {
           "disliked_count": 0,
@@ -9892,17 +9941,44 @@ export const musicRules = {
           "preference_score": 1.0,
           "source": "sequence",
           "to": "A--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C#",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "E"
         }
       ],
       "top_liked": [
         {
           "disliked_count": 0,
-          "from": "D--",
+          "from": "D#",
           "like_rate": 1.0,
           "liked_count": 1,
           "preference_score": 1.0,
           "source": "sequence",
-          "to": "A--"
+          "to": "A#"
+        },
+        {
+          "disliked_count": 0,
+          "from": "B--",
+          "like_rate": 1.0,
+          "liked_count": 2,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "B--"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C",
+          "like_rate": 1.0,
+          "liked_count": 2,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "A"
         },
         {
           "disliked_count": 0,
@@ -9915,21 +9991,12 @@ export const musicRules = {
         },
         {
           "disliked_count": 0,
-          "from": "B--",
+          "from": "G-",
           "like_rate": 1.0,
           "liked_count": 1,
           "preference_score": 1.0,
           "source": "sequence",
-          "to": "B--"
-        },
-        {
-          "disliked_count": 0,
-          "from": "C#",
-          "like_rate": 1.0,
-          "liked_count": 1,
-          "preference_score": 1.0,
-          "source": "sequence",
-          "to": "E"
+          "to": "C-"
         },
         {
           "disliked_count": 0,
@@ -9942,42 +10009,42 @@ export const musicRules = {
         },
         {
           "disliked_count": 0,
-          "from": "C--",
+          "from": "G",
           "like_rate": 1.0,
           "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "G"
+        },
+        {
+          "disliked_count": 0,
+          "from": "A--",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
+          "source": "sequence",
+          "to": "G-"
+        },
+        {
+          "disliked_count": 0,
+          "from": "C--",
+          "like_rate": 1.0,
+          "liked_count": 2,
           "preference_score": 1.0,
           "source": "sequence",
           "to": "E--"
         },
         {
-          "disliked_count": 1,
-          "from": "B-",
-          "like_rate": 0.0,
-          "liked_count": 0,
-          "preference_score": -1.0,
+          "disliked_count": 0,
+          "from": "E-",
+          "like_rate": 1.0,
+          "liked_count": 1,
+          "preference_score": 1.0,
           "source": "sequence",
-          "to": "G"
-        },
-        {
-          "disliked_count": 1,
-          "from": "D",
-          "like_rate": 0.0,
-          "liked_count": 0,
-          "preference_score": -1.0,
-          "source": "sequence",
-          "to": "G"
-        },
-        {
-          "disliked_count": 1,
-          "from": "A",
-          "like_rate": 0.0,
-          "liked_count": 0,
-          "preference_score": -1.0,
-          "source": "sequence",
-          "to": "G"
+          "to": "B-"
         }
       ],
-      "total_ratings": 9
+      "total_ratings": 24
     },
     "slider_correlations": {
       "disliked": {
@@ -10067,6 +10134,19 @@ export const musicRules = {
     ],
     "top_liked_phrases": [
       {
+        "avg_tension": 0.2556,
+        "bucket_dist": {
+          "long": 0.3333,
+          "medium": 0.6667
+        },
+        "dislike_count": 0,
+        "like_count": 1,
+        "like_rate": 1.0,
+        "phrase_id": "701909be-ecc7-4bc6-a94f-7386ded0d737",
+        "pitch_variety": 3,
+        "preference_score": 1.0
+      },
+      {
         "avg_tension": 0.3538,
         "bucket_dist": {
           "long": 0.2308,
@@ -10119,29 +10199,15 @@ export const musicRules = {
         "phrase_id": "5e0508d4-658b-4bcc-8288-9752b29b35c6",
         "pitch_variety": 3,
         "preference_score": 1.0
-      },
-      {
-        "avg_tension": 0.1769,
-        "bucket_dist": {
-          "long": 0.2308,
-          "medium": 0.3846,
-          "short": 0.3846
-        },
-        "dislike_count": 0,
-        "like_count": 1,
-        "like_rate": 1.0,
-        "phrase_id": "74e8ae5f-3769-4ae8-a36d-26bd4e5ff21a",
-        "pitch_variety": 10,
-        "preference_score": 1.0
       }
     ],
-    "total_ratings": 50
+    "total_ratings": 75
   }
 };
 
 export const ruleLibrary = {
   "schema_version": "6.0",
-  "generated_at": "2026-06-06T00:40:34.798665",
+  "generated_at": "2026-06-06T01:27:46.852056",
   "tempo_independent": true,
   "description": "Compositional rule library \u2013 meowREMIX v6.0.",
   "rule_library": {
