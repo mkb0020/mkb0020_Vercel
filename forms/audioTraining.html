@@ -780,6 +780,46 @@ function getTargetTensionFromArc(frac){
   return frac<peak?0.1+0.9*(frac/peak):1.0-0.9*((frac-peak)/(1-peak));
 }
 
+// ── PHRASE SHAPE ─────────────────────────────────────────────────────────────
+const FALLBACK_ARCS=[
+  {name:'arch',      points:[0.1,0.3,0.6,0.8,0.6,0.3,0.15]},
+  {name:'rise-fall', points:[0.1,0.4,0.7,0.9,0.5,0.2,0.1]},
+  {name:'plateau',   points:[0.2,0.5,0.7,0.7,0.7,0.4,0.15]},
+  {name:'late-peak', points:[0.1,0.2,0.3,0.5,0.8,0.5,0.15]},
+  {name:'wave',      points:[0.2,0.6,0.3,0.7,0.4,0.6,0.15]},
+];
+let currentPhraseArc=null, lastPhraseIndex=-1;
+
+function selectPhraseArc(){
+  const arcs=musicRules.contourArcs?.length?musicRules.contourArcs:FALLBACK_ARCS;
+  currentPhraseArc=arcs[Math.floor(Math.random()*arcs.length)];
+}
+
+function getPhraseTargetTension(phrasePos){
+  if(phrasePos>=0.85) return 0.08;
+  if(!currentPhraseArc) return 0.3;
+  const pts=currentPhraseArc.points??currentPhraseArc.tension_points??[];
+  if(!pts.length) return 0.3;
+  const scaledPos=phrasePos*(pts.length-1);
+  const lo=Math.floor(scaledPos), hi=Math.min(lo+1,pts.length-1);
+  return pts[lo]+(pts[hi]-pts[lo])*(scaledPos-lo);
+}
+
+function getPhraseBias(totalMeasures){
+  const PHRASE_LEN=4;
+  const phraseIndex=Math.floor(totalMeasures/PHRASE_LEN);
+  if(phraseIndex!==lastPhraseIndex){ lastPhraseIndex=phraseIndex; selectPhraseArc(); }
+  const phrasePos=(totalMeasures%PHRASE_LEN)/PHRASE_LEN;
+  return{
+    phraseTension: getPhraseTargetTension(phrasePos),
+    phrasePos,
+    isResolution: phrasePos>=0.75,
+    isBuilding:   phrasePos<0.5,
+    isPeak:       phrasePos>=0.5&&phrasePos<0.75,
+  };
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ── NOTE SELECTION ───────────────────────────────────────────────────────────
 function pickNextBucket(currentBucket){
   const trans=BUCKET_TRANSITIONS[currentBucket];
@@ -967,6 +1007,9 @@ function tickVoiceSim(state,voiceRole,atTime,currentMelodyNote=null){
   generationState.phraseMeasureCounter=totalMeasures;
   updateStructuralRole(totalMeasures);
   const songFrac=(totalMeasures%64)/64; generationState.targetTension=getTargetTensionFromArc(songFrac);
+  // Phrase-level shape overrides song-level tension for melody
+  const {phraseTension,phrasePos,isResolution}=getPhraseBias(totalMeasures);
+  if(voiceRole==='melody') generationState.targetTension=phraseTension;
   if(totalMeasures%4<0.1&&generationState.phraseMeasureCounter>0){
     const dests=compRules?.phrase_destination_rules?.['4_bar_phrase'];
     if(dests) generationState.destinationChord=weightedRandomFromObj(dests);
@@ -1001,8 +1044,8 @@ function tickVoiceSim(state,voiceRole,atTime,currentMelodyNote=null){
       if(voiceRole==='harmony'&&currentMelodyNote) noteToPlay=getHarmonyNote(currentMelodyNote,state.currentNote);
       else if(voiceRole==='bar') noteToPlay=getSmoothBarCandidate(state.currentNote,false);
       else{
-        const phraseEnd=(totalMeasures%4)>3.5;
-        noteToPlay=getWeightedNextNote(state.currentNote,state.prevNote,forceDiff,forceNonRest,{targetTension:generationState.targetTension,phraseEnd,bucket});
+        const phraseEnd=isResolution||(totalMeasures%4)>3.0;
+        noteToPlay=getWeightedNextNote(state.currentNote,state.prevNote,forceDiff,forceNonRest,{targetTension:generationState.targetTension,phraseEnd,bucket,phrasePos});
       }
     }
     if(voiceRole==='melody'){ const tail=maybeInjectMotif(state.currentNote); if(tail?.length) state.motifQueue.push(...tail); }
@@ -1034,10 +1077,12 @@ function generatePhrase(){
   const MEASURE_COUNT = 2;          // <-- SHORTER PHRASE: 2 bars
   const totalTime = MEASURE_COUNT * MEASURE_DUR_SEC;
 
-  // Reset key detection for each fresh phrase
+  // Reset key detection and phrase shape for each fresh phrase
   noteHistory.length  = 0;
   currentImpliedKey   = null;
   keyUpdateCounter    = 0;
+  currentPhraseArc    = null;
+  lastPhraseIndex     = -1;
   const beatSec=BEAT_SEC;
   generationState={
     currentStructuralRole:'setup', measuresSinceRoleChange:0, nextRoleChangeMeasure:4,

@@ -845,6 +845,72 @@ function getTargetTensionFromArc(frac) {
   return frac < peak ? 0.1 + 0.9*(frac/peak) : 1.0 - 0.9*((frac-peak)/(1-peak));
 }
 
+// ── PHRASE SHAPE ──────────────────────────────────────────────────────────────
+// Tracks the current 4-bar phrase's contour arc and maps phrase position (0→1)
+// to a target tension, creating rise → peak → resolve shape within each phrase.
+
+let currentPhraseArc   = null;   // selected arc object for this phrase
+let lastPhraseIndex    = -1;     // which 4-bar phrase we're in (changes = new phrase)
+
+// Built-in arc shapes as fallback if musicRules.contourArcs is empty
+const FALLBACK_ARCS = [
+  { name:'arch',      points:[0.1, 0.3, 0.6, 0.8, 0.6, 0.3, 0.15] },
+  { name:'rise-fall', points:[0.1, 0.4, 0.7, 0.9, 0.5, 0.2, 0.1]  },
+  { name:'plateau',   points:[0.2, 0.5, 0.7, 0.7, 0.7, 0.4, 0.15] },
+  { name:'late-peak', points:[0.1, 0.2, 0.3, 0.5, 0.8, 0.5, 0.15] },
+  { name:'wave',      points:[0.2, 0.6, 0.3, 0.7, 0.4, 0.6, 0.15] },
+];
+
+function selectPhraseArc() {
+  // Pick from musicRules.contourArcs (MusicXML-derived) or fallback shapes
+  const arcs = musicRules.contourArcs?.length
+    ? musicRules.contourArcs
+    : FALLBACK_ARCS;
+  const idx = Math.floor(Math.random() * arcs.length);
+  currentPhraseArc = arcs[idx];
+}
+
+function getPhraseTargetTension(phrasePos) {
+  // phrasePos: 0.0 (phrase start) → 1.0 (phrase end)
+  // Always resolve to low tension in the final 15% of the phrase
+  if (phrasePos >= 0.85) return 0.08;
+
+  if (!currentPhraseArc) return 0.3;
+
+  // Sample the arc points array at phrasePos
+  const pts = currentPhraseArc.points ?? currentPhraseArc.tension_points ?? [];
+  if (!pts.length) return 0.3;
+
+  // Map phrasePos → index in pts array, interpolate between points
+  const scaledPos = phrasePos * (pts.length - 1);
+  const lo  = Math.floor(scaledPos);
+  const hi  = Math.min(lo + 1, pts.length - 1);
+  const t   = scaledPos - lo;
+  return pts[lo] + (pts[hi] - pts[lo]) * t;
+}
+
+function getPhraseBias(totalMeasures) {
+  // Returns { phraseTension, phrasePos, isResolution, isBuilding, isPeak }
+  // so tickVoice can make richer decisions
+  const PHRASE_LEN = 4; // bars
+  const phraseIndex = Math.floor(totalMeasures / PHRASE_LEN);
+
+  // New phrase — pick a fresh arc
+  if (phraseIndex !== lastPhraseIndex) {
+    lastPhraseIndex = phraseIndex;
+    selectPhraseArc();
+  }
+
+  const phrasePos      = (totalMeasures % PHRASE_LEN) / PHRASE_LEN;
+  const phraseTension  = getPhraseTargetTension(phrasePos);
+  const isResolution   = phrasePos >= 0.75;   // last quarter of phrase
+  const isBuilding     = phrasePos < 0.5;
+  const isPeak         = phrasePos >= 0.5 && phrasePos < 0.75;
+
+  return { phraseTension, phrasePos, isResolution, isBuilding, isPeak };
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ── PROBABILITY HELPERS ───────────────────────────────────────────────────────
 
 function weightedRandom(items) {
@@ -1292,6 +1358,12 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
   const songFrac = (totalMeasures % 64) / 64;
   generationState.targetTension = getTargetTensionFromArc(songFrac);
 
+  // PHRASE-LEVEL SHAPE — overrides song-level tension for melody voice
+  const { phraseTension, phrasePos, isResolution } = getPhraseBias(totalMeasures);
+  if (voiceRole === 'melody') {
+    generationState.targetTension = phraseTension;
+  }
+
   // 4-MEASURE PHRASE DESTINATION UPDATE
   if (totalMeasures % 4 < 0.1 && generationState.phraseMeasureCounter > 0) {
     const dests = compRules?.phrase_destination_rules?.['4_bar_phrase'];
@@ -1360,10 +1432,10 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
       } else if (voiceRole === 'bar') {
         noteToPlay = getSmoothBarCandidate(state.currentNote, false);
       } else {
-        const phraseEnd = (totalMeasures % 4) > 3.5;
+        const phraseEnd = isResolution || (totalMeasures % 4) > 3.0;
         noteToPlay = getWeightedNextNote(
           state.currentNote, state.prevNote, forceDiff, forceNonRest,
-          { targetTension: generationState.targetTension, phraseEnd, bucket }
+          { targetTension: generationState.targetTension, phraseEnd, bucket, phrasePos }
         );
       }
     }
@@ -1403,8 +1475,9 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
       keyUpdateCounter = 0;
       const key = detectImpliedKey();
       if (key) {
-        const keyEl = document.getElementById('telemetryKeyVal');
-        if (keyEl) keyEl.innerText = `${key.root} ${key.mode === 'major' ? 'maj' : 'min'}`;
+        const keyEl  = document.getElementById('telemetryKeyVal');
+        const arcName = currentPhraseArc?.name ?? '—';
+        if (keyEl) keyEl.innerText = `${key.root} ${key.mode === 'major' ? 'maj' : 'min'} · ${arcName}`;
       }
     }
   }
@@ -1818,6 +1891,8 @@ function stopEngine() {
   noteHistory.length     = 0;
   currentImpliedKey      = null;
   keyUpdateCounter       = 0;
+  currentPhraseArc       = null;
+  lastPhraseIndex        = -1;
   logToConsole('Engine halted.');
 }
 
