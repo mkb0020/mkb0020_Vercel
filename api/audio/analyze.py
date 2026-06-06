@@ -1023,7 +1023,7 @@ def _analyze_preference_signals(
     for pid, agg in by_phrase.items():
         likes = agg["like"]; dislikes = agg["dislike"]; total = likes + dislikes or 1
         feats = agg["features"] or {}
-        phrase_signals[pid] = {
+        phrase_signals[str(pid)] = {          # str() ensures JSON-serializable key
             "like_count":       likes,
             "dislike_count":    dislikes,
             "like_rate":        round(likes/total, 4),
@@ -1340,70 +1340,6 @@ def get_analysis_full(song_id: int):
 
 @audio_analyze_bp.route("/api/audio/analyze/<int:song_id>/preferences", methods=["GET"])
 def get_preference_signals(song_id: int):
-    """
-    Return RLHF preference signal analysis for a song.
-
-    Reads audio_preferences (like/dislike ratings from audioTraining.html) and
-    joins them with audio_phrase_analysis to produce a structured summary that
-    rules.js generation can consume directly.
-
-    Response shape:
-      {
-        success: true,
-        song_id: <int>,
-        preferences: {
-          total_ratings, like_count, dislike_count, overall_like_rate,
-          phrase_signals: { <phrase_id>: { like_count, dislike_count,
-                             like_rate, preference_score,
-                             avg_tension, curve_type, cadence_type, ... } },
-          liked_patterns:    { count, avg_tension, dominant_curve_type, ... },
-          disliked_patterns: { count, avg_tension, dominant_curve_type, ... },
-          slider_correlations: { liked: {...}, disliked: {...} },
-          top_liked_phrases:    [...],
-          top_disliked_phrases: [...],
-          bpm_preference: { avg_liked_bpm, avg_disliked_bpm },
-        }
-      }
-
-    Note: if the full analysis has been run at least once, phrase metadata
-    (tension, curve type, cadence) will be enriched from audio_phrase_analysis.
-    Run POST /api/audio/analyze/<song_id> first for the richest output.
-    """
-    try:
-        conn = _connect()
-
-        # Load phrase metadata from the most recent analysis
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT phrase_id, avg_tension, peak_tension,
-                       curve_type, cadence_type,
-                       phrase_start_degree, phrase_end_degree, length_beats
-                FROM audio_phrase_analysis
-                WHERE song_id = %s
-            """, (song_id,))
-            phrase_rows = _rows_as_dicts(cur)
-
-        phrases = []
-        for p in phrase_rows:
-            p["avg_tension"]  = _safe_float(p.get("avg_tension"))
-            p["peak_tension"] = _safe_float(p.get("peak_tension"))
-            p["length_beats"] = _safe_float(p.get("length_beats"))
-            p["phrase_id"]    = _safe_int(p.get("phrase_id"))
-            phrases.append(p)
-
-        prefs        = _load_preference_signals(conn, song_id)
-        pref_signals = _analyze_preference_signals(prefs, phrases)
-        conn.close()
-
-        return jsonify({
-            "success":     True,
-            "song_id":     song_id,
-            "preferences": pref_signals,
-        })
-
-    except Exception as e:
-        logger.exception(f"Preference signal fetch failed for song_id={song_id}")
-        return jsonify({"success": False, "error": str(e)}), 500
     """
     Return RLHF preference signal analysis for a song.
 

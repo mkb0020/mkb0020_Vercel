@@ -1524,7 +1524,7 @@ def _fetch_preference_signals() -> dict:
     if not BASE_URL:
         return {}
     try:
-        r = requests.get(f"{BASE_URL}/api/audio/analyze/0/preferences", timeout=30)
+        r = requests.get(f"{BASE_URL}/api/audio/analyze/1/preferences", timeout=30)
         r.raise_for_status()
         data = r.json()
         return data.get("preferences", {})
