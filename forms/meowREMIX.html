@@ -141,7 +141,7 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px 12px;
+  padding: 0 12px;
   overflow-y: auto;
   border-left: 1px solid var(--glass-border);
   background: rgba(23, 0, 50, 0.6);
@@ -171,39 +171,25 @@ body::after {
   border-bottom: 1px solid rgba(165,90,255,0.2);
 }
 
-/* ── PLAY BUTTON ───────────────────────────────────────────────────────────── */
 .btn-primary {
-  width: 100%;
-  height: 52px;
-  background: linear-gradient(135deg, var(--accent-1) 0%, var(--neon-magenta) 100%);
+  background: transparent;
   border: none;
-  border-radius: 10px;
+  padding: 0;
+  width: auto;
+  height: auto;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  box-shadow: 0 0 20px rgba(131,12,222,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
+  box-shadow: none;
 }
+
 .btn-primary::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.08));
-  opacity: 0;
-  transition: opacity 0.2s;
+  display: none;
 }
-.btn-primary:hover:not(:disabled)::before { opacity: 1; }
-.btn-primary:hover:not(:disabled) {
-  box-shadow: 0 0 32px rgba(220,76,232,0.7), inset 0 1px 0 rgba(255,255,255,0.2);
-  transform: translateY(-1px);
+
+.btn-primary img {
+  width: auto;
+  height: auto;
+  filter: none;
 }
-.btn-primary:active:not(:disabled) { transform: translateY(0); }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-primary img { width: 22px; height: 22px; filter: brightness(0) invert(1); }
 
 /* ── CONTROL GROUP / SLIDER ────────────────────────────────────────────────── */
 .control-group {
