@@ -1,11 +1,11 @@
 // Auto-generated — meowREMIX Rule Engine v6.0
 // Source song  : amazinggrace+clair+greensleeves+hallelujah+house+itiswell+sacredhead+scarborough+shenandoah+wateriswide
-// Generated at : 2026-06-05T17:33:01.425545
+// Generated at : 2026-06-05T20:01:12.374237
 // DO NOT EDIT — regenerate via: POST /api/audio/rebuild-rules
 
 export const metadata = {
   "source": "amazinggrace+clair+greensleeves+hallelujah+house+itiswell+sacredhead+scarborough+shenandoah+wateriswide",
-  "generatedAt": "2026-06-05T17:33:01.425545",
+  "generatedAt": "2026-06-05T20:01:12.374237",
   "totalMotifs": 7,
   "totalTransitions": 689,
   "totalSuspensions": 65,
@@ -9089,12 +9089,13 @@ export const musicRules = {
         }
       }
     }
-  }
+  },
+  "preferenceSignals": {}
 };
 
 export const ruleLibrary = {
   "schema_version": "6.0",
-  "generated_at": "2026-06-05T17:33:01.425771",
+  "generated_at": "2026-06-05T20:01:12.374559",
   "tempo_independent": true,
   "description": "Compositional rule library \u2013 meowREMIX v6.0.",
   "rule_library": {
