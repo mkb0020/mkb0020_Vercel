@@ -444,100 +444,7 @@ body::after {
      AUDIO ENGINE
 ════════════════════════════════════════════════════════════════════════════ -->
 <script type="module">
-import { musicRules, ruleLibrary, metadata } from '/api/audio/rules.js';
-
-// ── RULES DIAGNOSTICS ────────────────────────────────────────────────────
-// ── RULES DIAGNOSTICS ────────────────────────────────────────────────────
-console.group('🎵 meowREMIX Rules Diagnostics');
-
-// ── SOURCE INFO ──────────────────────────────────────────────────────────
-console.group('📀 Source & Metadata');
-console.log('Songs blended:', metadata?.source ?? '(metadata not imported)');
-console.log('Generated at:', metadata?.generatedAt);
-console.log('Engine version:', metadata?.engineVersion);
-console.log('Blend mode:', metadata?.blendMode);
-console.groupEnd();
-
-// ── MXL-DERIVED RULES ────────────────────────────────────────────────────
-console.group('🎼 MXL-Derived Rules');
-const transKeys = Object.keys(musicRules.transitionRules ?? {});
-console.log('Transition rule pitches:', transKeys.length, '→', transKeys.slice(0,8).join(', ') + '...');
-console.log('Total motifs:', metadata.totalMotifs);
-console.log('Total transitions:', metadata.totalTransitions);
-console.log('Total suspensions:', metadata.totalSuspensions);
-console.log('Note buckets:', metadata.noteBuckets);
-console.log('Harmony rule pitches:', Object.keys(musicRules.harmonyRules ?? {}).length);
-console.log('Smoothness pairs:', metadata.totalTransitionSmoothnessPairs);
-console.log('Rhythm flow rules:', metadata.totalRhythmFlowRules);
-console.log('Contour arcs:', (musicRules.contourArcs ?? []).length);
-console.log('Phrase templates:', (musicRules.phraseTemplates ?? []).length);
-console.log('Bar center rules:', Object.keys(musicRules.barCenterRules ?? {}).length);
-console.groupEnd();
-
-// ── RLHF PREFERENCE SIGNALS ───────────────────────────────────────────────
-console.group('🧠 RLHF Preference Signals');
-const pref = musicRules.preferenceSignals ?? {};
-if (!pref.total_ratings) {
-  console.warn('⚠ No preference data baked in — run python rules.py --all-songs after training');
-} else {
-  console.log('Total ratings:', pref.total_ratings, `(${Math.round((pref.overall_like_rate??0)*100)}% liked)`);
-  const bt = pref.by_type ?? {};
-  console.log('By type → phrase:', bt.phrase ?? 0, '| harmony:', bt.harmony ?? 0, '| sequence:', bt.sequence ?? 0);
-
-  // Top liked transitions
-  const topLiked = pref.note_transition_signals?.top_liked ?? [];
-  if (topLiked.length) {
-    console.group('✅ Top liked transitions (merged phrase+sequence)');
-    topLiked.slice(0,5).forEach(t => console.log(`  ${t.from} → ${t.to}  score=${t.preference_score}  (👍${t.liked_count} 👎${t.disliked_count})`));
-    console.groupEnd();
-  }
-
-  // Top disliked transitions
-  const topDisliked = pref.note_transition_signals?.top_disliked ?? [];
-  if (topDisliked.length) {
-    console.group('❌ Top disliked transitions');
-    topDisliked.slice(0,5).forEach(t => console.log(`  ${t.from} → ${t.to}  score=${t.preference_score}  (👍${t.liked_count} 👎${t.disliked_count})`));
-    console.groupEnd();
-  }
-
-  // Harmony signals
-  const harmLiked = pref.harmony_signals?.top_liked ?? [];
-  if (harmLiked.length) {
-    console.group('🎹 Top liked note pairs (harmony panel)');
-    harmLiked.slice(0,5).forEach(h => console.log(`  ${h.note_a} + ${h.note_b}  score=${h.preference_score}  (👍${h.liked_count} 👎${h.disliked_count})`));
-    console.groupEnd();
-  }
-
-  // Sequence signals
-  const seqLiked = pref.sequence_signals?.top_liked ?? [];
-  if (seqLiked.length) {
-    console.group('➡️ Top liked sequences (sequence panel)');
-    seqLiked.slice(0,5).forEach(s => console.log(`  ${s.from} → ${s.to}  score=${s.preference_score}  (👍${s.liked_count} 👎${s.disliked_count})`));
-    console.groupEnd();
-  }
-
-  // Slider correlations
-  const sc = pref.slider_correlations ?? {};
-  if (sc.liked && Object.keys(sc.liked).length) {
-    console.group('🎚️ Slider correlations');
-    console.log('Liked avg:',    sc.liked);
-    console.log('Disliked avg:', sc.disliked);
-    console.groupEnd();
-  }
-}
-console.groupEnd();
-
-// ── SPOT CHECK: verify a specific transition was boosted ──────────────────
-console.group('🔬 Spot-check: transition weight sample');
-const samplePitch = Object.keys(musicRules.transitionRules ?? {})[0];
-if (samplePitch) {
-  const candidates = musicRules.transitionRules[samplePitch].slice(0,5);
-  console.log(`transitionRules["${samplePitch}"] top 5:`, candidates);
-}
-console.groupEnd();
-
-console.groupEnd(); // end Rules Diagnostics
-
+import { musicRules, ruleLibrary } from '/api/audio/rules.js';
 
 
 // RULELIBRARY REPLACES THE OLD RULE_LIBRARY.JSON FETCH — IT'S NOW EMBEDDED
@@ -1746,11 +1653,15 @@ playBtn.addEventListener('click', () => running ? stopEngine() : startEngine());
 // (analyze all songs → compile rules → save to Neon) in the background.
 // The *current* visit uses whatever rules.js is already cached in Neon.
 // The *next* visit will get the freshly compiled rules (~30-60s later).
-(function pingRebuild() {
-  fetch('/api/audio/rebuild-rules', {
-    method: 'POST',
-    keepalive: true,   // survives page unload
-  }).catch(() => {});  // silent fail — never blocks the engine
+(async function pingRebuild() {
+  try {
+    // Step 1: analyze all songs — waits for response before continuing
+    const r = await fetch('/api/audio/rebuild-rules', { method: 'POST' });
+    if (!r.ok) return;
+    // Step 2: compile fresh rules.js to Neon (~5s, runs after analyze finishes)
+    await fetch('/api/audio/compile-rules', { method: 'POST' });
+    console.log('[meowREMIX] rules.js rebuilt with latest preferences ✓');
+  } catch(e) { /* silent fail — never blocks the engine */ }
 })();
 </script>
 </body>
