@@ -524,6 +524,79 @@ function preferenceBoost(fromPitch, toPitch) {
   return 1.0;
 }
 
+// ── KEY DETECTION (Krumhansl-Schmuckler profiles) ─────────────────────────────
+const KS_MAJOR = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+const KS_MINOR = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+const PC_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const ENHARMONIC = {
+  'Db':'C#','Eb':'D#','Fb':'E','Gb':'F#','Ab':'G#','Bb':'A#','Cb':'B',
+  'B#':'C','E#':'F',
+  'B-':'A#','E-':'D#','A-':'G#','D-':'C#','G-':'F#','C-':'B','F-':'E',
+  'B--':'A','E--':'D','A--':'G','D--':'C','G--':'F',
+};
+
+function pitchToPC(pitch) {
+  if (!pitch || pitch === 'REST') return null;
+  const m = pitch.match(/^([A-Ga-g][#b\-]*)/);
+  if (!m) return null;
+  let pc = m[1];
+  if (ENHARMONIC[pc] !== undefined) pc = ENHARMONIC[pc];
+  const idx = PC_NAMES.indexOf(pc);
+  return idx >= 0 ? idx : null;
+}
+
+const NOTE_HISTORY_SIZE = 16;
+const noteHistory = [];
+let currentImpliedKey = null;
+let keyUpdateCounter  = 0;
+const KEY_UPDATE_EVERY = 4;
+
+function addToNoteHistory(pitch) {
+  if (!pitch || pitch === 'REST') return;
+  noteHistory.push(pitch);
+  if (noteHistory.length > NOTE_HISTORY_SIZE) noteHistory.shift();
+}
+
+function detectImpliedKey() {
+  if (noteHistory.length < 4) return currentImpliedKey;
+  const hist = new Array(12).fill(0);
+  for (const p of noteHistory) {
+    const pc = pitchToPC(p);
+    if (pc !== null) hist[pc]++;
+  }
+  const total = hist.reduce((a,b) => a+b, 0) || 1;
+  const norm  = hist.map(v => v / total);
+  let bestScore = -Infinity, bestRoot = 0, bestMode = 'major';
+  for (let root = 0; root < 12; root++) {
+    let scoreMaj = 0, scoreMin = 0;
+    for (let i = 0; i < 12; i++) {
+      scoreMaj += norm[(i + root) % 12] * KS_MAJOR[i];
+      scoreMin += norm[(i + root) % 12] * KS_MINOR[i];
+    }
+    if (scoreMaj > bestScore) { bestScore = scoreMaj; bestRoot = root; bestMode = 'major'; }
+    if (scoreMin > bestScore) { bestScore = scoreMin; bestRoot = root; bestMode = 'minor'; }
+  }
+  currentImpliedKey = { root: PC_NAMES[bestRoot], mode: bestMode, rootPC: bestRoot };
+  return currentImpliedKey;
+}
+
+function getScalePCs(rootPC, mode) {
+  const intervals = mode === 'major' ? [0,2,4,5,7,9,11] : [0,2,3,5,7,8,10];
+  return new Set(intervals.map(i => (rootPC + i) % 12));
+}
+
+const KEY_STRENGTH    = 0.75;
+const KEY_OUT_PENALTY = 0.15;
+
+function keyBias(toPitch) {
+  if (!currentImpliedKey) return 1.0;
+  const pc = pitchToPC(toPitch);
+  if (pc === null) return 1.0;
+  const scalePCs = getScalePCs(currentImpliedKey.rootPC, currentImpliedKey.mode);
+  return scalePCs.has(pc) ? 1.0 : (1.0 - KEY_STRENGTH) + KEY_STRENGTH * KEY_OUT_PENALTY;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const TENSION_MAP = {
   'G':0.0,'A':0.2,'B':0.1,'C':0.3,'D':0.1,
   'E':0.2,'F#':0.5,'G#':0.8,'A#':0.7,'C#':0.9,'D#':0.7,'F':0.6,
@@ -718,18 +791,23 @@ function getWeightedNextNote(currentNote,prevNote=null,forceDiff=false,forceNonR
   let candidates=rules[currentNote];
   if(!candidates?.length){ const all=Object.keys(rules).filter(p=>p!=='REST'); return all[Math.floor(Math.random()*all.length)]??'G4'; }
   let filtered=[...candidates];
-  if(forceDiff) filtered=filtered.filter(c=>c.note!==currentNote);
   if(forceNonRest) filtered=filtered.filter(c=>c.note!=='REST');
   if(!filtered.length) filtered=candidates;
   let biased=applyCompositionalBiases(filtered,context);
   if(context.bucket) biased=applyBucketTensionBias(biased,context.bucket);
   const prevForSmooth=prevNote||currentNote;
   const smoothed=biased.map(c=>({note:c.note,weight:applySmoothnessWeight(c.weight,getTransitionSmoothness(prevForSmooth,c.note))}));
-  // Apply RLHF preference boost — nudge toward liked transitions, away from disliked
+  // Apply RLHF preference boost
   const boosted=smoothed.map(c=>({...c,weight:c.weight*preferenceBoost(currentNote,c.note)}));
-  const total=boosted.reduce((s,i)=>s+i.weight,0);
-  if(total<=0) return filtered[0]?.note??currentNote;
-  const norm=boosted.map(c=>({...c,weight:c.weight/total}));
+  // Apply key bias — nudge toward implied key
+  const keyed=boosted.map(c=>({...c,weight:c.weight*keyBias(c.note)}));
+  // Hard-zero same-note repeats — done after all boosts so nothing sneaks past
+  const final=forceDiff
+    ? keyed.map(c=>({...c,weight:c.note===currentNote?0:c.weight}))
+    : keyed;
+  const total=final.reduce((s,i)=>s+i.weight,0);
+  if(total<=0){ const all=Object.keys(rules).filter(p=>p!==currentNote&&p!=='REST'); return all[Math.floor(Math.random()*all.length)]??currentNote; }
+  const norm=final.map(c=>({...c,weight:c.weight/total}));
   return weightedRandom(norm.map(c=>({item:c.note,weight:c.weight})))??currentNote;
 }
 function getSuspensionResolution(fromNote){
@@ -935,6 +1013,17 @@ function tickVoiceSim(state,voiceRole,atTime,currentMelodyNote=null){
   else{ state.consecutiveSame=noteToPlay===state.currentNote?state.consecutiveSame+1:0; state.consecutiveRest=0; }
   state.prevNote=state.currentNote; state.currentNote=noteToPlay;
   state.nextNoteTime=atTime+durSec;
+
+  // KEY DETECTION — track melody notes, re-detect every N notes
+  if (voiceRole === 'melody' && noteToPlay !== 'REST') {
+    addToNoteHistory(noteToPlay);
+    keyUpdateCounter++;
+    if (keyUpdateCounter >= KEY_UPDATE_EVERY) {
+      keyUpdateCounter = 0;
+      detectImpliedKey();
+    }
+  }
+
   return {note:noteToPlay,tension:getTension(noteToPlay),bucket,durSec,voice:voiceRole};
 }
 
@@ -944,6 +1033,11 @@ function generatePhrase(){
   const notes=[];
   const MEASURE_COUNT = 2;          // <-- SHORTER PHRASE: 2 bars
   const totalTime = MEASURE_COUNT * MEASURE_DUR_SEC;
+
+  // Reset key detection for each fresh phrase
+  noteHistory.length  = 0;
+  currentImpliedKey   = null;
+  keyUpdateCounter    = 0;
   const beatSec=BEAT_SEC;
   generationState={
     currentStructuralRole:'setup', measuresSinceRoleChange:0, nextRoleChangeMeasure:4,
