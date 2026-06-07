@@ -859,6 +859,80 @@ function getLockedRhythmDuration(bucket, atTime, prevDurType) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── STACCATO BURST SYSTEM ────────────────────────────────────────────────────
+//
+// Instead of scattering individual short notes randomly, the burst system
+// fires short notes in tight rhythmic clusters ("runs"), then enforces a
+// silence gap before the next burst.  This gives the feel of a fill or
+// ornamental run, and then space, rather than random sprinkling.
+//
+// State machine:
+//   IDLE    → random chance per note triggers a burst
+//   BURST   → play N short notes in rapid succession (sixteenth/eighth spacing)
+//   GAP     → silence for M beats before returning to IDLE
+//
+// Burst notes are still run through the full note selection pipeline, so they
+// follow the phrase skeleton, gravity, and tension biases.  Only the duration
+// is overridden to be short and even.
+
+const STACCATO_BURST_RHYTHMS = [
+  // Each entry: array of duration-type strings for one burst run
+  ['sixteenth','sixteenth','sixteenth','sixteenth'],           // 4-note fill
+  ['sixteenth','sixteenth','eighth'],                          // 3-note with landing
+  ['eighth','sixteenth','sixteenth','sixteenth','sixteenth'],  // pickup + 4
+  ['sixteenth','sixteenth','sixteenth','eighth'],              // 3 + longer landing
+  ['sixteenth','sixteenth','sixteenth','sixteenth','eighth'],  // 5-note run
+];
+
+let staccatoBurstState = {
+  active:        false,   // currently in a burst?
+  notesRemaining: 0,      // notes left in this burst
+  pattern:       [],      // duration sequence for this burst (seconds)
+  patternPos:    0,       // current index in pattern
+  gapBeatsLeft:  0,       // beats of silence remaining after burst ends
+  lastBurstBar:  -999,    // bar when last burst started
+};
+
+function maybeStartStaccatoBurst(currentBar, phrasePos, tension) {
+  // Don't start mid-gap
+  if (staccatoBurstState.gapBeatsLeft > 0) return false;
+  if (staccatoBurstState.active) return false;
+
+  // Minimum bars between bursts — prevents continuous rapid-fire
+  const barsSince = currentBar - staccatoBurstState.lastBurstBar;
+  if (barsSince < 2) return false;
+
+  // Probability scales with tension and phrase position
+  // Higher tension = more runs; middle of phrase = more activity than endings
+  const tensionFactor = Math.max(0, (tension - 0.25) / 0.75);  // 0 at t=0.25, 1 at t=1.0
+  const phraseFactor  = 1.0 - Math.abs(phrasePos - 0.45) * 1.4; // peak around 40% of phrase
+  const prob = Math.max(0, 0.08 * tensionFactor * Math.max(0, phraseFactor));
+
+  if (Math.random() > prob) return false;
+
+  // Pick a burst pattern
+  const pat = STACCATO_BURST_RHYTHMS[Math.floor(Math.random() * STACCATO_BURST_RHYTHMS.length)];
+  staccatoBurstState.active         = true;
+  staccatoBurstState.notesRemaining = pat.length;
+  staccatoBurstState.pattern        = pat.map(d => durTypeSec(d));
+  staccatoBurstState.patternPos     = 0;
+  staccatoBurstState.lastBurstBar   = currentBar;
+  // Gap after burst: 1.5–3 beats so there's clear space before next burst
+  staccatoBurstState.gapBeatsLeft   = 1.5 + Math.random() * 1.5;
+  return true;
+}
+
+function getStaccatoBurstDuration() {
+  if (!staccatoBurstState.active || !staccatoBurstState.pattern.length) return null;
+  const dur = staccatoBurstState.pattern[staccatoBurstState.patternPos % staccatoBurstState.pattern.length];
+  staccatoBurstState.patternPos++;
+  staccatoBurstState.notesRemaining--;
+  if (staccatoBurstState.notesRemaining <= 0) {
+    staccatoBurstState.active = false;
+  }
+  return dur;
+}
+
 // ── COMPOSITIONAL BIAS HELPERS ────────────────────────────────────────────────
 
 function applyGravityBias(note, base) {
@@ -1508,7 +1582,12 @@ function playNote(bucket, pitch, durationSec, gainNode, atTime) {
 
 // ── VOICE STATE ───────────────────────────────────────────────────────────────
 
-const RESYNC_EVERY_MEASURES = 4;
+// ── 8-BAR LOOP ALIGNMENT ─────────────────────────────────────────────────────
+// The beat track is exactly 8 bars long. All phrase boundaries, resyncs,
+// and structural resets snap to multiples of 8 bars so the melodic phrases
+// stay phase-locked with the beat loop forever.
+const BEAT_LOOP_BARS        = 8;
+const RESYNC_EVERY_MEASURES = BEAT_LOOP_BARS;   // resync on every beat-loop boundary
 
 function makeVoiceState() {
   return {
@@ -1528,6 +1607,9 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
 
   updateStructuralRole(totalMeasures);
 
+  // Song fraction cycles over 8-bar loops (matching beat track), then over
+  // a longer 64-bar macro arc for structural role changes.
+  const loopFrac = (totalMeasures % BEAT_LOOP_BARS) / BEAT_LOOP_BARS;
   const songFrac = (totalMeasures % 64) / 64;
   generationState.targetTension = getTargetTensionFromArc(songFrac);
 
@@ -1537,12 +1619,11 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
     generationState.targetTension = phraseTension;
   }
 
-  // 4-MEASURE PHRASE DESTINATION UPDATE + SKELETON REBUILD
+  // ── 4-BAR PHRASE BOUNDARY: destination + skeleton ────────────────────────
   if (totalMeasures % 4 < 0.1 && generationState.phraseMeasureCounter > 0) {
     const dests = compRules?.phrase_destination_rules?.['4_bar_phrase'];
     if (dests) generationState.destinationChord = weightedRandomFromObj(dests);
 
-    // Build a fresh phrase skeleton for melody voice
     if (voiceRole === 'melody') {
       const phraseBarIndex = Math.floor(totalMeasures / 4);
       if (phraseSkeletonState.phraseStartBar !== phraseBarIndex) {
@@ -1557,6 +1638,20 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
         logToConsole(`📐 Phrase skeleton → ${generationState.destinationChord} [${generationState.currentStructuralRole}]`);
       }
     }
+  }
+
+  // ── 8-BAR LOOP BOUNDARY: hard sync with beat track ───────────────────────
+  // Every 8 bars we are back at the start of the beat loop. Use this to:
+  //   1. Force a phrase skeleton rebuild (guarantees fresh contour at loop start)
+  //   2. Log a sync event so we can verify alignment in the console
+  //   3. Bias the staccato burst system to reset (no mid-burst carry-over across loops)
+  if (totalMeasures % BEAT_LOOP_BARS < 0.1 && totalMeasures > 0.5 && voiceRole === 'melody') {
+    phraseSkeletonState.phraseStartBar = -1;   // force rebuild on next 4-bar boundary
+    if (staccatoBurstState.active) {
+      staccatoBurstState.active        = false;
+      staccatoBurstState.notesRemaining = 0;
+    }
+    logToConsole(`🔁 8-bar loop sync @ bar ${Math.round(totalMeasures)}`);
   }
 
   // EXPECTATION DELAY
@@ -1583,9 +1678,31 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
   state.currentBucket = bucket;
 
   // ── DURATION — BIASED BY BUCKET ────────────────────────────────────────────
-  const durSec = voiceRole === 'melody'
-    ? getLockedRhythmDuration(bucket, atTime, state.lastDurationType)
-    : getBucketRhythmDuration(bucket, atTime, state.lastDurationType);
+  let durSec;
+  if (voiceRole === 'melody' && bucket === 'short') {
+    // ── STACCATO BURST LOGIC ──────────────────────────────────────────────
+    // Tick the gap counter first (consumes silence time between bursts)
+    if (!staccatoBurstState.active && staccatoBurstState.gapBeatsLeft > 0) {
+      // Still in gap — play a rest for one beat slice and count it down
+      const sliceSec = Math.min(BEAT_SEC, staccatoBurstState.gapBeatsLeft * BEAT_SEC);
+      staccatoBurstState.gapBeatsLeft -= sliceSec / BEAT_SEC;
+      if (staccatoBurstState.gapBeatsLeft < 0.05) staccatoBurstState.gapBeatsLeft = 0;
+      state.nextNoteTime = atTime + sliceSec;
+      return { note: 'REST', tension: generationState.targetTension, bucket };
+    }
+
+    // Try to start a new burst if idle
+    const currentBar = Math.floor((atTime - engineStartTime) / MEASURE_DUR_SEC);
+    maybeStartStaccatoBurst(currentBar, phrasePos, generationState.targetTension);
+
+    // Serve burst duration if active, otherwise fall back to locked rhythm
+    const burstDur = getStaccatoBurstDuration();
+    durSec = burstDur ?? getLockedRhythmDuration(bucket, atTime, state.lastDurationType);
+  } else if (voiceRole === 'melody') {
+    durSec = getLockedRhythmDuration(bucket, atTime, state.lastDurationType);
+  } else {
+    durSec = getBucketRhythmDuration(bucket, atTime, state.lastDurationType);
+  }
 
   // ── NOTE SELECTION ─────────────────────────────────────────────────────────
   let noteToPlay = null;
@@ -2380,6 +2497,7 @@ function stopEngine() {
   lastPhraseIndex        = -1;
   rhythmMotifState       = { pattern:[], pos:0, barsOnMotif:0, barStartTime:0 };
   phraseSkeletonState    = { skeletonNotes: [], phraseStartBar: -1, stepIndex: 0 };
+  staccatoBurstState     = { active:false, notesRemaining:0, pattern:[], patternPos:0, gapBeatsLeft:0, lastBurstBar:-999 };
   logToConsole('Engine halted.');
 }
 
