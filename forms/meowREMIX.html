@@ -881,7 +881,7 @@ function applyTensionBias(note, base, target) {
   return base * (0.2 + 0.8 * (1.0 - dev));
 }
 
-function applyDestinationBias(note, base) {
+function applyDestinationBias(note, base, phrasePos) {
   if (!compRules?.phrase_destination_rules) return base;
   const dests = compRules.phrase_destination_rules['4_bar_phrase'];
   if (!dests) return base;
@@ -891,17 +891,26 @@ function applyDestinationBias(note, base) {
     dominant: new Set(['D','F#','A']),
     mediant:  new Set(['B','D','F#']),
   };
-  const dest = generationState.destinationChord || 'tonic';
-  return (chordMap[dest]?.has(pc)) ? base * 1.3 : base;
+  const dest    = generationState.destinationChord || 'tonic';
+  const isTarget = chordMap[dest]?.has(pc) ?? false;
+  const pos = phrasePos ?? 0;
+  if (pos < 0.5) return base;                      // first half: no pull yet
+  const ramp = (pos - 0.5) / 0.5;                  // 0→1 over second half
+  const mult = 1.0 + ramp * ramp * 4.0;            // quadratic: 1× at 0.5, 5× at 1.0
+  if (isTarget) return base * mult;
+  if (pos >= 0.90) return 0;                        // final 10%: must reach destination
+  return base * (1.0 - ramp * 0.7);                // soften non-targets in approach
 }
 
 function applyCompositionalBiases(candidates, context = {}) {
-  const { targetTension, phraseEnd, bucket } = context;
+  const { targetTension, phraseEnd, phrasePos, bucket } = context;
   return candidates.map(c => {
     let w = c.weight;
     w = applyGravityBias(c.note, w);
     if (targetTension !== undefined) w = applyTensionBias(c.note, w, targetTension);
-    if (phraseEnd) w = applyDestinationBias(c.note, w);
+    w = applyDestinationBias(c.note, w, phrasePos);
+    // Skeleton contour bias — pulls note toward the planned phrase arc
+    w *= getSkeletonBias(c.note, phraseSkeletonState.stepIndex, phraseSkeletonState.skeletonNotes);
     return { note: c.note, weight: w };
   });
 }
@@ -1435,37 +1444,63 @@ function playNote(bucket, pitch, durationSec, gainNode, atTime) {
   const buffer  = buffers[sample];
   if (!buffer) return;
 
-  // ENVELOPE PARAMETERS BY BUCKET
-  let attack, holdDur, release, legato;
-  if (bucket === 'long') {
-    attack   = Math.min(0.40, durationSec * 0.18);
-    release  = Math.min(0.60, durationSec * 0.35);
-    legato   = 0.50;
-  } else if (bucket === 'medium') {
-    attack   = Math.min(0.12, durationSec * 0.08);
-    release  = Math.min(0.28, durationSec * 0.28);
-    legato   = 0.14;
-  } else {
-    // SHORT — STACCATO: SNAP ATTACK, TIGHT RELEASE, NO LEGATO
-    attack   = Math.min(0.04, durationSec * 0.04);
-    release  = Math.min(0.12, durationSec * 0.20);
-    legato   = 0.02;
-  }
-  const holdEnd = atTime + durationSec - release;
-  const stopAt  = atTime + durationSec + legato;
+  // ── ENVELOPE PARAMETERS BY BUCKET ─────────────────────────────────────────
+  //
+  // The key change from the original: we deliberately let notes OVERLAP into
+  // the next note's start time via the `tail` parameter.  This eliminates the
+  // hard click/gap between consecutive notes and creates legato continuity.
+  //
+  //   attack  — ramp up time (seconds)
+  //   hold    — sustain at full gain before the release ramp begins
+  //   release — exponential fall from full gain to silence
+  //   tail    — how far PAST durationSec the note is allowed to ring (overlap)
+  //             This is the micro-overlap: the previous note's tail is still
+  //             fading while the new note's attack is ramping up.  The ear
+  //             hears this as a smooth phrase rather than chopped notes.
+  //
+  // SHORT notes intentionally get zero tail — staccato should stay crisp.
 
+  let attack, release, tail;
+  if (bucket === 'long') {
+    // PAD — slow attack, long release, generous overlap
+    attack  = Math.min(0.40, durationSec * 0.18);
+    release = Math.min(0.70, durationSec * 0.40);
+    tail    = Math.min(0.60, durationSec * 0.30);  // up to 60% of next note
+  } else if (bucket === 'medium') {
+    // MELODIC — moderate attack, overlap covers ~20% of next note duration
+    attack  = Math.min(0.10, durationSec * 0.08);
+    release = Math.min(0.32, durationSec * 0.30);
+    tail    = Math.min(0.22, durationSec * 0.20);  // subtle but audible smoothing
+  } else {
+    // SHORT — staccato stays crisp, minimal tail so rhythm stays tight
+    attack  = Math.min(0.03, durationSec * 0.04);
+    release = Math.min(0.10, durationSec * 0.18);
+    tail    = 0.03;
+  }
+
+  // holdEnd: when the sustain plateau ends and the release ramp begins
+  const holdEnd = atTime + durationSec - release;
+  // stopAt: when the buffer source is released (past the nominal note end)
+  const stopAt  = atTime + durationSec + tail;
+
+  // ── GAIN CURVE ─────────────────────────────────────────────────────────────
+  // attack ramp → hold plateau → exponential release into tail
+  // We use exponentialRamp for the release (sounds more natural than linear)
+  // and clamp the hold start so attack never overshoots durationSec.
   try {
     const source   = actx.createBufferSource();
     const noteGain = actx.createGain();
     source.buffer = buffer;
     source.connect(noteGain);
     noteGain.connect(gainNode);
-    noteGain.gain.setValueAtTime(0, atTime);
-    noteGain.gain.linearRampToValueAtTime(1, atTime + attack);
-    noteGain.gain.setValueAtTime(1, Math.max(atTime + attack, holdEnd));
+
+    noteGain.gain.setValueAtTime(0.0001, atTime);
+    noteGain.gain.linearRampToValueAtTime(1.0, atTime + attack);
+    noteGain.gain.setValueAtTime(1.0, Math.max(atTime + attack + 0.001, holdEnd));
     noteGain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+
     source.start(atTime);
-    source.stop(stopAt);
+    source.stop(stopAt + 0.05);   // tiny pad so the ramp fully completes
   } catch(err) {
     console.warn(`playNote error [${bucket}] ${pitch}:`, err);
   }
@@ -1502,11 +1537,25 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
     generationState.targetTension = phraseTension;
   }
 
-  // 4-MEASURE PHRASE DESTINATION UPDATE
+  // 4-MEASURE PHRASE DESTINATION UPDATE + SKELETON REBUILD
   if (totalMeasures % 4 < 0.1 && generationState.phraseMeasureCounter > 0) {
     const dests = compRules?.phrase_destination_rules?.['4_bar_phrase'];
-    if (dests) {
-      generationState.destinationChord = weightedRandomFromObj(dests);
+    if (dests) generationState.destinationChord = weightedRandomFromObj(dests);
+
+    // Build a fresh phrase skeleton for melody voice
+    if (voiceRole === 'melody') {
+      const phraseBarIndex = Math.floor(totalMeasures / 4);
+      if (phraseSkeletonState.phraseStartBar !== phraseBarIndex) {
+        phraseSkeletonState.phraseStartBar = phraseBarIndex;
+        phraseSkeletonState.stepIndex      = 0;
+        phraseSkeletonState.skeletonNotes  = buildPhraseSkeleton(
+          state.currentNote ?? 'G4',
+          generationState.destinationChord ?? 'tonic',
+          generationState.currentStructuralRole ?? 'development',
+          6
+        );
+        logToConsole(`📐 Phrase skeleton → ${generationState.destinationChord} [${generationState.currentStructuralRole}]`);
+      }
     }
   }
 
@@ -1575,7 +1624,7 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
         const phraseEnd = isResolution || (totalMeasures % 4) > 3.0;
         noteToPlay = getWeightedNextNote(
           state.currentNote, state.prevNote, forceDiff, forceNonRest,
-          { targetTension: generationState.targetTension, phraseEnd, bucket, phrasePos }
+          { targetTension: generationState.targetTension, phraseEnd, phrasePos, bucket }
         );
       }
     }
@@ -1606,6 +1655,14 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
   state.prevNote     = state.currentNote;
   state.currentNote  = noteToPlay;
   state.nextNoteTime = atTime + durSec;
+
+  // ADVANCE SKELETON STEP (melody only, non-rest notes)
+  if (voiceRole === 'melody' && noteToPlay !== 'REST') {
+    phraseSkeletonState.stepIndex = Math.min(
+      phraseSkeletonState.stepIndex + 1,
+      (phraseSkeletonState.skeletonNotes?.length ?? 1) - 1
+    );
+  }
 
   // KEY DETECTION — update on melody voice only, every N notes
   if (voiceRole === 'melody' && noteToPlay !== 'REST') {
@@ -1682,6 +1739,114 @@ function getSmoothBarCandidate(prevBarNote, forceDifferent=false) {
   if (total <= 0) return filtered[0]?.note ?? prevBarNote;
   const norm = smoothed.map(c => ({ ...c, weight: c.weight/total }));
   return weightedRandom(norm) ?? prevBarNote;
+}
+
+// ── LOOKAHEAD PHRASE PLANNER ──────────────────────────────────────────────────
+//
+// Problem the planner solves
+// --------------------------
+// Picking notes one at a time produces random-walk melody: each note only
+// knows its predecessor, so there's no directional arc.  The phrase destination
+// system helps at the end, but the approach to the destination is still a drift.
+//
+// Solution
+// --------
+// At the start of each 4-bar phrase we plan a complete skeleton of TARGET
+// SCALE DEGREES for the whole phrase — a curve from the current pitch toward
+// the phrase destination, shaped by the structural role tension profile.
+// tickVoice then uses this skeleton as a soft constraint on note selection,
+// strongly biasing candidates that match the planned degree at each phrase step.
+//
+// The skeleton is NOT a rigid sequence — the engine still does weighted
+// selection, so the RLHF preferences, motif rules, and tension biases all
+// still apply.  The skeleton just adds a "planned direction" multiplier.
+//
+// Skeleton format
+// ---------------
+// An array of { step, targetMidi, targetPc, influence } objects, one per
+// scheduled note position within the 4-bar phrase.  `influence` is how strongly
+// this position is constrained (higher near phrase end).
+
+const SEMITONES_IN_SCALE = [0,2,4,5,7,9,11];   // major scale steps
+
+let phraseSkeletonState = {
+  skeletonNotes:  [],    // planned MIDI targets for this phrase
+  phraseStartBar: -1,    // which 4-bar phrase this skeleton covers
+  stepIndex:      0,     // which skeleton step we're on
+};
+
+function midiToPc(midi) { return midi % 12; }
+
+function nearestScaleMidi(targetMidi, rootMidi, scaleSteps) {
+  // Find the scale pitch closest to targetMidi (within ±1 octave)
+  let best = null, bestDist = Infinity;
+  for (let oct = -1; oct <= 1; oct++) {
+    for (const step of scaleSteps) {
+      const candidate = rootMidi + oct * 12 + step;
+      const dist = Math.abs(candidate - targetMidi);
+      if (dist < bestDist) { bestDist = dist; best = candidate; }
+    }
+  }
+  return best;
+}
+
+function buildPhraseSkeleton(startNote, destinationChord, role, phraseLen = 6) {
+  // ── 1. resolve start and end MIDI ─────────────────────────────────────────
+  const startMidi = pitchToMidi(startNote) ?? 64;
+
+  // Map destination chord name → target MIDI offset from tonic
+  const ROOT_MIDI  = 67;   // G4 as tonic reference
+  const DEST_OFFSETS = { tonic: 0, dominant: 7, mediant: 4 };
+  const destOffset = DEST_OFFSETS[destinationChord] ?? 0;
+  // Keep destination in the same register as start (±6 semitones)
+  let endMidi = ROOT_MIDI + destOffset;
+  while (endMidi < startMidi - 6) endMidi += 12;
+  while (endMidi > startMidi + 6) endMidi -= 12;
+
+  // ── 2. shape the contour by role ──────────────────────────────────────────
+  // setup:       gentle rise (don't go too far)
+  // development: arc — rise then fall, or fall then rise
+  // climax:      push high, land on destination
+  // resolution:  fall toward tonic, stepwise
+  const midMidi = (() => {
+    if (role === 'climax')      return Math.min(startMidi + 7, 84);   // push up
+    if (role === 'resolution')  return Math.max(startMidi - 3, 52);   // step down
+    if (role === 'setup')       return startMidi + 2;                  // gentle
+    // development: arch — peak at midpoint
+    return Math.round((startMidi + endMidi) / 2) + (Math.random() < 0.5 ? 3 : -2);
+  })();
+
+  // ── 3. interpolate skeleton steps ─────────────────────────────────────────
+  // Quadratic bezier through start → mid → end
+  const skeleton = [];
+  for (let i = 0; i < phraseLen; i++) {
+    const t  = i / (phraseLen - 1);
+    // Bezier: B(t) = (1-t)²·start + 2(1-t)t·mid + t²·end
+    const rawMidi = Math.round(
+      (1-t)*(1-t)*startMidi + 2*(1-t)*t*midMidi + t*t*endMidi
+    );
+    // Snap to nearest scale pitch
+    const snapped = nearestScaleMidi(rawMidi, ROOT_MIDI, SEMITONES_IN_SCALE) ?? rawMidi;
+    // Influence: low in the middle (engine has freedom), high at endpoints
+    const influence = i === 0 ? 0.0          // first note: no constraint (already played)
+      : i >= phraseLen - 2 ? 2.8             // final 2 notes: strongly constrained
+      : 0.4 + 0.8 * Math.abs(t - 0.5) * 2;  // mid-phrase: gentle curve
+    skeleton.push({ step: i, targetMidi: snapped, influence });
+  }
+  return skeleton;
+}
+
+function getSkeletonBias(candidateNote, stepIndex, skeleton) {
+  if (!skeleton?.length || stepIndex >= skeleton.length) return 1.0;
+  const target = skeleton[stepIndex];
+  if (!target || target.influence <= 0) return 1.0;
+  const candMidi = pitchToMidi(candidateNote);
+  if (candMidi === null) return 1.0;
+  const semitonesDist = Math.abs(candMidi - target.targetMidi);
+  // Gaussian-style falloff: exact match = full influence boost, falls off with distance
+  const proximity = Math.exp(-semitonesDist * semitonesDist / 8.0);  // σ≈2.8 semitones
+  // At influence=2.8, an exact match multiplies weight by e^2.8≈16×, 2 semitones away ≈4×
+  return Math.exp(target.influence * (proximity - 0.5));
 }
 
 // ── RISER / CRASH SYSTEM ─────────────────────────────────────────────────────
@@ -2214,6 +2379,7 @@ function stopEngine() {
   currentPhraseArc       = null;
   lastPhraseIndex        = -1;
   rhythmMotifState       = { pattern:[], pos:0, barsOnMotif:0, barStartTime:0 };
+  phraseSkeletonState    = { skeletonNotes: [], phraseStartBar: -1, stepIndex: 0 };
   logToConsole('Engine halted.');
 }
 
