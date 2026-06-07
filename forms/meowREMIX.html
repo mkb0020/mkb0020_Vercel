@@ -908,6 +908,16 @@ function updateStructuralRole(measureCount) {
 }
 
 function getTargetTensionFromArc(frac) {
+  // Prefer trajectory curve from rules.js (arc-aware, derived from source music)
+  const curve = musicRules?.trajectoryTensionCurve?.curveSamples;
+  if (curve?.length) {
+    // Linear interpolation between the two nearest sample points
+    const scaled = frac * (curve.length - 1);
+    const lo = Math.floor(scaled), hi = Math.min(lo + 1, curve.length - 1);
+    const t  = scaled - lo;
+    return curve[lo].tensionTarget + (curve[hi].tensionTarget - curve[lo].tensionTarget) * t;
+  }
+  // Fallback: original arc-template method
   if (!compRules?.tension_arc_templates?.length) return 0.3;
   const arcs = compRules.tension_arc_templates;
   const arc  = arcs.reduce((b,c) => (c.frequency > b.frequency ? c : b), arcs[0]);
@@ -1492,18 +1502,128 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
     if (dests) {
       generationState.destinationChord = weightedRandomFromObj(dests);
     }
+    // Reset consecutive hold count at each new phrase boundary
+    generationState.holdConsecutiveCount = 0;
   }
 
-  // EXPECTATION DELAY
-  const isNearPhraseEnd = (totalMeasures % 4) > 3.5;
-  const delayProb = compRules?.expectation_rules?.delay_probability ?? 0.18;
-  if (isNearPhraseEnd && Math.random() < delayProb && !generationState.expectationDelayActive) {
-    generationState.expectationDelayActive = true;
-    logToConsole('⏳ Expectation delay — holding');
-    state.nextNoteTime = atTime + (compRules?.expectation_rules?.average_delay_length ?? 1) * BEAT_SEC;
-    return { note:'REST', tension:0, bucket: state.currentBucket };
-  } else {
-    generationState.expectationDelayActive = false;
+  // ── CADENCE TYPE DETECTION for hold profiles ─────────────────────────────
+  // Infer likely cadence type from current structural role + phrase position
+  // so the hold system can look up the right prebeat/silence durations.
+  if (voiceRole === 'melody') {
+    const phrasePos  = (totalMeasures % 4) / 4;
+    const role       = generationState.currentStructuralRole;
+    const cadRules   = compRules?.cadence_rules ?? {};
+    // Near phrase end — pick cadence type weighted by observed frequencies,
+    // biased toward 'half' during development/climax (unresolved tension)
+    if (phrasePos >= 0.6 && generationState.holdCadenceType === null) {
+      let cadType = 'default';
+      if (role === 'climax' || role === 'development') {
+        // Prefer half-cadence (maximum tension hold) weighted by source data
+        const halfW = (cadRules.half ?? 0.22) * 2.0;
+        const authW = cadRules.perfect_authentic ?? 0.48;
+        cadType = Math.random() < halfW / (halfW + authW) ? 'half' : 'perfect_authentic';
+      } else if (role === 'resolution') {
+        cadType = Math.random() < 0.7 ? 'perfect_authentic' : 'plagal';
+      } else {
+        // Setup — lightweight holds only
+        cadType = 'perfect_authentic';
+      }
+      generationState.holdCadenceType = cadType;
+    }
+    // Clear at phrase start so next phrase gets a fresh cadence type
+    if (phrasePos < 0.1) {
+      generationState.holdCadenceType = null;
+    }
+  }
+
+  // ── TENSION HOLD SYSTEM ─────────────────────────────────────────────────────
+  // Three-phase hold: prebeat (sustain) → silence (breath) → optional release
+  // Each phase returns early so the scheduler advances by exactly that phase's
+  // duration, giving precise rhythmic control.
+  const holdRules = musicRules?.tensionHoldRules;
+
+  // ── PHASE CONTINUATION: if already in a hold phase, serve it ─────────────
+  if (generationState.holdPhase !== 'none' && atTime < generationState.holdPhaseEndTime) {
+    // Still inside the current phase — advance time by a small slice and rest
+    const remaining = generationState.holdPhaseEndTime - atTime;
+    const slice     = Math.min(remaining, BEAT_SEC * 0.5);
+    state.nextNoteTime = atTime + slice;
+    return { note: 'REST', tension: generationState.targetTension, bucket: state.currentBucket };
+  }
+
+  // ── PHASE TRANSITION: advance to next hold phase ──────────────────────────
+  if (generationState.holdPhase === 'prebeat') {
+    // Prebeat done → enter silence
+    const profile   = _getHoldProfile();
+    const silenceDur = profile.silenceBeats * BEAT_SEC;
+    generationState.holdPhase        = 'silence';
+    generationState.holdPhaseEndTime = atTime + silenceDur;
+    logToConsole(`⏳ Hold silence — ${profile.silenceBeats.toFixed(1)} beats`);
+    state.nextNoteTime = atTime + silenceDur;
+    return { note: 'REST', tension: generationState.targetTension, bucket: state.currentBucket };
+  }
+
+  if (generationState.holdPhase === 'silence') {
+    // Silence done → optional release note or end hold
+    const profile = _getHoldProfile();
+    generationState.holdPhase = 'none';
+    if (profile.releaseEnabled) {
+      // Play a very short release note to signal resolution is arriving
+      const relDur = BEAT_SEC * 0.5;
+      generationState.holdPhaseEndTime = atTime + relDur;
+      state.nextNoteTime = atTime + relDur;
+      logToConsole('⏳ Hold release tap');
+      // Fall through to note selection below — let it pick naturally
+    } else {
+      // Hold complete — resume normal generation
+      generationState.holdPhaseEndTime = 0;
+    }
+  }
+
+  // ── HOLD TRIGGER: decide whether to start a new hold ─────────────────────
+  if (holdRules && generationState.holdPhase === 'none') {
+    const phrasePos      = (totalMeasures % 4) / 4;
+    const currentTension = generationState.targetTension;
+    const measuresSinceLast = totalMeasures - generationState.lastHoldMeasure;
+    const minGap         = holdRules.minMeasuresBetweenHolds ?? 4;
+    const role           = generationState.currentStructuralRole;
+    const roleProbMult   = holdRules.probabilityByRole?.[role] ?? holdRules.holdProbability;
+
+    const eligible = (
+      voiceRole === 'melody' &&                              // melody voice only
+      phrasePos >= (holdRules.phraseHoldThreshold ?? 0.72) &&  // near phrase end
+      currentTension >= (holdRules.holdTensionFloor ?? 0.3) && // tension high enough
+      measuresSinceLast >= minGap &&                         // not too soon after last
+      generationState.holdConsecutiveCount < (holdRules.maxConsecutiveHolds ?? 1)
+    );
+
+    if (eligible && Math.random() < roleProbMult) {
+      const profile    = _getHoldProfile();
+      const prebeatDur = profile.prebeatBeats * BEAT_SEC;
+
+      generationState.holdPhase           = 'prebeat';
+      generationState.holdPhaseEndTime    = atTime + prebeatDur;
+      generationState.lastHoldMeasure     = totalMeasures;
+      generationState.holdConsecutiveCount++;
+      logToConsole(`🎯 Hold triggered [${role}] — ${profile.prebeatBeats.toFixed(1)} beat prebeat → silence`);
+
+      // Play the sustain note (dominant or current note — whichever is more tense)
+      const sustainNote = holdRules.tensionSustainFallback ?? state.currentNote ?? 'D4';
+      const gainNode    = state.currentBucket === 'long' ? longGain : medGain;
+      playNote('long', sustainNote, prebeatDur, gainNode, atTime);
+      state.nextNoteTime = atTime + prebeatDur;
+      return { note: sustainNote, tension: currentTension, bucket: 'long' };
+    } else {
+      generationState.holdConsecutiveCount = 0;   // reset consecutive count if not triggered
+    }
+  }
+  generationState.expectationDelayActive = generationState.holdPhase !== 'none';
+
+  // ── INNER HELPER: resolve cadence profile for current hold ────────────────
+  function _getHoldProfile() {
+    if (!holdRules?.cadenceProfiles) return { prebeatBeats:1.0, silenceBeats:0.75, releaseEnabled:false };
+    const ctype   = generationState.holdCadenceType;
+    return holdRules.cadenceProfiles[ctype] ?? holdRules.cadenceProfiles['default'] ?? { prebeatBeats:1.0, silenceBeats:0.75, releaseEnabled:false };
   }
 
   // ── PICK BUCKET FOR THIS NOTE ──────────────────────────────────────────────
@@ -1980,6 +2100,12 @@ async function startEngine() {
     lastMotifMeasure:        -100,
     expectationDelayActive:  false,
     currentBucket:           'medium',
+    // Tension hold state
+    holdPhase:               'none',   // 'none' | 'prebeat' | 'silence' | 'release'
+    holdPhaseEndTime:        0,        // AudioContext time when current phase ends
+    holdCadenceType:         null,     // cadence type that triggered this hold
+    holdConsecutiveCount:    0,        // how many holds fired back-to-back
+    lastHoldMeasure:         -999,     // measure when last hold fired
   };
 
   dancerX = -250;
