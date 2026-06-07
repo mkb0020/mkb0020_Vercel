@@ -866,7 +866,8 @@ def _write_to_db(conn, song_id: int,
 def _load_preference_signals(conn, song_id: int) -> list[dict]:
     """
     Load all rows from audio_preferences as a global training corpus.
-    Includes training_type, note_a, note_b added for harmony/sequence panels.
+    Fetches all training types: phrase, harmony, sequence, chord,
+    staccato_phrase, rhythm.
     song_id accepted for API consistency but not used as a filter.
     """
     try:
@@ -876,7 +877,8 @@ def _load_preference_signals(conn, song_id: int) -> list[dict]:
                     phrase_id, rating, bpm, measures, phrase_json,
                     suspension_risk, long_volume, medium_volume, short_volume,
                     COALESCE(training_type, 'phrase') AS training_type,
-                    note_a, note_b
+                    note_a, note_b,
+                    COALESCE(note_c, NULL) AS note_c
                 FROM audio_preferences
                 ORDER BY created_at DESC
             """)
@@ -970,9 +972,12 @@ def _analyze_preference_signals(
         }
 
     # ── SPLIT BY TRAINING TYPE ────────────────────────────────────────────────
-    phrase_prefs   = [r for r in prefs if r.get("training_type", "phrase") == "phrase"]
-    harmony_prefs  = [r for r in prefs if r.get("training_type") == "harmony"]
-    sequence_prefs = [r for r in prefs if r.get("training_type") == "sequence"]
+    phrase_prefs        = [r for r in prefs if r.get("training_type", "phrase") == "phrase"]
+    harmony_prefs       = [r for r in prefs if r.get("training_type") == "harmony"]
+    sequence_prefs      = [r for r in prefs if r.get("training_type") == "sequence"]
+    chord_prefs         = [r for r in prefs if r.get("training_type") == "chord"]
+    staccato_prefs      = [r for r in prefs if r.get("training_type") == "staccato_phrase"]
+    rhythm_prefs        = [r for r in prefs if r.get("training_type") == "rhythm"]
 
     # ── PHRASE PANEL (existing logic) ─────────────────────────────────────────
     by_phrase = defaultdict(lambda: {"like": 0, "dislike": 0, "sliders": [], "features": None})
@@ -1098,17 +1103,32 @@ def _analyze_preference_signals(
         })
     sequence_signals_list.sort(key=lambda x: x["preference_score"], reverse=True)
 
-    # ── MERGED TRANSITION SIGNALS (phrase + sequence combined) ────────────────
-    # Sequence ratings are direct single-pair votes — stronger signal per rating.
-    # Weight them 2x when merging with phrase-derived transitions.
+    # ── MERGED TRANSITION SIGNALS (phrase + sequence + staccato combined) ────
+    # Sequence: 2x weight (direct vote), staccato: 1.5x (targeted but multi-note)
     merged_liked    = Counter(liked_trans_phrase)
     merged_disliked = Counter(disliked_trans_phrase)
+    # Sequence: 2x weight (direct single-pair votes)
     for row in sequence_prefs:
         na = row.get("note_a"); nb = row.get("note_b")
         if not na or not nb: continue
         pair = (_strip_oct(na), _strip_oct(nb))
         if row.get("rating") == "like":    merged_liked[pair]    += 2
         elif row.get("rating") == "dislike": merged_disliked[pair] += 2
+    # Staccato phrases: 1.5x weight — extract transition pairs from phrase_json
+    for row in staccato_prefs:
+        pj = row.get("phrase_json") or {}
+        transitions = pj.get("transitions", [])
+        weight = 1.5 if row.get("rating") == "like" else -1.5
+        for t in transitions:
+            if isinstance(t, dict):
+                pair = (_strip_oct(t.get("from","")), _strip_oct(t.get("to","")))
+            elif isinstance(t, (list, tuple)) and len(t) >= 2:
+                pair = (_strip_oct(str(t[0])), _strip_oct(str(t[1])))
+            else:
+                continue
+            if pair[0] and pair[1]:
+                if weight > 0: merged_liked[pair]    += abs(weight)
+                else:          merged_disliked[pair] += abs(weight)
 
     all_merged = set(merged_liked) | set(merged_disliked)
     merged_trans_signals = []
@@ -1121,6 +1141,115 @@ def _analyze_preference_signals(
             "preference_score": round((lc-dc)/tot, 4),
         })
     merged_trans_signals.sort(key=lambda x: x["preference_score"], reverse=True)
+
+    # ── CHORD PANEL — 3-voice vertical consonance ─────────────────────────────
+    # note_a=melody, note_b=harmony, note_c=pad
+    chord_liked    = Counter()   # (mel_pc, harm_pc, pad_pc) → liked count
+    chord_disliked = Counter()
+    # Also extract 2-voice pairs from chord data to supplement harmony_signals
+    chord_pair_liked    = Counter()
+    chord_pair_disliked = Counter()
+
+    for row in chord_prefs:
+        na = row.get("note_a"); nb = row.get("note_b"); nc = row.get("note_c")
+        if not na or not nb: continue
+        rating = row.get("rating")
+        mel_pc  = _strip_oct(na)
+        harm_pc = _strip_oct(nb)
+        pad_pc  = _strip_oct(nc) if nc else None
+        triple  = (mel_pc, harm_pc, pad_pc)
+        pair    = (mel_pc, harm_pc)
+        if rating == "like":
+            chord_liked[triple]    += 1
+            chord_pair_liked[pair] += 1
+        elif rating == "dislike":
+            chord_disliked[triple]    += 1
+            chord_pair_disliked[pair] += 1
+
+    all_triples = set(chord_liked) | set(chord_disliked)
+    chord_signals_list = []
+    for triple in all_triples:
+        lc = chord_liked.get(triple, 0); dc = chord_disliked.get(triple, 0)
+        tot = lc + dc or 1
+        chord_signals_list.append({
+            "melody_pc":  triple[0],
+            "harmony_pc": triple[1],
+            "pad_pc":     triple[2],
+            "liked_count": lc, "disliked_count": dc,
+            "like_rate":  round(lc/tot, 4),
+            "preference_score": round((lc-dc)/tot, 4),
+        })
+    chord_signals_list.sort(key=lambda x: x["preference_score"], reverse=True)
+
+    # Merge chord 2-voice pairs into harmony signals for richer signal
+    for pair, lc in chord_pair_liked.items():
+        merged_liked[pair] += lc
+    for pair, dc in chord_pair_disliked.items():
+        merged_disliked[pair] += dc
+
+    # ── STACCATO PHRASE PANEL ─────────────────────────────────────────────────
+    stacc_liked    = Counter()   # (from_pc, to_pc) → liked count
+    stacc_disliked = Counter()
+
+    for row in staccato_prefs:
+        pj = row.get("phrase_json") or {}
+        rating = row.get("rating")
+        transitions = pj.get("transitions", [])
+        for t in transitions:
+            if isinstance(t, dict):
+                pair = (_strip_oct(t.get("from","")), _strip_oct(t.get("to","")))
+            elif isinstance(t, (list, tuple)) and len(t) >= 2:
+                pair = (_strip_oct(str(t[0])), _strip_oct(str(t[1])))
+            else:
+                continue
+            if pair[0] and pair[1]:
+                if rating == "like":    stacc_liked[pair]    += 1
+                elif rating == "dislike": stacc_disliked[pair] += 1
+
+    all_stacc = set(stacc_liked) | set(stacc_disliked)
+    staccato_signals_list = []
+    for pair in all_stacc:
+        lc = stacc_liked.get(pair, 0); dc = stacc_disliked.get(pair, 0)
+        tot = lc + dc or 1
+        staccato_signals_list.append({
+            "from": pair[0], "to": pair[1],
+            "liked_count": lc, "disliked_count": dc,
+            "like_rate":  round(lc/tot, 4),
+            "preference_score": round((lc-dc)/tot, 4),
+        })
+    staccato_signals_list.sort(key=lambda x: x["preference_score"], reverse=True)
+
+    # ── RHYTHM PANEL ──────────────────────────────────────────────────────────
+    # note_b stores the beat pattern as a JSON string e.g. "[1,0.5,0.5,1,1]"
+    rhythm_liked    = {}   # pattern_str → {liked, disliked, beats}
+    rhythm_disliked = {}
+
+    for row in rhythm_prefs:
+        nb = row.get("note_b"); rating = row.get("rating")
+        if not nb: continue
+        # note_b is stored as JSON string of beat array
+        try:
+            import json as _j
+            beats = _j.loads(nb) if isinstance(nb, str) else nb
+            pattern_key = str(beats)
+        except Exception:
+            pattern_key = str(nb); beats = None
+        if pattern_key not in rhythm_liked:
+            rhythm_liked[pattern_key] = {"liked": 0, "disliked": 0, "beats": beats, "pattern_key": pattern_key}
+        if rating == "like":    rhythm_liked[pattern_key]["liked"]    += 1
+        elif rating == "dislike": rhythm_liked[pattern_key]["disliked"] += 1
+
+    rhythm_signals_list = []
+    for pk, agg in rhythm_liked.items():
+        lc = agg["liked"]; dc = agg["disliked"]; tot = lc + dc or 1
+        rhythm_signals_list.append({
+            "pattern_key":  pk,
+            "beats":        agg["beats"],
+            "liked_count":  lc, "disliked_count": dc,
+            "like_rate":    round(lc/tot, 4),
+            "preference_score": round((lc-dc)/tot, 4),
+        })
+    rhythm_signals_list.sort(key=lambda x: x["preference_score"], reverse=True)
 
     # ── TOTALS ────────────────────────────────────────────────────────────────
     total_ratings  = len(prefs)
@@ -1135,9 +1264,12 @@ def _analyze_preference_signals(
         "dislike_count":     total_dislikes,
         "overall_like_rate": round(total_likes/total_ratings, 4) if total_ratings else 0.0,
         "by_type": {
-            "phrase":   len(phrase_prefs),
-            "harmony":  len(harmony_prefs),
-            "sequence": len(sequence_prefs),
+            "phrase":          len(phrase_prefs),
+            "harmony":         len(harmony_prefs),
+            "sequence":        len(sequence_prefs),
+            "chord":           len(chord_prefs),
+            "staccato_phrase": len(staccato_prefs),
+            "rhythm":          len(rhythm_prefs),
         },
         # Phrase panel
         "phrase_signals":      phrase_signals,
@@ -1169,6 +1301,24 @@ def _analyze_preference_signals(
             "top_liked":    sequence_signals_list[:10],
             "top_disliked": sequence_signals_list[-10:][::-1],
             "total_ratings": len(sequence_prefs),
+        },
+        # Chord panel — 3-voice vertical consonance
+        "chord_signals": {
+            "top_liked":    chord_signals_list[:10],
+            "top_disliked": chord_signals_list[-10:][::-1],
+            "total_ratings": len(chord_prefs),
+        },
+        # Staccato phrase panel — short note transition sequences
+        "staccato_signals": {
+            "top_liked":    staccato_signals_list[:10],
+            "top_disliked": staccato_signals_list[-10:][::-1],
+            "total_ratings": len(staccato_prefs),
+        },
+        # Rhythm panel — rhythmic pattern preferences
+        "rhythm_signals": {
+            "top_liked":    rhythm_signals_list[:5],
+            "top_disliked": rhythm_signals_list[-5:][::-1],
+            "total_ratings": len(rhythm_prefs),
         },
     }
 

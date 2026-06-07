@@ -1535,11 +1535,11 @@ def _fetch_preference_signals() -> dict:
 
 def _apply_transition_boosts(transitions: dict, pref: dict) -> dict:
     """
-    Boost / penalise transition rule weights using merged RLHF signals
-    (phrase-derived transitions + sequence panel direct ratings, sequence 2x).
-
-    transition_rules shape: { "G4": [{"note":"A4","weight":0.3}, ...], ... }
-    We strip octaves from signal keys to match pitch-class level.
+    Boost / penalise transition rule weights using merged RLHF signals:
+    - phrase-derived transitions (1x weight)
+    - sequence panel direct ratings (2x weight)
+    - staccato phrase transitions (1.5x weight, handled in analyze.py merge)
+    All three are pre-merged into note_transition_signals by analyze.py.
     """
     top_liked    = pref.get("note_transition_signals", {}).get("top_liked",    [])
     top_disliked = pref.get("note_transition_signals", {}).get("top_disliked", [])
@@ -1583,33 +1583,53 @@ def _apply_transition_boosts(transitions: dict, pref: dict) -> dict:
 
 def _apply_harmony_boosts(harmony_rules: dict, pref: dict) -> dict:
     """
-    Boost / penalise harmony rule weights using harmony panel RLHF signals.
-
-    harmony_rules shape: { "G4": [{"note":"B4","weight":0.4}, ...], ... }
-    harmony_signals are pitch-class level: {"note_a":"G","note_b":"B", ...}
+    Boost / penalise harmony rule weights using:
+    - harmony panel signals (2-voice simultaneous notes)
+    - chord panel 2-voice pairs (melody+harmony extracted from 3-voice ratings)
+    Both are symmetric (A+B liked → B+A also gets boost).
     """
-    harm_sig = pref.get("harmony_signals", {})
+    harm_sig  = pref.get("harmony_signals", {})
+    chord_sig = pref.get("chord_signals", {})
+
     top_liked    = harm_sig.get("top_liked",    [])
     top_disliked = harm_sig.get("top_disliked", [])
-
-    if not top_liked and not top_disliked:
-        return harmony_rules
 
     BOOST_STRENGTH = 2.5
     PEN_STRENGTH   = 0.3
 
     pair_map = {}
+
+    # Harmony panel signals
     for sig in top_liked:
         score = sig.get("preference_score", 0)
         if score > 0:
-            pair_map[(sig["note_a"], sig["note_b"])] = 1 + (BOOST_STRENGTH - 1) * score
-            pair_map[(sig["note_b"], sig["note_a"])] = 1 + (BOOST_STRENGTH - 1) * score  # symmetric
+            mult = 1 + (BOOST_STRENGTH - 1) * score
+            pair_map[(sig["note_a"], sig["note_b"])] = mult
+            pair_map[(sig["note_b"], sig["note_a"])] = mult
     for sig in top_disliked:
         score = sig.get("preference_score", 0)
         if score < 0:
             mult = PEN_STRENGTH + (1 - PEN_STRENGTH) * (1 + score)
             pair_map[(sig["note_a"], sig["note_b"])] = mult
             pair_map[(sig["note_b"], sig["note_a"])] = mult
+
+    # Chord panel — 2-voice pairs (melody+harmony from 3-voice context)
+    # Weight slightly less than pure harmony panel since they're extracted pairs
+    for sig in chord_sig.get("top_liked", []):
+        score = sig.get("preference_score", 0)
+        if score > 0 and sig.get("melody_pc") and sig.get("harmony_pc"):
+            mult = 1 + (BOOST_STRENGTH * 0.8 - 1) * score
+            pair = (sig["melody_pc"], sig["harmony_pc"])
+            # Only set if not already set by a stronger harmony signal
+            pair_map.setdefault(pair, mult)
+            pair_map.setdefault((pair[1], pair[0]), mult)
+    for sig in chord_sig.get("top_disliked", []):
+        score = sig.get("preference_score", 0)
+        if score < 0 and sig.get("melody_pc") and sig.get("harmony_pc"):
+            mult = PEN_STRENGTH + (1 - PEN_STRENGTH) * (1 + score)
+            pair = (sig["melody_pc"], sig["harmony_pc"])
+            pair_map.setdefault(pair, mult)
+            pair_map.setdefault((pair[1], pair[0]), mult)
 
     if not pair_map:
         return harmony_rules
@@ -1626,6 +1646,64 @@ def _apply_harmony_boosts(harmony_rules: dict, pref: dict) -> dict:
             mult  = pair_map.get((from_pc, to_pc), 1.0)
             new_cands.append({**c, "weight": round(c.get("weight", 1.0) * mult, 6)})
         boosted[from_note] = new_cands
+
+    return boosted
+
+
+def _apply_rhythm_boosts(rhythm_patterns: list, pref: dict) -> list:
+    """
+    Boost / penalise rhythmPatterns weights using rhythm panel RLHF signals.
+
+    rhythm_patterns shape: [{"pattern": ["quarter","half",...], "weight": 0.4}, ...]
+    rhythm_signals keyed by beat-fraction array string e.g. "[1, 2, ...]"
+
+    Maps beat-fraction patterns to dur-type patterns for matching:
+      1.0 → quarter, 2.0 → half, 0.5 → eighth, 1.5 → dotted-quarter, etc.
+    """
+    rhythm_sig = pref.get("rhythm_signals", {})
+    top_liked    = rhythm_sig.get("top_liked",    [])
+    top_disliked = rhythm_sig.get("top_disliked", [])
+
+    if not top_liked and not top_disliked:
+        return rhythm_patterns
+
+    BOOST_STRENGTH = 2.0
+    PEN_STRENGTH   = 0.35
+
+    # Build lookup: beat-fraction tuple → multiplier
+    BEAT_TO_DUR = {4.0:'whole', 2.0:'half', 1.5:'dotted-quarter',
+                   1.0:'quarter', 0.75:'dotted-eighth', 0.5:'eighth',
+                   0.25:'sixteenth'}
+
+    def beats_to_dur_types(beats):
+        return tuple(BEAT_TO_DUR.get(b, 'quarter') for b in beats)
+
+    # Build multiplier map: dur_type_tuple → multiplier
+    boost_map = {}
+    for sig in top_liked:
+        beats = sig.get("beats")
+        if not beats: continue
+        score = sig.get("preference_score", 0)
+        if score > 0:
+            key = beats_to_dur_types(beats)
+            boost_map[key] = 1 + (BOOST_STRENGTH - 1) * score
+    for sig in top_disliked:
+        beats = sig.get("beats")
+        if not beats: continue
+        score = sig.get("preference_score", 0)
+        if score < 0:
+            key = beats_to_dur_types(beats)
+            boost_map[key] = PEN_STRENGTH + (1 - PEN_STRENGTH) * (1 + score)
+
+    if not boost_map:
+        return rhythm_patterns
+
+    boosted = []
+    for pat in rhythm_patterns:
+        pattern = pat.get("pattern", [])
+        key     = tuple(pattern)
+        mult    = boost_map.get(key, 1.0)
+        boosted.append({**pat, "weight": round(pat.get("weight", 1.0) * mult, 6)})
 
     return boosted
 
@@ -1772,10 +1850,14 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
                     f"phrase={by_type.get('phrase',0)}, "
                     f"harmony={by_type.get('harmony',0)}, "
                     f"sequence={by_type.get('sequence',0)}")
-        logger.info("[R] Applying RLHF boosts to transition + harmony rules...")
-        transitions   = _apply_transition_boosts(transitions,   pref_signals)
-        harmony_rules = _apply_harmony_boosts(harmony_rules,    pref_signals)
-        logger.info("    ✓ Preference boosts applied")
+        logger.info("[R] Applying RLHF boosts to transition + harmony + rhythm rules...")
+        transitions      = _apply_transition_boosts(transitions,   pref_signals)
+        harmony_rules    = _apply_harmony_boosts(harmony_rules,    pref_signals)
+        rhythm_patterns  = _apply_rhythm_boosts(rhythm_patterns,   pref_signals)
+        logger.info(f"    ✓ Preference boosts applied — "
+                    f"chord={pref_signals.get('by_type',{}).get('chord',0)}, "
+                    f"staccato={pref_signals.get('by_type',{}).get('staccato_phrase',0)}, "
+                    f"rhythm={pref_signals.get('by_type',{}).get('rhythm',0)}")
     else:
         logger.info("    No preference data yet — skipping boosts")
 
