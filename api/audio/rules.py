@@ -340,7 +340,9 @@ def load_motifs(conn, song_id):
         cur.execute("""
             SELECT m.motif_str, m.motif_length, m.reuse_count,
                    m.first_occurrence_measure, m.avg_return_distance,
-                   m.variation_type
+                   m.variation_type,
+                   m.interval_sequence, m.canonical_pitches,
+                   m.variation_rate,   m.rhythm_consistent
             FROM audio_motif_results m
             JOIN audio_analyses a ON a.id = m.analysis_id
             WHERE m.song_id = %s
@@ -550,22 +552,97 @@ def build_interval_bias(interval_rows):
 
 
 def build_motif_bank(motif_rows):
+    """
+    Build the motif bank using interval identity from analyze.py v2.
+
+    Each motif record now carries:
+      - motif_str          : interval key string  e.g. "+2-3+5"   (primary ID)
+      - canonical_pitches  : e.g. "G4 A4 F4"      (for audio engine playback)
+      - interval_sequence  : list of semitone ints  e.g. [2, -3, 5]
+      - variation_type     : dominant variation class
+      - variation_rate     : 0.0 = always exact, 1.0 = always varied
+      - rhythm_consistent  : bool
+
+    The engine-side motif object now exposes:
+      {
+        pattern          : ["G4","A4","F4"],   -- canonical pitches for playback
+        intervalSequence : [2, -3, 5],          -- shape identity for matching
+        weight           : 0.042,
+        variationRate    : 0.33,
+        rhythmConsistent : true,
+        variationType    : "exact",
+        intervalId       : "+2-3+5",
+      }
+
+    motifsByEntry is keyed by canonical first pitch for backward compatibility
+    with existing engine entry-point lookup, AND by interval_id for shape-based
+    matching — both are included.
+    """
     rows = [r for r in motif_rows if _safe(r.get('reuse_count')) >= 2]
     rows = filter_low_frequency(rows, 'reuse_count', bottom_percent=10)
     if not rows:
         return [], {}
+
     total = sum(r['reuse_count'] for r in rows)
-    motifs = []
-    by_entry = {}
+    motifs   = []
+    by_entry = {}          # keyed by canonical first pitch (legacy compat)
+    by_interval = {}       # keyed by interval_id string (new)
+
     for r in rows:
-        pattern = parse_motif_robust(r['motif_str'])
+        # ── Prefer canonical_pitches when available (new analyze.py) ──────
+        canonical_str = r.get('canonical_pitches') or ''
+        if canonical_str:
+            pattern = [p.strip() for p in canonical_str.split() if p.strip()]
+        else:
+            # Fallback: old motif_str was a pitch string; parse it the old way
+            pattern = parse_motif_robust(r.get('motif_str', ''))
+
         if not pattern or is_degenerate_motif(pattern):
             continue
+
+        # ── Interval sequence ─────────────────────────────────────────────
+        iv_raw = r.get('interval_sequence')
+        if isinstance(iv_raw, list):
+            interval_seq = [int(x) for x in iv_raw if x is not None]
+        elif isinstance(iv_raw, str):
+            try:
+                interval_seq = json.loads(iv_raw)
+            except Exception:
+                interval_seq = []
+        else:
+            # Derive from canonical pitches if the column is missing
+            midi_vals = [pitch_to_midi(p) for p in pattern]
+            if all(m is not None for m in midi_vals):
+                interval_seq = [midi_vals[i+1] - midi_vals[i] for i in range(len(midi_vals)-1)]
+            else:
+                interval_seq = []
+
+        interval_id = r.get('motif_str', '')   # interval key string, e.g. "+2-3"
+
         weight = round(r['reuse_count'] / total, 6)
-        obj = {"pattern": pattern, "weight": weight}
+        obj = {
+            "pattern":          pattern,
+            "intervalSequence": interval_seq,
+            "intervalId":       interval_id,
+            "weight":           weight,
+            "variationRate":    _safe(r.get('variation_rate'), 0.5),
+            "rhythmConsistent": bool(r.get('rhythm_consistent', False)),
+            "variationType":    r.get('variation_type', 'exact'),
+        }
         motifs.append(obj)
+
+        # entry by canonical first pitch (used by existing engine logic)
         by_entry.setdefault(pattern[0], []).append(obj)
-    return motifs, by_entry
+
+        # entry by interval_id (new — for shape-based lookup)
+        if interval_id:
+            by_interval.setdefault(interval_id, []).append(obj)
+
+    # Merge both entry maps into the returned by_entry dict under separate keys
+    # so meowREMIX.html can use whichever it supports
+    combined_entry = dict(by_entry)
+    combined_entry['_byInterval'] = by_interval
+    return motifs, combined_entry
 
 
 def build_rhythm_patterns(events):
@@ -1210,6 +1287,166 @@ def build_bucket_tension_map(events):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# TRAJECTORY-AWARE TENSION CURVE
+# ══════════════════════════════════════════════════════════════════════════════
+
+def build_trajectory_tension_curve(summary: dict, section_rows: list[dict]) -> dict:
+    """
+    Produce a piecewise tension-target curve indexed 0.0 → 1.0 over the song
+    timeline.  The engine samples this at any song_progress value to get the
+    *intended* tension level for that moment, then biases note selection and
+    bucket weights accordingly.
+
+    Design
+    ------
+    Human music almost universally follows a few well-studied macro-arc shapes
+    (Huron, 2006 / Meyer expectation theory).  We blend:
+
+      1.  A structural-role baseline derived from the actual section data
+          (setup low → development rising → climax peak → resolution falling)
+      2.  A global Gaussian climax bump centred at climax_location
+      3.  A resolution dip that ensures cadential landing feels like release
+
+    The output is a sampled curve at N_SAMPLES points (0-indexed fractions)
+    plus derived per-bucket target overrides so the engine can do a simple
+    lerp instead of computing anything itself.
+
+    Returned dict shape (all consumed directly by meowREMIX.html):
+    {
+      "curveSamples": [
+          {"progress": 0.00, "tensionTarget": 0.20},
+          {"progress": 0.05, "tensionTarget": 0.23},
+          ...  (20 samples, progress 0.00..0.95)
+      ],
+      "climaxLocation":   0.78,    # fraction — used by engine for phrase planning
+      "climaxTension":    0.85,    # tension ceiling at climax
+      "baselineTension":  0.25,    # floor during intro / resolution
+      "bucketTargetsByProgress": {
+          # engine looks up current progress, picks nearest bucket override
+          "0.0":  {"long": 0.12, "medium": 0.25, "short": 0.45},
+          "0.25": {"long": 0.18, "medium": 0.32, "short": 0.55},
+          "0.5":  {"long": 0.28, "medium": 0.45, "short": 0.68},
+          "0.75": {"long": 0.38, "medium": 0.58, "short": 0.80},
+          "0.9":  {"long": 0.18, "medium": 0.30, "short": 0.50},
+      },
+      "sectionTargets": [
+          {"role": "setup",       "start": 0.00, "end": 0.18, "target": 0.22},
+          {"role": "development", "start": 0.18, "end": 0.62, "target": 0.48},
+          {"role": "climax",      "start": 0.62, "end": 0.82, "target": 0.82},
+          {"role": "resolution",  "start": 0.82, "end": 1.00, "target": 0.20},
+      ],
+    }
+    """
+    import math
+
+    N_SAMPLES = 20   # sample points across 0..1 timeline
+
+    # ── 1. Climax location ────────────────────────────────────────────────
+    traj = summary.get('trajectory_json') or {}
+    if isinstance(traj, str):
+        try:
+            traj = json.loads(traj)
+        except Exception:
+            traj = {}
+    climax_loc = _safe(traj.get('climax_location'), 0.78)
+
+    # ── 2. Per-section tension profile ───────────────────────────────────
+    ROLE_BASE = {
+        'setup':       0.22,
+        'development': 0.48,
+        'climax':      0.82,
+        'resolution':  0.20,
+    }
+    total_bars = max((s.get('end_bar') or 0) for s in section_rows) if section_rows else 1
+    total_bars = total_bars or 1
+
+    section_targets = []
+    for s in section_rows:
+        role  = s.get('structural_role', 'development')
+        start = _safe(s.get('start_bar'), 0) / total_bars
+        end   = _safe(s.get('end_bar'),   0) / total_bars
+        # Blend the role baseline with measured peak tension from the source
+        measured_avg  = _safe(s.get('average_tension'), ROLE_BASE[role])
+        target = round(0.6 * ROLE_BASE[role] + 0.4 * measured_avg, 4)
+        section_targets.append({'role': role, 'start': round(start, 4),
+                                 'end': round(end, 4), 'target': target})
+
+    # Fallback if sections are missing
+    if not section_targets:
+        section_targets = [
+            {'role': 'setup',       'start': 0.00, 'end': 0.18, 'target': 0.22},
+            {'role': 'development', 'start': 0.18, 'end': 0.62, 'target': 0.48},
+            {'role': 'climax',      'start': 0.62, 'end': 0.82, 'target': 0.82},
+            {'role': 'resolution',  'start': 0.82, 'end': 1.00, 'target': 0.20},
+        ]
+
+    def _section_target(progress: float) -> float:
+        """Piecewise linear lookup into section targets."""
+        for seg in reversed(section_targets):
+            if progress >= seg['start']:
+                seg_len = seg['end'] - seg['start']
+                if seg_len <= 0:
+                    return seg['target']
+                local = (progress - seg['start']) / seg_len
+                # Smooth within the section: slight rise then fall
+                return seg['target'] * (1.0 + 0.08 * math.sin(local * math.pi))
+        return section_targets[0]['target'] if section_targets else 0.35
+
+    def _climax_bump(progress: float) -> float:
+        """Gaussian bump centred at climax_loc with sigma ≈ 0.12."""
+        sigma = 0.12
+        return 0.25 * math.exp(-0.5 * ((progress - climax_loc) / sigma) ** 2)
+
+    def _resolution_dip(progress: float) -> float:
+        """Smooth dip in the final 15% of the song (cadential landing)."""
+        if progress < 0.85:
+            return 0.0
+        t = (progress - 0.85) / 0.15
+        return -0.18 * math.sin(t * math.pi)
+
+    # ── 3. Sample the composite curve ────────────────────────────────────
+    samples = []
+    raw_values = []
+    for i in range(N_SAMPLES):
+        prog = round(i / N_SAMPLES, 4)
+        val  = (_section_target(prog)
+                + _climax_bump(prog)
+                + _resolution_dip(prog))
+        val  = round(max(0.05, min(0.98, val)), 4)
+        samples.append({'progress': prog, 'tensionTarget': val})
+        raw_values.append(val)
+
+    baseline  = round(min(raw_values), 4)
+    climax_t  = round(max(raw_values), 4)
+
+    # ── 4. Per-bucket targets at key progress checkpoints ────────────────
+    # Bucket targets scale with the global curve: at low tension, long notes
+    # stay very stable; at high tension, even long notes carry more urgency.
+    def _bucket_targets(progress: float) -> dict:
+        curve_val = samples[min(int(progress * N_SAMPLES), N_SAMPLES - 1)]['tensionTarget']
+        scale = curve_val / max(climax_t, 0.01)   # 0→1 fraction of peak
+        return {
+            'long':   round(max(0.05, 0.12 + 0.26 * scale), 4),
+            'medium': round(max(0.12, 0.25 + 0.35 * scale), 4),
+            'short':  round(max(0.25, 0.45 + 0.35 * scale), 4),
+        }
+
+    bucket_targets_by_progress = {
+        str(round(p, 2)): _bucket_targets(p)
+        for p in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    }
+
+    return {
+        'curveSamples':             samples,
+        'climaxLocation':           round(climax_loc, 4),
+        'climaxTension':            climax_t,
+        'baselineTension':          baseline,
+        'bucketTargetsByProgress':  bucket_targets_by_progress,
+        'sectionTargets':           section_targets,
+    }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # COMPOSITIONAL RULE LIBRARY
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -1842,6 +2079,10 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
     vertical_harmony = build_vertical_harmony_rules(events)
     logger.info(f"    {len(vertical_harmony.get('preferredIntervals', {}))} pitch classes mapped")
 
+    logger.info("[P2] Trajectory tension curve...")
+    trajectory_tension = build_trajectory_tension_curve(summary, section_rows)
+    logger.info(f"    climax at {trajectory_tension['climaxLocation']}, peak tension {trajectory_tension['climaxTension']}")
+
     logger.info("[Q] Fetching RLHF preference signals...")
     pref_signals = _fetch_preference_signals()
     if pref_signals.get("total_ratings", 0) > 0:
@@ -1909,7 +2150,8 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
             "bucketRhythmBias":  bucket_rhythm_bias,
             "bucketTensionMap":  bucket_tension_map,
         },
-        "preferenceSignals": pref_signals,  # RLHF — read by audioTraining.html + meowREMIX.html
+        "preferenceSignals":      pref_signals,  # RLHF — read by audioTraining.html + meowREMIX.html
+        "trajectoryTensionCurve": trajectory_tension,  # arc-aware tension targets
     }
 
     # ── BUILD COMPOSITIONAL RULE LIBRARY ──────────────────────────────────────

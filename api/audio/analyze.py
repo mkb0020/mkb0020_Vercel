@@ -451,53 +451,151 @@ def _analyze_phrases_detailed(events: list[dict], cadences: list[dict]) -> tuple
     return phrases, dest_probs
 
 
+def _intervals_from_pitches(pitches: list[str]) -> tuple | None:
+    """
+    Convert a list of pitch strings (e.g. ['G4','A4','F4']) into a tuple of
+    semitone intervals between consecutive notes.  Returns None if any pitch
+    cannot be parsed (REST, malformed string, etc.).
+    This tuple is the *interval identity* of a melodic shape — the same contour
+    at any transposition produces the same key, enabling motif matching across
+    different pitch levels.
+    """
+    midi = [_pitch_to_midi(p) for p in pitches]
+    if any(m is None for m in midi):
+        return None
+    return tuple(midi[i + 1] - midi[i] for i in range(len(midi) - 1))
+
+
+def _interval_key_to_str(iv_tuple: tuple) -> str:
+    """Compact string representation of an interval identity, e.g. '+2-3+5'."""
+    parts = []
+    for iv in iv_tuple:
+        parts.append(f"+{iv}" if iv >= 0 else str(iv))
+    return "".join(parts)
+
+
+def _classify_variation(iv_original: tuple, iv_occurrence: tuple) -> str:
+    """
+    Compare two interval tuples and return the type of motivic variation.
+    Checks (in priority order):
+      exact        — identical intervals
+      transposition — already guaranteed by using interval identity; this
+                      catches the case where the pitch sequence differs but
+                      intervals match exactly (same shape, different key)
+      inversion    — every interval negated  (+2-3 → -2+3)
+      retrograde   — intervals in reverse order  (+2-3 → +3-2)
+      augmentation — all intervals doubled
+      diminution   — all intervals halved
+      varied       — anything else
+    """
+    if iv_original == iv_occurrence:
+        return "exact"
+    inv = tuple(-x for x in iv_original)
+    if iv_occurrence == inv:
+        return "inversion"
+    retro = tuple(reversed(iv_original))
+    if iv_occurrence == retro:
+        return "retrograde"
+    if all(iv_occurrence[i] == iv_original[i] * 2 for i in range(len(iv_original))):
+        return "augmentation"
+    if all(iv_occurrence[i] * 2 == iv_original[i] for i in range(len(iv_original))):
+        return "diminution"
+    return "varied"
+
+
 def _analyze_motifs_detailed(events: list[dict]) -> list[dict]:
+    """
+    Identify recurring melodic shapes using *interval identity* (semitone
+    sequences between consecutive notes) rather than exact pitch strings.
+
+    This means the same melodic contour at any transposition is recognised as
+    the same motif, and occurrence-level variation type is classified precisely
+    (exact / inversion / retrograde / augmentation / diminution / varied).
+
+    The `motif_id` field now stores the interval key string (e.g. '+2-3+5')
+    so rules.py can build interval-aware motif banks.  The canonical pitch
+    example from the first occurrence is stored separately in
+    `canonical_pitches` for display and audio-engine use.
+    """
     from collections import defaultdict
-    notes  = [e for e in events if not e.get("is_rest") and e.get("pitch")]
+    notes = [e for e in events if not e.get("is_rest") and e.get("pitch")]
     if len(notes) < 2:
         return []
 
-    pitch_seq    = [e["pitch"] for e in notes]
-    measure_seq  = [e.get("measure_number", 0) for e in notes]
-    iv_seq       = [e.get("interval_from_previous") for e in notes]
+    pitch_seq   = [e["pitch"] for e in notes]
+    measure_seq = [e.get("measure_number", 0) for e in notes]
+    dur_seq     = [e.get("duration_type", "quarter") for e in notes]
+    phrase_seq  = [e.get("phrase_id", 0) for e in notes]
 
-    phrase_seq   = [e.get("phrase_id", 0) for e in notes]
-    motifs_raw   = defaultdict(list) 
+    # ── PASS 1: collect all n-gram occurrences keyed by interval identity ──
+    # We use interval identity as the primary key so transpositions group together.
+    # Value: list of (note_index, measure_number, pitch_slice)
+    motifs_by_iv: dict[tuple, list] = defaultdict(list)
 
     for n in (2, 3, 4):
         for i in range(len(pitch_seq) - n + 1):
+            # Don't span phrase boundaries
             if len(set(phrase_seq[i:i + n])) > 1:
-                continue   
-            gram = " ".join(pitch_seq[i:i + n])
-            motifs_raw[gram].append((i, measure_seq[i]))
+                continue
+            pitches = pitch_seq[i:i + n]
+            iv_key  = _intervals_from_pitches(pitches)
+            if iv_key is None:
+                continue
+            motifs_by_iv[iv_key].append((i, measure_seq[i], pitches))
 
+    # ── PASS 2: build motif records ───────────────────────────────────────
     motif_list = []
-    for motif_str, occs in motifs_raw.items():
+
+    for iv_key, occs in motifs_by_iv.items():
         if len(occs) < 2:
             continue
-        occs.sort(key=lambda x: x[0])
-        start_measures = [o[1] for o in occs]
-        diffs = [start_measures[j] - start_measures[j - 1]
-                 for j in range(1, len(start_measures))]
+
+        occs.sort(key=lambda x: x[0])   # chronological order
+        start_measures  = [o[1] for o in occs]
+        canonical_pitch = occs[0][2]     # pitch names from first occurrence
+
+        diffs   = [start_measures[j] - start_measures[j - 1]
+                   for j in range(1, len(start_measures))]
         avg_ret = round(sum(diffs) / len(diffs), 2) if diffs else 0.0
 
-        n_notes = len(motif_str.split())
-        occ_patterns = []
-        for idx, _ in occs:
-            pat = tuple(iv_seq[idx + 1: idx + n_notes] if idx + 1 < len(iv_seq) else [])
-            occ_patterns.append(pat)
-        is_exact = len(set(occ_patterns)) == 1 if all(p for p in occ_patterns) else False
-        variant  = "exact" if is_exact else "varied"
+        # Classify each occurrence relative to the canonical (first) shape
+        variation_counts: dict[str, int] = defaultdict(int)
+        for _, _, occ_pitches in occs:
+            occ_iv = _intervals_from_pitches(occ_pitches)
+            if occ_iv is None:
+                variation_counts["varied"] += 1
+                continue
+            vtype = _classify_variation(iv_key, occ_iv)
+            variation_counts[vtype] += 1
+
+        total_occ    = len(occs)
+        variation_types = sorted(variation_counts, key=lambda k: -variation_counts[k])
+        # Exact means every occurrence is exact; otherwise compute true rate
+        exact_count  = variation_counts.get("exact", 0)
+        variation_rate = round(1.0 - (exact_count / total_occ), 4)
+
+        # Rhythm consistency: how often does the same duration sequence repeat?
+        dur_patterns: list[tuple] = []
+        for idx, _, _ in occs:
+            dp = tuple(dur_seq[idx: idx + len(iv_key) + 1])
+            dur_patterns.append(dp)
+        rhythm_consistent = len(set(dur_patterns)) == 1
 
         motif_list.append({
-            "motif_id":                    motif_str,
-            "length":                      n_notes,
-            "occurrences":                 start_measures,
-            "first_occurrence":            start_measures[0],
-            "reuse_count":                 len(occs),
+            # interval key as ID — portable across transpositions
+            "motif_id":                     _interval_key_to_str(iv_key),
+            # canonical pitch example (first occurrence) for audio engine playback
+            "canonical_pitches":            " ".join(canonical_pitch),
+            "interval_sequence":            list(iv_key),
+            "length":                       len(canonical_pitch),
+            "occurrences":                  start_measures,
+            "first_occurrence":             start_measures[0],
+            "reuse_count":                  total_occ,
             "average_return_distance_bars": avg_ret,
-            "variation_rate":              0.0 if is_exact else 0.5,
-            "variation_types":             [variant],
+            "variation_rate":               variation_rate,
+            "variation_types":              variation_types,
+            "variation_breakdown":          dict(variation_counts),
+            "rhythm_consistent":            rhythm_consistent,
         })
 
     motif_list.sort(key=lambda m: m["reuse_count"], reverse=True)
@@ -840,19 +938,33 @@ def _write_to_db(conn, song_id: int,
 
         cur.execute("DELETE FROM audio_motif_results WHERE song_id = %s", (song_id,))
         if motifs:
+            # Ensure new columns exist (idempotent — safe on existing tables)
+            cur.execute("""
+                ALTER TABLE audio_motif_results
+                    ADD COLUMN IF NOT EXISTS interval_sequence  JSONB,
+                    ADD COLUMN IF NOT EXISTS canonical_pitches  TEXT,
+                    ADD COLUMN IF NOT EXISTS variation_rate     FLOAT,
+                    ADD COLUMN IF NOT EXISTS rhythm_consistent  BOOLEAN
+            """)
             cur.executemany("""
                 INSERT INTO audio_motif_results (
                     song_id, analysis_id,
                     motif_str, motif_length, reuse_count,
                     first_occurrence_measure, avg_return_distance,
-                    variation_type
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    variation_type,
+                    interval_sequence, canonical_pitches,
+                    variation_rate, rhythm_consistent
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, [
                 (
                     song_id, analysis_id,
                     m["motif_id"], m["length"], m["reuse_count"],
                     m["first_occurrence"], m["average_return_distance_bars"],
                     m["variation_types"][0] if m["variation_types"] else "exact",
+                    json.dumps(m.get("interval_sequence", [])),
+                    m.get("canonical_pitches", ""),
+                    m.get("variation_rate", 0.0),
+                    m.get("rhythm_consistent", False),
                 )
                 for m in motifs
             ])
