@@ -693,6 +693,22 @@ let medBuffers    = {};   // MEDIUM NOTES (MELODIC, HALF-BAR)
 let shortBuffers  = {};   // SHORT  NOTES (STACCATO)
 let ambienceBuffer = null, beatBuffer = null;
 
+// ── RISER / CRASH BUFFERS ─────────────────────────────────────────────────────
+const riserBuffers = [null, null, null, null];   // riser00–03
+const crashBuffers = [null, null, null, null];   // crash00–03
+let   riserGain    = null;   // shared gain node for the active riser
+let   crashGain    = null;   // shared gain node for crash one-shots
+
+// Riser / crash state machine
+const riserState = {
+  active:        false,    // is a riser currently playing?
+  source:        null,     // BufferSource for the active riser
+  riserIdx:      -1,       // which riser (0-3) is playing
+  startBar:      -1,       // bar number when riser started
+  peakTension:   0,        // highest smoothed tension seen during this rise
+  releaseQueued: false,    // crash has been scheduled, don't re-trigger
+};
+
 let longGain, medGain, shortGain, ambienceGain, beatGain;
 let ambienceSource = null, beatSource = null;
 let running = false;
@@ -859,78 +875,13 @@ function applyGravityBias(note, base) {
   return base * (0.5 + 0.5 * pull);
 }
 
-// ── STRUCTURAL ROLE BIAS ──────────────────────────────────────────────────────
-// Makes structural roles AUDIBLE rather than just tracked.
-// Each role constrains register, interval preference, and note density.
-//
-//  setup       — low register, narrow intervals, stable (establish the key)
-//  development — mid register, moderate movement, some leaps allowed
-//  climax      — high register, wider leaps, dense rhythm (peak energy)
-//  resolution  — low register, narrow steps, strong tonic pull (landing)
-//
-// Applied to melody voice only; acts as a multiplier on candidate weights.
-
-const ROLE_MIDI_RANGES = {
-  setup:       { lo: 55, hi: 71 },   // G3–B4
-  development: { lo: 59, hi: 76 },   // B3–E5
-  climax:      { lo: 65, hi: 81 },   // F4–A5
-  resolution:  { lo: 55, hi: 72 },   // G3–C5
-};
-
-function applyStructuralRoleBias(candidates, currentNote) {
-  const role  = generationState.currentStructuralRole ?? 'development';
-  const range = ROLE_MIDI_RANGES[role] ?? ROLE_MIDI_RANGES.development;
-  const curMidi = pitchToMidi(currentNote);
-
-  return candidates.map(c => {
-    if (c.note === 'REST') return c;
-    const midi = pitchToMidi(c.note);
-    if (midi === null) return c;
-
-    // 1. Register gate — strongly prefer notes inside the role's range
-    let registerMult;
-    if (midi >= range.lo && midi <= range.hi) {
-      registerMult = 1.0;
-    } else {
-      // Penalty grows with distance outside the range
-      const overflow = Math.min(Math.abs(midi - range.lo), Math.abs(midi - range.hi));
-      registerMult = Math.max(0.05, 1.0 - overflow * 0.18);
-    }
-
-    // 2. Interval preference — role-specific leap tolerance
-    let intervalMult = 1.0;
-    if (curMidi !== null) {
-      const leap = Math.abs(midi - curMidi);
-      if (role === 'setup' || role === 'resolution') {
-        // Strongly prefer steps (≤2 semitones), penalise leaps
-        intervalMult = leap <= 2 ? 1.4 : leap <= 4 ? 1.0 : leap <= 7 ? 0.5 : 0.15;
-      } else if (role === 'climax') {
-        // Allow and even reward larger leaps at climax
-        intervalMult = leap <= 2 ? 0.9 : leap <= 5 ? 1.1 : leap <= 9 ? 1.4 : 0.6;
-      } else {
-        // development — neutral
-        intervalMult = leap <= 2 ? 1.1 : leap <= 5 ? 1.0 : leap <= 7 ? 0.8 : 0.35;
-      }
-    }
-
-    // 3. Tonic pull — resolution role strongly biases toward tonic PCs
-    let tonicMult = 1.0;
-    if (role === 'resolution') {
-      const pc = c.note.replace(/\d/g, '');
-      tonicMult = new Set(['G','B','D']).has(pc) ? 1.6 : 0.7;
-    }
-
-    return { ...c, weight: c.weight * registerMult * intervalMult * tonicMult };
-  });
-}
-
 function applyTensionBias(note, base, target) {
   if (target === undefined || target === null) return base;
   const dev = Math.abs(getTension(note) - target);
   return base * (0.2 + 0.8 * (1.0 - dev));
 }
 
-function applyDestinationBias(note, base, phrasePos) {
+function applyDestinationBias(note, base) {
   if (!compRules?.phrase_destination_rules) return base;
   const dests = compRules.phrase_destination_rules['4_bar_phrase'];
   if (!dests) return base;
@@ -941,32 +892,16 @@ function applyDestinationBias(note, base, phrasePos) {
     mediant:  new Set(['B','D','F#']),
   };
   const dest = generationState.destinationChord || 'tonic';
-  const isTarget = chordMap[dest]?.has(pc) ?? false;
-
-  // Scale multiplier with phrase position: begins at phrasePos 0.5, rises steeply
-  // to phrasePos 1.0.  At the final 10% (phrasePos >= 0.90), hard-zero non-target
-  // notes so the phrase MUST land on the destination chord.
-  const pos = phrasePos ?? 0;
-  if (pos < 0.5) return base;                     // first half: no destination pull
-
-  const ramp = (pos - 0.5) / 0.5;                 // 0→1 over second half of phrase
-  const mult = 1.0 + ramp * ramp * 4.0;           // quadratic: 1× at pos=0.5, 5× at pos=1.0
-
-  if (isTarget) return base * mult;
-
-  // Non-target notes: attenuate as ramp rises, hard-zero in final 10%
-  if (pos >= 0.90) return 0;                       // must reach destination
-  return base * (1.0 - ramp * 0.7);               // soften non-targets in approach
+  return (chordMap[dest]?.has(pc)) ? base * 1.3 : base;
 }
 
 function applyCompositionalBiases(candidates, context = {}) {
-  const { targetTension, phraseEnd, phrasePos, bucket } = context;
+  const { targetTension, phraseEnd, bucket } = context;
   return candidates.map(c => {
     let w = c.weight;
     w = applyGravityBias(c.note, w);
     if (targetTension !== undefined) w = applyTensionBias(c.note, w, targetTension);
-    // Pass phrasePos always — destination bias is continuous, not just at phraseEnd
-    w = applyDestinationBias(c.note, w, phrasePos);
+    if (phraseEnd) w = applyDestinationBias(c.note, w);
     return { note: c.note, weight: w };
   });
 }
@@ -1154,20 +1089,6 @@ function getRhythmSequence(atTime = null, prevDurType = null) {
 }
 
 // ── MOTIF ─────────────────────────────────────────────────────────────────────
-//
-// Motif development model:
-//   Phase A — STATEMENT  : inject the full motif pattern (existing behaviour)
-//   Phase B — DEVELOPMENT: for 2-4 notes after statement, keep pulling from
-//                          the same motif family (variations/repetitions)
-//                          so the listener hears: A → A → A-var → free
-//   Phase C — FREE       : normal generation until the next return window
-
-// motifDevelopmentState tracks which phase we are in and what motif is active
-let motifDevelopmentState = {
-  phase:         'free',   // 'free' | 'development'
-  activeMotif:   null,     // the motif object currently being developed
-  notesRemaining: 0,       // notes left in development phase
-};
 
 function maybeInjectMotif(currentPitch) {
   if (!compRules?.emotional_memory_rules) return null;
@@ -1175,63 +1096,17 @@ function maybeInjectMotif(currentPitch) {
   const since = generationState.lastMotifMeasure === -100
     ? 999
     : generationState.phraseMeasureCounter - generationState.lastMotifMeasure;
-  const dist  = mem.average_motif_return_distance || 8;
-
-  // ── PHASE B: development continuation ────────────────────────────────────
-  // If we are mid-development, serve the next note from the active motif
-  // by re-queueing the pattern (transposed if necessary) rather than returning
-  // to free generation.
-  if (motifDevelopmentState.phase === 'development' && motifDevelopmentState.notesRemaining > 0) {
-    motifDevelopmentState.notesRemaining--;
-    if (motifDevelopmentState.notesRemaining <= 0) {
-      motifDevelopmentState.phase = 'free';
-      motifDevelopmentState.activeMotif = null;
-    }
-    // Look for a variant of the same motif starting from currentPitch
-    const byEntry = musicRules.motifsByEntry;
-    const matching = byEntry?.[currentPitch] ?? [];
-    const sameFamily = matching.filter(m =>
-      m.intervalId && motifDevelopmentState.activeMotif?.intervalId &&
-      m.intervalId === motifDevelopmentState.activeMotif.intervalId
-    );
-    const pool = sameFamily.length ? sameFamily : matching;
-    if (pool.length) {
-      const sel = weightedRandom(pool.map(m => ({ item: m, weight: m.weight })));
-      if (sel?.pattern?.length > 1) {
-        logToConsole('🎵 Motif development — continuing');
-        return sel.pattern.slice(1);
-      }
-    }
-    return null;
-  }
-
-  // ── PHASE A: decide whether to start a motif statement ───────────────────
-  // Probability windows:
-  //   inside return window (±2 measures of expected return): 65%
-  //   near phrase start (pos < 0.2, fresh territory): 20%
-  //   background probability: 5%
-  const phrasePos = (generationState.phraseMeasureCounter % 4) / 4;
-  const inReturnWindow = since >= dist - 1 && since <= dist + 2;
-  const atPhraseStart  = phrasePos < 0.20;
-  const prob = inReturnWindow ? 0.65 : atPhraseStart ? 0.20 : 0.05;
-
+  const dist = mem.average_motif_return_distance || 8;
+  const prob = (since >= dist-1 && since <= dist+2) ? 0.25 : 0.05;
   if (Math.random() > prob) return null;
-
   const byEntry = musicRules.motifsByEntry;
   if (!byEntry || !currentPitch) return null;
   const matching = byEntry[currentPitch];
   if (!matching?.length) return null;
-
-  const sel = weightedRandom(matching.map(m => ({ item: m, weight: m.weight })));
+  const sel = weightedRandom(matching.map(m => ({ item:m, weight:m.weight })));
   if (sel?.pattern) {
     generationState.lastMotifMeasure = generationState.phraseMeasureCounter;
-
-    // Enter development phase for 2-4 notes after this statement
-    motifDevelopmentState.phase          = 'development';
-    motifDevelopmentState.activeMotif    = sel;
-    motifDevelopmentState.notesRemaining = 2 + Math.floor(Math.random() * 3); // 2,3,4
-
-    logToConsole(`🎵 Motif statement → ${motifDevelopmentState.notesRemaining} development notes`);
+    logToConsole('🎵 Motif recall triggered');
     return sel.pattern.slice(1);
   }
   return null;
@@ -1281,9 +1156,6 @@ function getWeightedNextNote(currentNote, prevNote=null, forceDiff=false, forceN
 
   // APPLY COMPOSITIONAL BIASES (GRAVITY, TENSION, PHRASE DESTINATION)
   let biased = applyCompositionalBiases(filtered, context);
-
-  // APPLY STRUCTURAL ROLE BIAS (REGISTER, INTERVAL, TONIC PULL PER ROLE)
-  biased = applyStructuralRoleBias(biased, currentNote);
 
   // APPLY BUCKET TENSION BIAS IF BUCKET IS IN CONTEXT
   if (context.bucket) biased = applyBucketTensionBias(biased, context.bucket);
@@ -1812,6 +1684,154 @@ function getSmoothBarCandidate(prevBarNote, forceDifferent=false) {
   return weightedRandom(norm) ?? prevBarNote;
 }
 
+// ── RISER / CRASH SYSTEM ─────────────────────────────────────────────────────
+//
+// Design
+// ------
+// We track a smoothed tension value (exponential moving average over the
+// tensionArc buffer) to get a stable reading that doesn't jitter on every note.
+//
+// RISER triggers when:
+//   • no riser is currently active
+//   • smoothed tension crosses RISER_TENSION_THRESHOLD (going upward)
+//   • we haven't crashed within the last MIN_BARS_BETWEEN_RISERS bars
+//
+// CRASH (+ riser fade-out) triggers when:
+//   • a riser IS active
+//   • smoothed tension drops below CRASH_TENSION_THRESHOLD after the rise
+//   • we are at a bar boundary (so the crash lands on the beat)
+//   • the riser has been playing for at least MIN_RISER_BARS bars
+//
+// Both events are scheduled to the nearest upcoming bar boundary for
+// rhythmic precision.
+
+const RISER_TENSION_THRESHOLD = 0.52;   // smoothed tension to start a riser
+const CRASH_TENSION_THRESHOLD = 0.35;   // smoothed tension to trigger the drop
+const MIN_RISER_BARS          = 2;      // riser must play at least this many bars
+const MAX_RISER_BARS          = 8;     // hard ceiling — riser always released by bar 8
+const MIN_BARS_BETWEEN_RISERS = 8;      // don't re-trigger too soon after a crash
+const RISER_FADE_SEC          = 0.4;    // how long to fade the riser out on crash
+
+let lastCrashBar   = -999;             // bar number of the last crash event
+let smoothedTension = 0;              // EMA tension value
+let prevSmoothedTension = 0;          // for rise/fall detection
+
+function getSmoothedTension() {
+  if (!tensionArc.length) return 0;
+  // EMA over the arc buffer — alpha 0.12 gives ~8-note smoothing
+  let ema = tensionArc[0];
+  for (let i = 1; i < tensionArc.length; i++) {
+    ema = 0.12 * tensionArc[i] + 0.88 * ema;
+  }
+  return ema;
+}
+
+function getCurrentBar() {
+  if (!engineStartTime || !actx) return 0;
+  return Math.floor((actx.currentTime - engineStartTime) / MEASURE_DUR_SEC);
+}
+
+function nextBarBoundaryTime(barsAhead = 1) {
+  const currentBar = getCurrentBar();
+  return engineStartTime + (currentBar + barsAhead) * MEASURE_DUR_SEC;
+}
+
+function triggerRiser(atTime) {
+  const available = riserBuffers.map((b,i) => b ? i : -1).filter(i => i >= 0);
+  if (!available.length || !riserGain || !actx) return;
+
+  const idx = available[Math.floor(Math.random() * available.length)];
+  const src = actx.createBufferSource();
+  src.buffer = riserBuffers[idx];
+  src.loop   = false;
+  src.connect(riserGain);
+
+  // Fade in gently so it doesn't click
+  riserGain.gain.cancelScheduledValues(atTime);
+  riserGain.gain.setValueAtTime(0, atTime);
+  riserGain.gain.linearRampToValueAtTime(0.3, atTime + 1.5);
+
+  src.start(atTime);
+
+  riserState.active        = true;
+  riserState.source        = src;
+  riserState.riserIdx      = idx;
+  riserState.startBar      = getCurrentBar();
+  riserState.peakTension   = smoothedTension;
+  riserState.releaseQueued = false;
+
+  logToConsole(`🚀 Riser ${idx} → bar ${riserState.startBar}`);
+}
+
+function triggerCrash(atTime) {
+  // Fade out the riser
+  if (riserState.source && riserGain) {
+    riserGain.gain.cancelScheduledValues(atTime);
+    riserGain.gain.setValueAtTime(riserGain.gain.value, atTime);
+    riserGain.gain.linearRampToValueAtTime(0, atTime + RISER_FADE_SEC);
+    const srcToStop = riserState.source;
+    setTimeout(() => {
+      try { srcToStop.stop(); srcToStop.disconnect(); } catch {}
+    }, (atTime - actx.currentTime + RISER_FADE_SEC + 0.1) * 1000);
+  }
+  riserState.active        = false;
+  riserState.source        = null;
+  riserState.releaseQueued = true;
+
+  // Fire a crash one-shot
+  const available = crashBuffers.map((b,i) => b ? i : -1).filter(i => i >= 0);
+  if (available.length && crashGain && actx) {
+    const idx = available[Math.floor(Math.random() * available.length)];
+    const src = actx.createBufferSource();
+    src.buffer = crashBuffers[idx];
+    src.loop   = false;
+    src.connect(crashGain);
+    crashGain.gain.cancelScheduledValues(atTime);
+    crashGain.gain.setValueAtTime(0.3, atTime);
+    src.start(atTime);
+    logToConsole(`💥 Crash ${idx} @ bar ${getCurrentBar()}`);
+  }
+
+  lastCrashBar = getCurrentBar();
+}
+
+function tickRiserSystem() {
+  if (!running || !actx) return;
+
+  prevSmoothedTension = smoothedTension;
+  smoothedTension     = getSmoothedTension();
+
+  const currentBar   = getCurrentBar();
+  const barFrac      = ((actx.currentTime - engineStartTime) % MEASURE_DUR_SEC) / MEASURE_DUR_SEC;
+  const nearBarStart = barFrac < 0.12;   // within first 12% of a bar = "on the bar"
+
+  // ── RISER TRIGGER ──────────────────────────────────────────────────────────
+  if (!riserState.active) {
+    const barsSince = currentBar - lastCrashBar;
+    const tensionRising = smoothedTension > prevSmoothedTension;
+    if (
+      tensionRising &&
+      smoothedTension >= RISER_TENSION_THRESHOLD &&
+      barsSince >= MIN_BARS_BETWEEN_RISERS &&
+      riserBuffers.some(Boolean)
+    ) {
+      triggerRiser(nextBarBoundaryTime(1));
+    }
+  }
+
+  // ── CRASH TRIGGER ──────────────────────────────────────────────────────────
+  if (riserState.active && !riserState.releaseQueued) {
+    const barsPlaying = currentBar - riserState.startBar;
+    const tensionFalling = smoothedTension < prevSmoothedTension;
+    const hitCeiling = barsPlaying >= MAX_RISER_BARS;
+    const naturalDrop = tensionFalling && smoothedTension <= CRASH_TENSION_THRESHOLD && barsPlaying >= MIN_RISER_BARS;
+
+    if ((naturalDrop || hitCeiling) && nearBarStart) {
+      triggerCrash(actx.currentTime + 0.01);   // as close to now as possible (we're on the bar)
+    }
+  }
+}
+
 // ── SCHEDULERS ────────────────────────────────────────────────────────────────
 
 function scheduleMelody() {
@@ -1822,6 +1842,7 @@ function scheduleMelody() {
     tensionArc.push(r.tension);
     if (tensionArc.length > 44) tensionArc.shift();
   }
+  tickRiserSystem();
   schedulerTimer = setTimeout(scheduleMelody, SCHEDULE_INTERVAL_MS);
 }
 
@@ -2053,6 +2074,25 @@ async function loadAllAssets() {
       } catch { logToConsole(`⚠️ missing ${name}.m4a`); }
   }
 
+  // Load risers and crashes (non-blocking — engine works fine without them)
+  await Promise.all([
+    ...[0,1,2,3].map(i => (async () => {
+      try {
+        const r = await fetch(`${STEM_BASE}/riser0${i}.m4a`);
+        if (r.ok) { riserBuffers[i] = await actx.decodeAudioData(await r.arrayBuffer()); }
+      } catch {}
+    })()),
+    ...[0,1,2,3].map(i => (async () => {
+      try {
+        const r = await fetch(`${STEM_BASE}/crash0${i}.m4a`);
+        if (r.ok) { crashBuffers[i] = await actx.decodeAudioData(await r.arrayBuffer()); }
+      } catch {}
+    })()),
+  ]);
+  const risersLoaded = riserBuffers.filter(Boolean).length;
+  const crashesLoaded = crashBuffers.filter(Boolean).length;
+  logToConsole(`Risers: ${risersLoaded}/4 · Crashes: ${crashesLoaded}/4`);
+
  
   playBtn.disabled = false;
   logToConsole('All assets linked. Engine ready.');
@@ -2074,7 +2114,11 @@ async function startEngine() {
   shortGain   = actx.createGain();
   ambienceGain = actx.createGain();
   beatGain    = actx.createGain();
-  [longGain, medGain, shortGain, ambienceGain, beatGain].forEach(g => g.connect(actx.destination));
+  riserGain   = actx.createGain();
+  crashGain   = actx.createGain();
+  riserGain.gain.value = 0.3;
+  crashGain.gain.value = 0.3;
+  [longGain, medGain, shortGain, ambienceGain, beatGain, riserGain, crashGain].forEach(g => g.connect(actx.destination));
 
   longGain.gain.value    = parseFloat(document.getElementById('longVol').value);
   medGain.gain.value     = parseFloat(document.getElementById('medVol').value);
@@ -2114,8 +2158,6 @@ async function startEngine() {
                motifQueue: [], rhythmQueue: [], pendingSuspension: null,
                prevNote: null, consecutiveRest: 0, measuresSinceSync: 0 };
 
-  motifDevelopmentState = { phase: 'free', activeMotif: null, notesRemaining: 0 };
-
   generationState = {
     currentStructuralRole:  'setup',
     measuresSinceRoleChange: 0,
@@ -2146,6 +2188,12 @@ function stopEngine() {
   try {
     if (ambienceSource) { ambienceSource.stop(); ambienceSource.disconnect(); ambienceSource = null; }
     if (beatSource)     { beatSource.stop();     beatSource.disconnect();     beatSource     = null; }
+    if (riserState.source) {
+      try { riserState.source.stop(); riserState.source.disconnect(); } catch {}
+      riserState.source = null; riserState.active = false; riserState.releaseQueued = false;
+    }
+    if (riserGain)  { riserGain.disconnect();  riserGain  = null; }
+    if (crashGain)  { crashGain.disconnect();  crashGain  = null; }
     if (longGain)   longGain.disconnect();
     if (medGain)    medGain.disconnect();
     if (shortGain)  shortGain.disconnect();
