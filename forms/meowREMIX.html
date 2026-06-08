@@ -710,6 +710,23 @@ const riserState = {
 };
 
 let longGain, medGain, shortGain, ambienceGain, beatGain;
+
+// ── FX CHAIN NODES ────────────────────────────────────────────────────────────
+// Routing overview:
+//   melody notes  → melodyBus → [delay send] + [dry] → fxBus → reverb → masterGain
+//   ambience/risers/crashes                           → fxBus → reverb → masterGain
+//   beat                                                      → masterGain  (dry)
+//
+// All nodes are null until startEngine() creates them, and nulled again in stopEngine().
+let masterGain   = null;   // final output trim before destination
+let fxBus        = null;   // pre-reverb mix bus (melody + ambience + risers)
+let reverbNode   = null;   // ConvolverNode with synthesised IR
+let reverbSend   = null;   // GainNode: wet level into reverb
+let reverbReturn = null;   // GainNode: reverb output level
+let melodyBus    = null;   // submix for long+med+short before delay
+let delayNode    = null;   // melody feedback delay
+let delayWet     = null;   // GainNode: delay send level
+let delayFeedback = null;  // GainNode: delay feedback level
 let ambienceSource = null, beatSource = null;
 let running = false;
 let schedulerTimer = null, harmonySchedulerTimer = null, barSchedulerTimer = null;
@@ -2316,6 +2333,41 @@ function renderVisuals() {
 }
 renderVisuals();
 
+// ── FX HELPERS ───────────────────────────────────────────────────────────────
+
+function buildReverbIR(actx, decaySec = 2.8, predelayMs = 18) {
+  // Synthesise a plausible convolution reverb impulse response entirely in JS.
+  // This avoids needing an external IR file.
+  //
+  // Algorithm: exponentially-decaying white noise with a short pre-delay.
+  // Tuned for a medium room / hall feel that sits under the melody without
+  // clouding it — not a huge cathedral, not a tight box.
+  //
+  // decaySec   — how long the tail rings (2.8s = warm hall)
+  // predelayMs — milliseconds before reverb tail starts (adds depth)
+  const sampleRate  = actx.sampleRate;
+  const length      = Math.ceil(sampleRate * (decaySec + predelayMs / 1000));
+  const preSamples  = Math.ceil(sampleRate * predelayMs / 1000);
+  const ir          = actx.createBuffer(2, length, sampleRate);
+
+  for (let ch = 0; ch < 2; ch++) {
+    const data = ir.getChannelData(ch);
+    for (let i = 0; i < length; i++) {
+      if (i < preSamples) { data[i] = 0; continue; }
+      const t       = (i - preSamples) / sampleRate;
+      // Exponential decay envelope
+      const decay   = Math.exp(-t * (3.0 / decaySec));
+      // Early reflections: slight density boost in first 80ms
+      const earlyBoost = t < 0.08 ? 1.4 : 1.0;
+      data[i] = (Math.random() * 2 - 1) * decay * earlyBoost;
+    }
+    // Normalise channel
+    const peak = Math.max(...data.map(Math.abs));
+    if (peak > 0) for (let i = 0; i < length; i++) data[i] /= peak;
+  }
+  return ir;
+}
+
 // ── ASSET LOADING ─────────────────────────────────────────────────────────────
 
 async function loadSamples(bucket, bufMap) {
@@ -2391,16 +2443,76 @@ async function startEngine() {
 
   dancerStartTime = engineStartTime;
 
-  longGain    = actx.createGain();
-  medGain     = actx.createGain();
-  shortGain   = actx.createGain();
+  // ── GAIN NODES ──────────────────────────────────────────────────────────────
+  longGain     = actx.createGain();
+  medGain      = actx.createGain();
+  shortGain    = actx.createGain();
   ambienceGain = actx.createGain();
-  beatGain    = actx.createGain();
-  riserGain   = actx.createGain();
-  crashGain   = actx.createGain();
+  beatGain     = actx.createGain();
+  riserGain    = actx.createGain();
+  crashGain    = actx.createGain();
   riserGain.gain.value = 0.3;
   crashGain.gain.value = 0.3;
-  [longGain, medGain, shortGain, ambienceGain, beatGain, riserGain, crashGain].forEach(g => g.connect(actx.destination));
+
+  // ── FX CHAIN ─────────────────────────────────────────────────────────────────
+  // Master output trim
+  masterGain = actx.createGain();
+  masterGain.gain.value = 0.88;
+  masterGain.connect(actx.destination);
+
+  // Reverb (convolver + wet/dry)
+  reverbNode           = actx.createConvolver();
+  reverbNode.buffer    = buildReverbIR(actx, 2.8, 18);
+  reverbReturn         = actx.createGain();
+  reverbReturn.gain.value = 0.38;      // reverb return level — how wet the tail is
+  reverbNode.connect(reverbReturn);
+  reverbReturn.connect(masterGain);
+
+  // FX bus — melody + ambience + risers/crashes feed into this, then → reverb + dry
+  fxBus = actx.createGain();
+  fxBus.gain.value = 1.0;
+  fxBus.connect(masterGain);           // dry path
+  reverbSend = actx.createGain();
+  reverbSend.gain.value = 0.55;        // how much of the fx bus goes into reverb
+  fxBus.connect(reverbSend);
+  reverbSend.connect(reverbNode);
+
+  // Melody submix bus (long + medium + short notes)
+  melodyBus = actx.createGain();
+  melodyBus.gain.value = 1.0;
+
+  // Delay node — dotted-eighth delay synced to BPM (creates that spacious echo)
+  // Dotted eighth = 3/4 of a beat = gives rhythmic "slapback" that grooves with 4/4
+  const delayTimeSec = BEAT_SEC * 0.75;
+  delayNode              = actx.createDelay(2.0);
+  delayNode.delayTime.value = delayTimeSec;
+  delayFeedback          = actx.createGain();
+  delayFeedback.gain.value = 0.28;     // feedback level — how many echoes repeat
+  delayWet               = actx.createGain();
+  delayWet.gain.value    = 0.22;       // delay send level — subtle, not washy
+
+  // Delay routing: melodyBus → delayWet → delayNode → feedback loop → fxBus
+  melodyBus.connect(delayWet);
+  delayWet.connect(delayNode);
+  delayNode.connect(delayFeedback);
+  delayFeedback.connect(delayNode);    // feedback loop
+  delayNode.connect(fxBus);           // delay output → reverb + dry
+  melodyBus.connect(fxBus);           // dry melody signal also goes direct
+
+  // Wire note buckets → melody submix
+  longGain.connect(melodyBus);
+  medGain.connect(melodyBus);
+  shortGain.connect(melodyBus);
+
+  // Ambience → fx bus (gets reverb but no delay)
+  ambienceGain.connect(fxBus);
+
+  // Risers + crashes → fx bus (light reverb tail on crashes sounds great)
+  riserGain.connect(fxBus);
+  crashGain.connect(fxBus);
+
+  // Beat stays completely dry — it already has its own room treatment
+  beatGain.connect(masterGain);
 
   longGain.gain.value    = parseFloat(document.getElementById('longVol').value);
   medGain.gain.value     = parseFloat(document.getElementById('medVol').value);
@@ -2476,11 +2588,20 @@ function stopEngine() {
     }
     if (riserGain)  { riserGain.disconnect();  riserGain  = null; }
     if (crashGain)  { crashGain.disconnect();  crashGain  = null; }
-    if (longGain)   longGain.disconnect();
-    if (medGain)    medGain.disconnect();
-    if (shortGain)  shortGain.disconnect();
-    if (ambienceGain) ambienceGain.disconnect();
-    if (beatGain)   beatGain.disconnect();
+    if (longGain)     { longGain.disconnect();     longGain     = null; }
+    if (medGain)      { medGain.disconnect();       medGain      = null; }
+    if (shortGain)    { shortGain.disconnect();     shortGain    = null; }
+    if (ambienceGain) { ambienceGain.disconnect();  ambienceGain = null; }
+    if (beatGain)     { beatGain.disconnect();      beatGain     = null; }
+    if (melodyBus)    { melodyBus.disconnect();     melodyBus    = null; }
+    if (delayWet)     { delayWet.disconnect();      delayWet     = null; }
+    if (delayNode)    { delayNode.disconnect();     delayNode    = null; }
+    if (delayFeedback){ delayFeedback.disconnect(); delayFeedback = null; }
+    if (fxBus)        { fxBus.disconnect();         fxBus        = null; }
+    if (reverbSend)   { reverbSend.disconnect();    reverbSend   = null; }
+    if (reverbNode)   { reverbNode.disconnect();    reverbNode   = null; }
+    if (reverbReturn) { reverbReturn.disconnect();  reverbReturn = null; }
+    if (masterGain)   { masterGain.disconnect();    masterGain   = null; }
   } catch {}
   playBtnImg.src = '../static/images/play.png';
   telemetryLong.innerText    = '—';
