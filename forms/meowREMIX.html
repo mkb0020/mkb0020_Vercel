@@ -2361,8 +2361,9 @@ function buildReverbIR(actx, decaySec = 2.8, predelayMs = 18) {
       const earlyBoost = t < 0.08 ? 1.4 : 1.0;
       data[i] = (Math.random() * 2 - 1) * decay * earlyBoost;
     }
-    // Normalise channel
-    const peak = Math.max(...data.map(Math.abs));
+    // Normalise channel — loop instead of spread to avoid stack overflow on large buffers
+    let peak = 0;
+    for (let i = 0; i < length; i++) { const a = Math.abs(data[i]); if (a > peak) peak = a; }
     if (peak > 0) for (let i = 0; i < length; i++) data[i] /= peak;
   }
   return ir;
