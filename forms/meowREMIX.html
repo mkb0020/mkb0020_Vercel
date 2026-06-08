@@ -1506,13 +1506,64 @@ function pitchToSampleName(pitch, bucket) {
   return sample;
 }
 
+// ── VELOCITY LAYER SYSTEM ────────────────────────────────────────────────────
+//
+// "Velocity" here is a 0.0→1.0 value derived at note-play time from:
+//   • tension        — high tension = louder, brighter
+//   • metrical strength — beat 1 > beat 3 > beat 2/4 (natural musical accent)
+//   • bucket         — long pads sit back, short staccato punches forward
+//   • a small random humanisation offset so nothing sounds perfectly uniform
+//
+// Velocity drives two things:
+//   1. Per-note gain multiplier (soft notes are quieter)
+//   2. A low-pass filter cutoff (soft notes are darker/warmer)
+//
+// This simulates multi-velocity sample layers without needing multiple files.
+
+function computeVelocity(bucket, tension, atTime) {
+  // ── Metrical accent: which beat of the bar are we on? ─────────────────────
+  // Beat 1 gets the strongest accent, beat 3 medium, 2 & 4 lightest.
+  // We derive beat position from audio clock relative to engine start.
+  let metricalStrength = 0.5;   // default: unaccented
+  if (actx && engineStartTime != null) {
+    const beatPos = ((atTime - engineStartTime) / BEAT_SEC) % 4;  // 0–4 within bar
+    if      (beatPos < 0.25)                 metricalStrength = 1.0;  // beat 1
+    else if (beatPos >= 1.75 && beatPos < 2.25) metricalStrength = 0.72; // beat 2
+    else if (beatPos >= 2.0  && beatPos < 2.5)  metricalStrength = 0.80; // beat 3
+    else if (beatPos >= 3.75)                metricalStrength = 0.65; // beat 4
+  }
+
+  // ── Bucket base level ─────────────────────────────────────────────────────
+  // Pads sit back in the mix, melody in the middle, staccato punches forward
+  const bucketBase = bucket === 'long' ? 0.55 : bucket === 'medium' ? 0.72 : 0.82;
+
+  // ── Tension contribution ──────────────────────────────────────────────────
+  // Map tension 0→1 to a 0.6→1.0 velocity boost
+  const tensionBoost = 0.60 + (tension ?? 0.4) * 0.40;
+
+  // ── Combine and humanise ──────────────────────────────────────────────────
+  const humanise = 0.92 + Math.random() * 0.08;   // ±4% random per note
+  const velocity = Math.min(1.0, bucketBase * tensionBoost * metricalStrength * humanise);
+
+  return velocity;
+}
+
+function velocityToFilterCutoff(velocity) {
+  // Map velocity 0→1 to filter cutoff frequency
+  // Soft (0.0) → 900 Hz  (dark, warm)
+  // Loud (1.0) → 18000 Hz (fully open, bright)
+  // Uses exponential curve — matches how ears perceive brightness
+  const minHz = 900, maxHz = 18000;
+  return minHz * Math.pow(maxHz / minHz, velocity);
+}
+
 // ── PLAY NOTE ─────────────────────────────────────────────────────────────────
 // ENVELOPE SHAPE IS NOW DERIVED FROM THE BUCKET:
 //   LONG   → PAD-STYLE: SLOW ATTACK, LONG RELEASE, LEGATO OVERLAP
 //   MEDIUM → MELODIC:   MEDIUM ATTACK/RELEASE
 //   SHORT  → STACCATO:  SHARP ATTACK, VERY SHORT RELEASE, TIGHT CUTOFF
 
-function playNote(bucket, pitch, durationSec, gainNode, atTime) {
+function playNote(bucket, pitch, durationSec, gainNode, atTime, tension = 0.4) {
   // UPDATE TELEMETRY
   const delay = Math.max(0, (atTime - actx.currentTime) * 1000);
   setTimeout(() => {
@@ -1535,63 +1586,66 @@ function playNote(bucket, pitch, durationSec, gainNode, atTime) {
   const buffer  = buffers[sample];
   if (!buffer) return;
 
-  // ── ENVELOPE PARAMETERS BY BUCKET ─────────────────────────────────────────
-  //
-  // The key change from the original: we deliberately let notes OVERLAP into
-  // the next note's start time via the `tail` parameter.  This eliminates the
-  // hard click/gap between consecutive notes and creates legato continuity.
-  //
-  //   attack  — ramp up time (seconds)
-  //   hold    — sustain at full gain before the release ramp begins
-  //   release — exponential fall from full gain to silence
-  //   tail    — how far PAST durationSec the note is allowed to ring (overlap)
-  //             This is the micro-overlap: the previous note's tail is still
-  //             fading while the new note's attack is ramping up.  The ear
-  //             hears this as a smooth phrase rather than chopped notes.
-  //
-  // SHORT notes intentionally get zero tail — staccato should stay crisp.
+  // ── VELOCITY ───────────────────────────────────────────────────────────────
+  // Computed from tension, metrical position, bucket, and humanisation.
+  // Drives both the gain peak and the filter cutoff brightness.
+  const velocity   = computeVelocity(bucket, tension, atTime);
+  const filterHz   = velocityToFilterCutoff(velocity);
 
+  // ── ENVELOPE PARAMETERS BY BUCKET ─────────────────────────────────────────
+  // attack scales with velocity — soft notes attack slower (more pad-like),
+  // loud notes attack faster (more percussive presence).
   let attack, release, tail;
   if (bucket === 'long') {
-    // PAD — slow attack, long release, generous overlap
-    attack  = Math.min(0.40, durationSec * 0.18);
+    attack  = Math.min(0.40, durationSec * 0.18) * (1.4 - velocity * 0.4);
     release = Math.min(0.70, durationSec * 0.40);
-    tail    = Math.min(0.60, durationSec * 0.30);  // up to 60% of next note
+    tail    = Math.min(0.60, durationSec * 0.30);
   } else if (bucket === 'medium') {
-    // MELODIC — moderate attack, overlap covers ~20% of next note duration
-    attack  = Math.min(0.10, durationSec * 0.08);
+    attack  = Math.min(0.10, durationSec * 0.08) * (1.2 - velocity * 0.2);
     release = Math.min(0.32, durationSec * 0.30);
-    tail    = Math.min(0.22, durationSec * 0.20);  // subtle but audible smoothing
+    tail    = Math.min(0.22, durationSec * 0.20);
   } else {
-    // SHORT — staccato stays crisp, minimal tail so rhythm stays tight
     attack  = Math.min(0.03, durationSec * 0.04);
     release = Math.min(0.10, durationSec * 0.18);
     tail    = 0.03;
   }
 
-  // holdEnd: when the sustain plateau ends and the release ramp begins
   const holdEnd = atTime + durationSec - release;
-  // stopAt: when the buffer source is released (past the nominal note end)
   const stopAt  = atTime + durationSec + tail;
 
-  // ── GAIN CURVE ─────────────────────────────────────────────────────────────
-  // attack ramp → hold plateau → exponential release into tail
-  // We use exponentialRamp for the release (sounds more natural than linear)
-  // and clamp the hold start so attack never overshoots durationSec.
   try {
     const source   = actx.createBufferSource();
     const noteGain = actx.createGain();
-    source.buffer = buffer;
-    source.connect(noteGain);
+
+    // ── LOW-PASS FILTER (velocity → brightness) ───────────────────────────
+    // Inserted between source and gain so it doesn't affect the gain envelope.
+    // Soft notes are dark and warm; loud notes are fully open and bright.
+    // Q=0.8 keeps the filter neutral (no resonance peak).
+    const filter       = actx.createBiquadFilter();
+    filter.type        = 'lowpass';
+    filter.frequency.setValueAtTime(filterHz, atTime);
+    // For long notes: slowly open the filter over the note duration (swell effect)
+    if (bucket === 'long') {
+      const openHz = Math.min(filterHz * 2.2, 20000);
+      filter.frequency.linearRampToValueAtTime(openHz, atTime + durationSec * 0.7);
+    }
+    filter.Q.value = 0.8;
+
+    source.connect(filter);
+    filter.connect(noteGain);
     noteGain.connect(gainNode);
 
+    // ── GAIN CURVE (velocity-scaled peak) ────────────────────────────────
+    // Peak gain = velocity (0→1), so soft notes never reach full gain.
+    // This is the amplitude layer without needing multiple sample recordings.
+    const peakGain = Math.max(0.0001, velocity);
     noteGain.gain.setValueAtTime(0.0001, atTime);
-    noteGain.gain.linearRampToValueAtTime(1.0, atTime + attack);
-    noteGain.gain.setValueAtTime(1.0, Math.max(atTime + attack + 0.001, holdEnd));
+    noteGain.gain.linearRampToValueAtTime(peakGain, atTime + attack);
+    noteGain.gain.setValueAtTime(peakGain, Math.max(atTime + attack + 0.001, holdEnd));
     noteGain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
 
     source.start(atTime);
-    source.stop(stopAt + 0.05);   // tiny pad so the ramp fully completes
+    source.stop(stopAt + 0.05);
   } catch(err) {
     console.warn(`playNote error [${bucket}] ${pitch}:`, err);
   }
@@ -1776,7 +1830,7 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
 
   // GAIN NODE SELECTED BY BUCKET
   const gainNode = bucket === 'long' ? longGain : bucket === 'medium' ? medGain : shortGain;
-  playNote(bucket, noteToPlay, durSec, gainNode, atTime);
+  playNote(bucket, noteToPlay, durSec, gainNode, atTime, generationState.targetTension);
 
   // UPDATE STATE
   if (noteToPlay === 'REST') {
