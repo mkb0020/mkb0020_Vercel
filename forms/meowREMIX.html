@@ -2435,7 +2435,10 @@ async function loadSamples(bucket, bufMap) {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       bufMap[s] = await actx.decodeAudioData(await r.arrayBuffer());
       loaded++;
-    } catch { console.warn(`missing: ${url}`); }
+      console.log(`✅ Loaded: ${url}`);  // ADD THIS
+    } catch(e) { 
+      console.warn(`❌ Failed: ${url} — ${e.message}`);  // MODIFY THIS
+    }
   }));
   return loaded;
 }
