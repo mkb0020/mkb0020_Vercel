@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add a Memory – Lighthouse</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-void: #170032;
+      --bg-panel: rgba(55, 2, 90, 0.8);
+      --neon-cyan: #00ffff;
+      --neon-pink: #ff69b4;
+      --neon-purple: #A55AFF;
+      --text-muted: #657383;
+      --text-main: #C4C3D0;
+      --success-green: #58e84c;
+      --error-red: #cc0000;
+    }
+
+    body { 
+      font-family: 'VT323', monospace; 
+      background-color: var(--bg-void);
+      color: var(--text-main);
+      max-width: 650px; 
+      margin: 2rem auto; 
+      padding: 0 1.5rem; 
+      font-size: 1.25rem;
+      /* Cyberpunk grid overlay */
+      background-image: 
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    h1 {
+      color: var(--neon-pink);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 0px #730132, 0 0 10px var(--neon-pink);
+      text-align: center;
+      border-bottom: 2px solid var(--neon-purple);
+      padding-bottom: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    #memory-form {
+      background: var(--bg-panel);
+      padding: 2rem;
+      border: 1px solid #830cde;
+      box-shadow: 0 0 15px rgba(165, 90, 255, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    label { 
+      display: block; 
+      margin-top: 1.25rem; 
+      color: var(--neon-cyan); 
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input, textarea, select { 
+      width: 100%; 
+      padding: 0.75rem; 
+      margin-top: 0.5rem; 
+      box-sizing: border-box; 
+      background-color: #000;
+      border: 1px solid var(--neon-purple);
+      color: #FFC7FF;
+      font-family: 'VT323', monospace;
+      font-size: 1.2rem;
+      transition: all 0.2s ease-in-out;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    button { 
+      margin-top: 2rem; 
+      padding: 0.75rem 1.5rem; 
+      font-size: 1.25rem; 
+      cursor: pointer; 
+      font-family: 'VT323', monospace;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      background: transparent;
+      color: var(--neon-cyan);
+      border: 2px solid var(--neon-cyan);
+    }
+
+    button[type="submit"]:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      box-shadow: 0 0 15px var(--neon-cyan);
+    }
+
+    .people-entry { 
+      display: flex; 
+      gap: 0.5rem; 
+      align-items: center; 
+      margin-top: 0.5rem; 
+    }
+
+    .people-entry input { 
+      flex: 1; 
+      margin-top: 0;
+    }
+
+    .remove-person { 
+      background: #730132; 
+      color: #ff9a9e; 
+      border: 1px solid #c71585; 
+      padding: 0.5rem 1rem; 
+      margin-top: 0;
+    }
+
+    .remove-person:hover {
+      background: #c71585;
+      color: #fff;
+      box-shadow: 0 0 10px #c71585;
+    }
+
+    #add-person { 
+      margin-top: 1rem; 
+      background: transparent; 
+      border: 1px dashed var(--neon-purple); 
+      color: var(--neon-purple); 
+      padding: 0.5rem 1rem; 
+      width: 100%;
+    }
+
+    #add-person:hover {
+      background: var(--neon-purple);
+      color: #fff;
+      border-style: solid;
+      box-shadow: 0 0 10px var(--neon-purple);
+    }
+
+    #message { 
+      margin-top: 1.5rem; 
+      text-align: center;
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌊 Add a Memory</h1>
+  <form id="memory-form">
+    <label for="title">Title (optional)</label>
+    <input type="text" id="title" name="title" placeholder="E.g., First day of school">
+
+    <label for="event_date">Date (optional)</label>
+    <input type="text" id="event_date" name="event_date" placeholder="Summer 1998, 2020-03-15, etc.">
+
+    <label for="location">Location (optional)</label>
+    <input type="text" id="location" name="location" placeholder="Chicago, grandma's house, …">
+
+    <label>People involved (optional)</label>
+    <div id="people-container">
+      <div class="people-entry">
+        <input type="text" class="person-input" placeholder="Name">
+        <button type="button" class="remove-person">✕</button>
+      </div>
+    </div>
+    <button type="button" id="add-person">+ Add another person</button>
+
+    <label for="description">Description (optional)</label>
+    <textarea id="description" name="description" rows="4" placeholder="What happened? Capture the moment…"></textarea>
+
+    <label for="significance">Significance (optional)</label>
+    <textarea id="significance" name="significance" rows="2" placeholder="Why does this memory matter to you?"></textarea>
+
+    <button type="submit">Save Memory</button>
+
+<label for="access_token">Authorization Code (Required)</label>
+    <input type="password" id="access_token" name="access_token" placeholder="Enter clearance code..." required>
+
+  </form>
+  <div id="message"></div>
+
+  <script>
+    // Manage dynamic people entries
+    const peopleContainer = document.getElementById('people-container');
+    document.getElementById('add-person').addEventListener('click', () => {
+      const entry = document.createElement('div');
+      entry.className = 'people-entry';
+      entry.innerHTML = `
+        <input type="text" class="person-input" placeholder="Name">
+        <button type="button" class="remove-person">✕</button>
+      `;
+      peopleContainer.appendChild(entry);
+    });
+    
+    peopleContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-person')) {
+        const entries = document.querySelectorAll('.people-entry');
+        if (entries.length > 1) {
+          e.target.closest('.people-entry').remove();
+        } else {
+          // Keep at least one field
+          entries[0].querySelector('.person-input').value = '';
+        }
+      }
+    });
+
+    // Form submission
+    document.getElementById('memory-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('message');
+      msg.textContent = '';
+      // Reset any previous glows
+      msg.style.textShadow = 'none'; 
+
+      const people = Array.from(document.querySelectorAll('.person-input'))
+        .map(input => input.value.trim())
+        .filter(name => name !== '');
+
+      const payload = {
+        title: document.getElementById('title').value.trim(),
+        event_date: document.getElementById('event_date').value.trim(),
+        location: document.getElementById('location').value.trim(),
+        people: people,
+        description: document.getElementById('description').value.trim(),
+        significance: document.getElementById('significance').value.trim()
+      };
+
+try {
+        // Grab the password from the input field
+        const secretToken = document.getElementById('access_token').value.trim();
+
+        const res = await fetch('/api/memories', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-Access-Token': secretToken // Send the key to the backend
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+          msg.style.color = 'var(--success-green)';
+          msg.style.textShadow = '0 0 10px var(--success-green)';
+          msg.textContent = `Memory saved! (ID: ${result.id})`;
+          document.getElementById('memory-form').reset();
+        } else {
+          // If auth fails, it will show the 401 error message here
+          msg.style.color = 'var(--error-red)';
+          msg.style.textShadow = '0 0 10px var(--error-red)';
+          msg.textContent = result.error || 'System error. Try again.';
+        }
+      } catch (err) {
+        msg.style.color = 'var(--error-red)';
+        msg.style.textShadow = '0 0 10px var(--error-red)';
+        msg.textContent = 'Network link severed. Reconnect and try again.';
+      }
+    });
+  </script>
+</body>
+</html>
