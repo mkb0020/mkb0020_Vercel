@@ -19,6 +19,7 @@ from api.audio.ingest       import audio_ingest_bp             # meowREMIX
 from api.audio.analyze      import audio_analyze_bp            # meowREMIX
 from api.audio.rules_serve  import rules_serve_bp              # meowREMIX — serves rules.js from Neon
 from api.audio_training     import audio_training_bp           # meowREMIX
+from api.memories import memories_bp                           # LIGHTHOUSE
 
 
 
@@ -45,6 +46,7 @@ app.register_blueprint(audio_ingest_bp)         # meowREMIX
 app.register_blueprint(audio_analyze_bp)        # meowREMIX
 app.register_blueprint(rules_serve_bp)          # meowREMIX — rules.js from Neon
 app.register_blueprint(audio_training_bp)       # meowREMIX
+app.register_blueprint(memories_bp)             # LIGHTHOUSE
 
  
 
@@ -137,6 +139,10 @@ def rules_js():
 @app.route('/audioTraining.html')
 def audio_training_page():
     return send_from_directory('forms', 'audioTraining.html')
+
+@app.route('/memories')
+def memories_page():
+    return send_from_directory('forms', 'memories.html')
 
 if __name__ == '__main__':
     app.run()
