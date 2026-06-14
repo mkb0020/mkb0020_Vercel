@@ -7,3 +7,4 @@ flask-cors
 openpyxl
 python-dateutil
 numpy
+supabase
