@@ -154,6 +154,32 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
+
+    input[type="file"] {
+      padding: 0.5rem;
+      background: rgba(0, 255, 255, 0.05);
+      border: 1px dashed var(--neon-cyan);
+      color: var(--neon-cyan);
+      cursor: pointer;
+    }
+    
+    input[type="file"]::file-selector-button {
+      background: var(--neon-purple);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      margin-right: 1rem;
+      font-family: 'VT323', monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    input[type="file"]::file-selector-button:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      box-shadow: 0 0 10px var(--neon-cyan);
+    }
   </style>
 </head>
 <body>
@@ -182,6 +208,9 @@
 
     <label for="significance">Significance  </label>
     <textarea id="significance" name="significance" rows="2" placeholder="Why does this memory matter to you?"></textarea>
+
+    <label for="photo">Attach Image</label>
+    <input type="file" id="photo" name="photo" accept="image/*" class="file-input">
 
     <button type="submit">Save Memory</button>
 
@@ -238,16 +267,33 @@
       };
 
 try {
-        // Grab the password from the input field
         const secretToken = document.getElementById('access_token').value.trim();
+        
+        // We use FormData instead of JSON to securely package the file
+        const formData = new FormData();
+        formData.append('title', document.getElementById('title').value.trim());
+        formData.append('event_date', document.getElementById('event_date').value.trim());
+        formData.append('location', document.getElementById('location').value.trim());
+        formData.append('description', document.getElementById('description').value.trim());
+        formData.append('significance', document.getElementById('significance').value.trim());
+        
+        // Append the people array as a JSON string so it travels well
+        formData.append('people', JSON.stringify(people));
+
+        // Grab the file if one was attached
+        const photoFile = document.getElementById('photo').files[0];
+        if (photoFile) {
+          formData.append('photo', photoFile);
+        }
 
         const res = await fetch('/api/memories', {
           method: 'POST',
           headers: { 
-            'Content-Type': 'application/json',
-            'X-Access-Token': secretToken // Send the key to the backend
+            // Notice: We DO NOT set 'Content-Type' manually here. 
+            // The browser sets it automatically with the correct boundary for files.
+            'X-Access-Token': secretToken 
           },
-          body: JSON.stringify(payload)
+          body: formData
         });
         
         const result = await res.json();
@@ -258,7 +304,6 @@ try {
           msg.textContent = `Memory saved! (ID: ${result.id})`;
           document.getElementById('memory-form').reset();
         } else {
-          // If auth fails, it will show the 401 error message here
           msg.style.color = 'var(--error-red)';
           msg.style.textShadow = '0 0 10px var(--error-red)';
           msg.textContent = result.error || 'System error. Try again.';
