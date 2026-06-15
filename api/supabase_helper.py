@@ -4,12 +4,12 @@ from datetime import datetime
 from supabase import create_client, Client
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_SECRET = os.environ.get("SUPABASE_SECRET")
 
 # Initialize client safely for serverless environments
 supabase: Client = None
-if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
-    supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+if SUPABASE_URL and SUPABASE_SECRET:
+    supabase = create_client(SUPABASE_URL, SUPABASE_SECRET)
 
 def get_bucket_and_type(filename: str, mimetype: str):
     """Determines the correct Supabase storage bucket and media type based on file info."""

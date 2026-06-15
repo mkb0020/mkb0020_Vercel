@@ -102,3 +102,15 @@ def api_get_random_ready():
         return jsonify({"status": "success", "post": selected_post}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+
+@catforce_bp.route('/api/debug/env', methods=['GET'])
+def debug_env():
+    url = os.environ.get("SUPABASE_URL")
+    secret = os.environ.get("SUPABASE_SECRET")
+    return jsonify({
+        "SUPABASE_URL_present": bool(url),
+        "SUPABASE_SECRET_present": bool(secret),
+        "SUPABASE_URL_len": len(url) if url else 0,
+        "SECRET_len": len(secret) if secret else 0
+    })
