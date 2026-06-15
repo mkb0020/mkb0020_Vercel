@@ -10,12 +10,12 @@ supabase: Client = None
 if supabase_url and supabase_key:
     supabase = create_client(supabase_url, supabase_key)
 
-def insert_new_project(name: str, types: list, audience: list, platform: str, description: str):
+# === FIXED: Changed 'audience' to 'audiences' to match the blueprint call ===
+def insert_new_project(name: str, types: list, audiences: list, platform: str, description: str):
     """
     Commits a new project configuration matrix and metadata payload 
     directly into the Supabase Postgres 'projects' table.
     """
-    # Only crash if a user actually triggers the function and keys are missing
     if not supabase:
         raise RuntimeError(
             "Deployment Matrix Error: Supabase client is not initialized. "
@@ -23,11 +23,11 @@ def insert_new_project(name: str, types: list, audience: list, platform: str, de
             "are properly set in your Vercel Environment Variables dashboard."
         )
 
-    # Corrected to map exactly to your Postgres database columns
+    # Maps exactly to your Postgres database columns
     payload = {
         "project_name": name,
         "project_types": types,          
-        "target_audiences": audience,    
+        "target_audiences": audiences,   # <-- Fixed variable name here too
         "platform": platform,
         "description": description
     }
