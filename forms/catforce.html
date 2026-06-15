@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>//CATFORCE_OPERATIONAL_MAIN_v2.6</title>
+    <style>
+        :root {
+            --bg-deep: #170032;
+            --bg-terminal: #37025a;
+            --neon-cyan: #00ffff;
+            --neon-magenta: #dc4ce8;
+            --neon-purple: #a55aff;
+            --text-main: #67febd;
+            --dim-purple: #764ba2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Scanline Overlay Grid effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 9999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        header {
+            background-color: var(--bg-terminal);
+            border-bottom: 2px solid var(--neon-cyan);
+            padding: 20px;
+            box-shadow: 0 0 15px var(--neon-purple);
+            text-align: center;
+        }
+
+        .glitch-title {
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px var(--neon-cyan), 0 0 20px var(--neon-purple);
+        }
+
+        main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            display: none; /* Blocked until authenticated */
+        }
+
+        .terminal-panel {
+            background: rgba(55, 2, 90, 0.4);
+            border: 1px solid var(--neon-purple);
+            box-shadow: 0 0 15px rgba(165, 90, 255, 0.2);
+            padding: 30px;
+            border-radius: 4px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .terminal-panel::before {
+            content: "[ SYS_OPERATION: ACTIVE ]";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: var(--bg-deep);
+            padding: 0 10px;
+            font-size: 0.8rem;
+            color: var(--neon-magenta);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--neon-cyan);
+            letter-spacing: 1px;
+        }
+
+        textarea, select, input[type="file"], input[type="password"] {
+            width: 100%;
+            background: rgba(23, 0, 50, 0.8);
+            border: 1px solid var(--dim-purple);
+            padding: 12px;
+            color: #fff;
+            font-size: 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 8px var(--neon-cyan);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-cyber {
+            background: transparent;
+            border: 1px solid var(--neon-magenta);
+            color: var(--neon-magenta);
+            padding: 12px 30px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 0 10px rgba(220, 76, 232, 0.3);
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .btn-cyber:hover {
+            background: var(--neon-magenta);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-magenta);
+        }
+
+        /* Feed Feedback Monitor */
+        #feedback-panel {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+            background: #000;
+            border-left: 4px solid #fff;
+        }
+
+        #feedback-panel.success {
+            border-color: var(--text-main);
+            color: var(--text-main);
+            box-shadow: 0 0 10px rgba(103, 254, 189, 0.2);
+        }
+
+        #feedback-panel.error {
+            border-color: #cc0000;
+            color: #ff6200;
+            box-shadow: 0 0 10px rgba(204, 0, 0, 0.2);
+        }
+
+        /* Password Gate Modal */
+        #auth-gate {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-deep);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            width: 400px;
+            padding: 40px;
+            border: 2px solid var(--neon-magenta);
+            background: var(--bg-terminal);
+            box-shadow: 0 0 25px var(--neon-magenta);
+            text-align: center;
+        }
+
+        .auth-container h2 {
+            margin-bottom: 20px;
+            color: var(--neon-cyan);
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-gate">
+        <div class="auth-container">
+            <h2>// SECURE_GATEWAY</h2>
+            <div class="form-group" style="text-align: left;">
+                <label for="gate-pass">Enter Encryption Core Key:</label>
+                <input type="password" id="gate-pass" placeholder="••••••••••••">
+            </div>
+            <button class="btn-cyber" onclick="attemptAccess()">DECRYPT</button>
+            <div id="auth-error" style="color: #ff6200; margin-top: 15px; font-size: 0.85rem; display: none;"></div>
+        </div>
+    </div>
+
+    <header>
+        <div class="glitch-title">⚙️ CATFORCE: NETWORK BROADCAST CENTER ⚙️</div>
+    </header>
+
+    <main id="workspace">
+        <div class="terminal-panel">
+            <form id="upload-form" onsubmit="submitPayload(event)">
+                <div class="form-group">
+                    <label for="text_content">Transmission Core Message (Text Context):</label>
+                    <textarea id="text_content" name="text_content" required placeholder="Type matrix payload broadcast logs here..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="platform">Target Matrix Network Vector (Platform):</label>
+                    <select id="platform" name="platform">
+                        <option value="all">// MULTI-VECTOR DEPLOYMENT (ALL)</option>
+                        <option value="x">X / TWITTER NODE</option>
+                        <option value="instagram">INSTAGRAM GRID NODE</option>
+                        <option value="tiktok">TIKTOK STREAM FEED</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="media_file">Optional Asset Upload (Image/Video/GIF):</label>
+                    <input type="file" id="media_file" name="media_file" accept="image/*,video/*">
+                </div>
+
+                <button type="submit" class="btn-cyber">EXECUTE TRANSMISSION</button>
+            </form>
+
+            <div id="feedback-panel"></div>
+        </div>
+    </main>
+
+    <script>
+        // Track encryption pass in runtime memory cache
+        let terminalToken = sessionStorage.getItem('catforce_key') || '';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (terminalToken) {
+                unlockWorkspace();
+            }
+        });
+
+        function attemptAccess() {
+            const passValue = document.getElementById('gate-pass').value;
+            if (!passValue) return;
+            
+            terminalToken = passValue;
+            sessionStorage.setItem('catforce_key', passValue);
+            unlockWorkspace();
+        }
+
+        function unlockWorkspace() {
+            document.getElementById('auth-gate').style.display = 'none';
+            document.getElementById('workspace').style.display = 'block';
+        }
+
+        function showLockoutError(msg) {
+            sessionStorage.removeItem('catforce_key');
+            document.getElementById('auth-gate').style.display = 'flex';
+            document.getElementById('workspace').style.display = 'none';
+            const errDiv = document.getElementById('auth-error');
+            errDiv.innerText = msg;
+            errDiv.style.display = 'block';
+        }
+
+        async function submitPayload(event) {
+            event.preventDefault();
+            const form = document.getElementById('upload-form');
+            const feedback = document.getElementById('feedback-panel');
+            
+            feedback.style.display = 'block';
+            feedback.className = 'success';
+            feedback.innerText = 'INITIALIZING SECURE UPLOAD TRANSMISSION LINK...';
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/api/catforce/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CatForce-Auth': terminalToken
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.status === 401) {
+                    showLockoutError("CRITICAL: VALIDATION EXPIRED. ACCESS DENIED.");
+                    return;
+                }
+
+                if (!response.ok || result.status === 'error') {
+                    throw new Error(result.message || 'Transmission drop error.');
+                }
+
+                feedback.className = 'success';
+                feedback.innerText = `SUCCESS: Packet routed safely. Data tracking ID deployed contextually.`;
+                form.reset();
+
+            } catch (error) {
+                feedback.className = 'error';
+                feedback.innerText = `TERMINATION FAILURE: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

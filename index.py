@@ -3,7 +3,7 @@ import os
 from flask import Flask, send_from_directory
 from api.comments import comments_bp                           # GENERAL
 from api.submitGameFeedback import feedback_bp                 # CATASTROPHE 2
-from api.support import support_bp                             # GENERAL
+from api.support import support_bp                              # GENERAL
 from api.testerSignup import tester_signup_bp                  # GENERAL
 from api.wormholeFeedback import wormhole_feedback_bp          # WORMHOLES ALL THE WAY DOWN
 from api.leaderboard import leaderboard_bp                     # WORMHOLES ALL THE WAY DOWN
@@ -21,7 +21,8 @@ from api.audio.rules_serve  import rules_serve_bp              # meowREMIX — s
 from api.audio_training     import audio_training_bp           # meowREMIX
 from api.memories import memories_bp                           # LIGHTHOUSE
 
-
+# === CATFORCE INTEGRATION IMPORT ===
+from api.catforce import catforce_bp
 
 from flask_cors import CORS
 
@@ -48,12 +49,17 @@ app.register_blueprint(rules_serve_bp)          # meowREMIX — rules.js from Ne
 app.register_blueprint(audio_training_bp)       # meowREMIX
 app.register_blueprint(memories_bp)             # LIGHTHOUSE
 
- 
-
+# === CATFORCE BLUEPRINT REGISTRATION ===
+app.register_blueprint(catforce_bp)
 
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
+
+# === CATFORCE PAGE ROUTE ===
+@app.route('/catforce')
+def catforce_page():
+    return send_from_directory('forms', 'catforce.html')
 
 @app.route('/comments')
 def comments_page():
