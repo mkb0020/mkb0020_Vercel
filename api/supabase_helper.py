@@ -3,13 +3,23 @@ import uuid
 from datetime import datetime
 from supabase import create_client, Client
 
+# Environment variable names must match your Vercel settings
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_SECRET = os.environ.get("SUPABASE_SECRET")
 
-# Initialize client safely for serverless environments
-supabase: Client = None
-if SUPABASE_URL and SUPABASE_SECRET:
-    supabase = create_client(SUPABASE_URL, SUPABASE_SECRET)
+# Lazy-loaded client – only initialised when first needed
+_client: Client = None
+
+def get_supabase() -> Client:
+    """Return a Supabase client instance, creating it once on first call."""
+    global _client
+    if _client is None:
+        if not SUPABASE_URL or not SUPABASE_SECRET:
+            raise RuntimeError(
+                "SUPABASE_URL and SUPABASE_SECRET environment variables must be set"
+            )
+        _client = create_client(SUPABASE_URL, SUPABASE_SECRET)
+    return _client
 
 def get_bucket_and_type(filename: str, mimetype: str):
     """Determines the correct Supabase storage bucket and media type based on file info."""
@@ -24,8 +34,7 @@ def get_bucket_and_type(filename: str, mimetype: str):
 
 def upload_media_to_supabase(file_name: str, file_bytes: bytes, mimetype: str):
     """Uploads binary data to the corresponding target storage bucket."""
-    if not supabase:
-        raise RuntimeError("Supabase client is not initialized. Check your environment variables.")
+    supabase = get_supabase()
 
     bucket, media_type = get_bucket_and_type(file_name, mimetype)
     
@@ -48,8 +57,7 @@ def upload_media_to_supabase(file_name: str, file_bytes: bytes, mimetype: str):
 
 def insert_social_post(text_content: str, platform: str, media_url: str = None, storage_path: str = None, media_type: str = "none"):
     """Inserts metadata for a new post configuration into the social_posts Postgres table."""
-    if not supabase:
-        raise RuntimeError("Supabase client is not initialized.")
+    supabase = get_supabase()
 
     post_data = {
         "text_content": text_content,
@@ -66,8 +74,7 @@ def insert_social_post(text_content: str, platform: str, media_url: str = None, 
 
 def fetch_posts(platform_filter: str = None):
     """Fetches all post records, optionally filtered by destination network platform."""
-    if not supabase:
-        raise RuntimeError("Supabase client is not initialized.")
+    supabase = get_supabase()
 
     query = supabase.table("social_posts").select("*").order("created_at", desc=True)
     if platform_filter and platform_filter != "all":
@@ -78,8 +85,7 @@ def fetch_posts(platform_filter: str = None):
 
 def update_last_used(post_id: str):
     """Sets last_used_at timestamp to now to signal a publishing transaction execution."""
-    if not supabase:
-        raise RuntimeError("Supabase client is not initialized.")
+    supabase = get_supabase()
 
     now_iso = datetime.utcnow().isoformat()
     response = supabase.table("social_posts").update({"last_used_at": now_iso, "status": "posted"}).eq("id", post_id).execute()
@@ -87,8 +93,7 @@ def update_last_used(post_id: str):
 
 def fetch_all_ready_posts():
     """Fetches list of active entries whose delivery status flags are set to ready."""
-    if not supabase:
-        raise RuntimeError("Supabase client is not initialized.")
+    supabase = get_supabase()
 
     response = supabase.table("social_posts").select("*").eq("status", "ready").execute()
     return response.data
