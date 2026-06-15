@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>//PROJECT_MATRIX_INGEST_v1.0</title>
+    <style>
+        :root {
+            --bg-deep: #170032;
+            --bg-terminal: #37025a;
+            --neon-cyan: #00ffff;
+            --neon-magenta: #dc4ce8;
+            --neon-purple: #a55aff;
+            --text-main: #67febd;
+            --dim-purple: #764ba2;
+            --warn-yellow: #fecd39;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Scanline Overlay Screen Grid */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 9999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        header {
+            background-color: var(--bg-terminal);
+            border-bottom: 2px solid var(--neon-magenta);
+            padding: 20px;
+            box-shadow: 0 0 15px var(--neon-purple);
+            text-align: center;
+        }
+
+        .glitch-title {
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--neon-magenta);
+            text-shadow: 0 0 8px var(--neon-magenta), 0 0 20px var(--bg-terminal);
+        }
+
+        main {
+            max-width: 950px;
+            margin: 40px auto;
+            padding: 20px;
+            display: none; /* Blocked until authenticated */
+        }
+
+        .terminal-panel {
+            background: rgba(55, 2, 90, 0.4);
+            border: 1px solid var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+            padding: 30px;
+            border-radius: 4px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .terminal-panel::before {
+            content: "[ INTEL_INGEST: CONNECTED ]";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: var(--bg-deep);
+            padding: 0 10px;
+            font-size: 0.8rem;
+            color: var(--neon-cyan);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label.section-header {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            color: var(--neon-cyan);
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            padding-bottom: 4px;
+        }
+
+        input[type="text"], select, textarea, input[type="password"] {
+            width: 100%;
+            background: rgba(23, 0, 50, 0.8);
+            border: 1px solid var(--dim-purple);
+            padding: 12px;
+            color: #fff;
+            font-size: 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: var(--neon-magenta);
+            box-shadow: 0 0 8px var(--neon-magenta);
+        }
+
+        /* Checkbox Grid Layout */
+        .checkbox-matrix {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .checkbox-node {
+            display: flex;
+            align-items: center;
+            background: rgba(23, 0, 50, 0.5);
+            border: 1px solid rgba(165, 90, 255, 0.3);
+            padding: 10px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-node:hover {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 255, 255, 0.05);
+        }
+
+        .checkbox-node input[type="checkbox"] {
+            margin-right: 12px;
+            accent-color: var(--neon-cyan);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-node span {
+            font-size: 0.9rem;
+            color: #e2d9f3;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 140px;
+        }
+
+        .btn-cyber {
+            background: transparent;
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 14px 35px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .btn-cyber:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        #feedback-panel {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+            background: #000;
+            border-left: 4px solid #fff;
+        }
+
+        #feedback-panel.success {
+            border-color: var(--text-main);
+            color: var(--text-main);
+            box-shadow: 0 0 10px rgba(103, 254, 189, 0.2);
+        }
+
+        #feedback-panel.error {
+            border-color: #cc0000;
+            color: var(--warn-yellow);
+            box-shadow: 0 0 10px rgba(204, 0, 0, 0.2);
+        }
+
+        /* Access Validation Modal */
+        #auth-gate {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-deep);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            width: 420px;
+            padding: 40px;
+            border: 2px solid var(--neon-cyan);
+            background: var(--bg-terminal);
+            box-shadow: 0 0 25px var(--neon-cyan);
+            text-align: center;
+        }
+
+        .auth-container h2 {
+            margin-bottom: 20px;
+            color: var(--neon-magenta);
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Access Handshake Gate -->
+    <div id="auth-gate">
+        <div class="auth-container">
+            <h2>// REPLICATED_SECURITY_CHECK</h2>
+            <div class="form-group" style="text-align: left;">
+                <label for="gate-pass" style="color: var(--neon-magenta);">Enter Encryption Core Key:</label>
+                <input type="password" id="gate-pass" placeholder="••••••••••••">
+            </div>
+            <button class="btn-cyber" onclick="attemptAccess()">VALIDATE</button>
+            <div id="auth-error" style="color: var(--warn-yellow); margin-top: 15px; font-size: 0.85rem; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Application Dashboard -->
+    <header>
+        <div class="glitch-title">🗃️ PROJECT MATRIX ARCHIVE CORE 🗃️</div>
+    </header>
+
+    <main id="workspace">
+        <div class="terminal-panel">
+            <form id="project-form" onsubmit="transmitProject(event)">
+                
+                <!-- Project Name -->
+                <div class="form-group">
+                    <label class="section-header" for="project_name">Project Name Designation</label>
+                    <input type="text" id="project_name" required placeholder="e.g. CATASTROPHE_REMIX_v2">
+                </div>
+
+                <!-- Project Type Checkboxes -->
+                <div class="form-group">
+                    <label class="section-header">Project Category Classification (Select Vectors)</label>
+                    <div class="checkbox-matrix">
+                        <label class="checkbox-node"><input type="checkbox" name="project_type" value="game"><span>Game Development</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="project_type" value="dev tool"><span>Developer Tooling</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="project_type" value="audio project"><span>Audio / Sonic Architecture</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="project_type" value="AI project"><span>Artificial Intelligence</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="project_type" value="productivity tool"><span>Productivity / System Optimization</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="project_type" value="visual/digital art project"><span>Visual & Digital Artwork</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="project_type" value="just for fun project"><span>Experimental / Just For Fun</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="project_type" value="resume pieces"><span>Core Resume Components</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="project_type" value="educational project"><span>Educational Platform / Tutorial</span></label>
+                    </div>
+                </div>
+
+                <!-- Target Audience Checkboxes -->
+                <div class="form-group">
+                    <label class="section-header">Target Intended Audience Target Nodes</label>
+                    <div class="checkbox-matrix">
+                        <label class="checkbox-node"><input type="checkbox" name="target_audience" value="general"><span>General Human Grid</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="target_audience" value="developers"><span>Software Engineers / Devs</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="target_audience" value="gamers"><span>Interactive Stream Consumers</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="target_audience" value="teachers/learners"><span>Instructors / Academic Nodes</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="target_audience" value="AI Enthusiast"><span>Neural Net Operators / AI Fans</span></label>
+                        <label class="checkbox-node"><input type="checkbox" name="target_audience" value="potential employers"><span>Corporate Recruiter Entities</span></label>
+                    </div>
+                </div>
+
+                <!-- Platform Vector Dropdown -->
+                <div class="form-group">
+                    <label class="section-header" for="platform">Hosting Distribution Terminal Vector</label>
+                    <select id="platform" required>
+                        <option value="" disabled selected>// CHOOSE DISTRIBUTION ENDPOINT...</option>
+                        <option value="itch.io">ITCH.IO INDIE MATRIX</option>
+                        <option value="portfolio website">PORTFOLIO DOMAIN MAINFRAME</option>
+                        <option value="youtube">YOUTUBE VIDEO FEED STREAM</option>
+                    </select>
+                </div>
+
+                <!-- Project Description -->
+                <div class="form-group">
+                    <label class="section-header" for="description">Project Context Log (Description)</label>
+                    <textarea id="description" required placeholder="Compile details regarding technical engineering design loops..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-cyber">COMMIT REGISTRY PACKET</button>
+            </form>
+
+            <div id="feedback-panel"></div>
+        </div>
+    </main>
+
+    <script>
+        // Share standard token cross-tabulation dynamically inside session storage
+        let terminalToken = sessionStorage.getItem('catforce_key') || '';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (terminalToken) {
+                unlockWorkspace();
+            }
+        });
+
+        function attemptAccess() {
+            const passValue = document.getElementById('gate-pass').value;
+            if (!passValue) return;
+            
+            terminalToken = passValue;
+            sessionStorage.setItem('catforce_key', passValue);
+            unlockWorkspace();
+        }
+
+        function unlockWorkspace() {
+            document.getElementById('auth-gate').style.display = 'none';
+            document.getElementById('workspace').style.display = 'block';
+        }
+
+        function showLockoutError(msg) {
+            sessionStorage.removeItem('catforce_key');
+            document.getElementById('auth-gate').style.display = 'flex';
+            document.getElementById('workspace').style.display = 'none';
+            const errDiv = document.getElementById('auth-error');
+            errDiv.innerText = msg;
+            errDiv.style.display = 'block';
+        }
+
+        async function transmitProject(event) {
+            event.preventDefault();
+            const feedback = document.getElementById('feedback-panel');
+            
+            feedback.style.display = 'block';
+            feedback.className = 'success';
+            feedback.innerText = 'PACKING METADATA MATRIX FOR STORAGE STREAM...';
+
+            // Gather structural arrays from checkbox targets
+            const projectTypes = Array.from(document.querySelectorAll('input[name="project_type"]:checked')).map(el => el.value);
+            const targetAudiences = Array.from(document.querySelectorAll('input[name="target_audience"]:checked')).map(el => el.value);
+
+            const payload = {
+                project_name: document.getElementById('project_name').value,
+                project_types: projectTypes,
+                target_audiences: targetAudiences,
+                platform: document.getElementById('platform').value,
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const response = await fetch('/api/projects/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CatForce-Auth': terminalToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.status === 401) {
+                    showLockoutError("CRITICAL: DECRYPTION UNALIGNED. ACCESS DROPPED.");
+                    return;
+                }
+
+                if (!response.ok || result.status === 'error') {
+                    throw new Error(result.message || 'Data integration loop termination.');
+                }
+
+                feedback.className = 'success';
+                feedback.innerText = `SUCCESS: Project grid synchronized. Record committed safely to database repository.`;
+                document.getElementById('project-form').reset();
+
+            } catch (error) {
+                feedback.className = 'error';
+                feedback.innerText = `INGESTION FAULT: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-# Updated 6/4/26
+# Updated 6/15/26
 import os
 from flask import Flask, send_from_directory
 from api.comments import comments_bp                           # GENERAL
@@ -20,9 +20,9 @@ from api.audio.analyze      import audio_analyze_bp            # meowREMIX
 from api.audio.rules_serve  import rules_serve_bp              # meowREMIX — serves rules.js from Neon
 from api.audio_training     import audio_training_bp           # meowREMIX
 from api.memories import memories_bp                           # LIGHTHOUSE
+from api.catforce import catforce_bp                           # CATFORCE CONTENT SCHEDULER
 
-# === CATFORCE INTEGRATION IMPORT ===
-from api.catforce import catforce_bp
+from api.projects import projects_bp
 
 from flask_cors import CORS
 
@@ -48,18 +48,24 @@ app.register_blueprint(audio_analyze_bp)        # meowREMIX
 app.register_blueprint(rules_serve_bp)          # meowREMIX — rules.js from Neon
 app.register_blueprint(audio_training_bp)       # meowREMIX
 app.register_blueprint(memories_bp)             # LIGHTHOUSE
+app.register_blueprint(catforce_bp)             # CATFORCE CONTENT SCHEDULER
 
-# === CATFORCE BLUEPRINT REGISTRATION ===
-app.register_blueprint(catforce_bp)
+# === NEW: PROJECT INGEST BLUEPRINT REGISTRATION ===
+app.register_blueprint(projects_bp)
+
 
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
 
-# === CATFORCE PAGE ROUTE ===
 @app.route('/catforce')
 def catforce_page():
     return send_from_directory('forms', 'catforce.html')
+
+# === NEW: PROJECT INGEST HTML serving PAGE ROUTE ===
+@app.route('/project-submit')
+def project_submit_page():
+    return send_from_directory('forms', 'projectSubmit.html')
 
 @app.route('/comments')
 def comments_page():
