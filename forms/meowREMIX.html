@@ -434,6 +434,7 @@ body::after {
 <!-- ═══════════════════════════════════════════════════════════════════════════
      AUDIO ENGINE
 ════════════════════════════════════════════════════════════════════════════ -->
+
 <script type="module">
 import { musicRules, ruleLibrary, metadata } from '/api/audio/rules.js';
 
@@ -523,6 +524,9 @@ const DISLIKED_TRANS_PEN  = {};
   DISLIKED_TRANS_PEN[key] = PREF_PEN_STRENGTH + (1 - PREF_PEN_STRENGTH) * (1 + t.preference_score);
 });
 
+/**
+ * Applies preference boost or penalty based on liked/disliked pitch transitions.
+ */
 function preferenceBoost(fromPitch, toPitch) {
   if (!fromPitch || !toPitch || PREF_TOTAL === 0) return 1.0;
   const from = fromPitch.replace(/\d/g, '');
@@ -549,8 +553,11 @@ const ENHARMONIC = {
   'B--':'A','E--':'D','A--':'G','D--':'C','G--':'F','C--':'B-1','F--':'E-1',
 };
 
+/**
+ * Converts a pitch name (e.g., 'G4') to its 0-11 pitch class index, normalizing enharmonics.
+ */
+// Returns 0-11 pitch class, or null if unrecognized
 function pitchToPC(pitch) {
-  // Returns 0-11 pitch class, or null if unrecognized
   if (!pitch || pitch === 'REST') return null;
   const m = pitch.match(/^([A-Ga-g][#b\-]*)/);
   if (!m) return null;
@@ -565,6 +572,9 @@ function pitchToPC(pitch) {
 const NOTE_HISTORY_SIZE = 16;
 const noteHistory = [];
 
+/**
+ * Records a pitch in the rolling note history for key detection.
+ */
 function addToNoteHistory(pitch) {
   if (!pitch || pitch === 'REST') return;
   noteHistory.push(pitch);
@@ -576,6 +586,9 @@ let currentImpliedKey = null;   // { root: 'G', mode: 'major', rootPC: 7 }
 let keyUpdateCounter  = 0;
 const KEY_UPDATE_EVERY = 4;     // re-detect every 4 melody notes
 
+/**
+ * Detects the implied musical key from recent note history using Krumhansl-Schmuckler profiles.
+ */
 function detectImpliedKey() {
   if (noteHistory.length < 4) return currentImpliedKey;
 
@@ -605,6 +618,9 @@ function detectImpliedKey() {
   return currentImpliedKey;
 }
 
+/**
+ * Returns the set of pitch class indices belonging to a given key (root and mode).
+ */
 // Scale membership lookup — returns set of pitch class indices in the key
 function getScalePCs(rootPC, mode) {
   const MAJOR_INTERVALS = [0,2,4,5,7,9,11];
@@ -618,6 +634,9 @@ function getScalePCs(rootPC, mode) {
 const KEY_STRENGTH    = 0.75;  // 0=ignore key, 1=strongly enforce — tune this!
 const KEY_OUT_PENALTY = 0.15;  // out-of-scale notes get this weight multiplier
 
+/**
+ * Returns a weight multiplier that penalizes out-of-key notes based on the current implied key.
+ */
 function keyBias(toPitch) {
   if (!currentImpliedKey) return 1.0;
   const pc = pitchToPC(toPitch);
@@ -629,6 +648,9 @@ function keyBias(toPitch) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Returns the smoothness score (0-1) for a melodic interval between two pitch names.
+ */
 function getTransitionSmoothness(prev, next) {
   if (!prev || !next) return 0.5;
   const map = smoothnessRules.transitionSmoothness[prev];
@@ -641,16 +663,25 @@ function getTransitionSmoothness(prev, next) {
   return 0.20;
 }
 
+/**
+ * Returns the smoothness score for transitioning from one rhythm duration type to another.
+ */
 function getRhythmFlowSmoothness(from, to) {
   if (!from || !to) return 0.5;
   const r = smoothnessRules.rhythmFlowRules.find(r => r.from === from && r.to === to);
   return r ? r.smoothness : 0.6;
 }
 
+/**
+ * Adjusts a base weight by a smoothness factor using the global smoothness bias.
+ */
 function applySmoothnessWeight(base, s) {
   return base * Math.pow(0.6 + 0.4 * s, SMOOTHNESS_BIAS);
 }
 
+/**
+ * Returns the musical tension value (0-1) for a given pitch name.
+ */
 function getTension(pitch) {
   if (!pitch || pitch === 'REST') return 0;
   return TENSION_MAP[pitch.replace(/\d/g, '')] ?? 0.3;
@@ -665,6 +696,9 @@ const telemetryMedium  = document.getElementById('telemetryMediumVal');
 const telemetryShort   = document.getElementById('telemetryShortVal');
 const telemetryTension = document.getElementById('telemetryTensionVal');
 
+/**
+ * Prepends a timestamped message to the on-screen console log, trimming older text if too long.
+ */
 function logToConsole(msg) {
   const ts = new Date().toLocaleTimeString().slice(0,8);
   consoleOutputDiv.innerText = `[${ts}] ${msg}\n` + consoleOutputDiv.innerText;
@@ -672,6 +706,9 @@ function logToConsole(msg) {
     consoleOutputDiv.innerText = consoleOutputDiv.innerText.slice(0,2200);
 }
 
+/**
+ * Links a range slider to a display element, showing the slider's percentage value on change.
+ */
 function setupSlider(sliderId, displayId) {
   const sl = document.getElementById(sliderId);
   const dp = document.getElementById(displayId);
@@ -748,6 +785,9 @@ let generationState = {
 
 // ── BUCKET SELECTION ──────────────────────────────────────────────────────────
 
+/**
+ * Selects the next note-length bucket based on transition weights from the current bucket.
+ */
 function pickNextBucket(currentBucket) {
   // USE BUCKETTRANSITIONS FROM RULES.JS IF AVAILABLE
   const trans = BUCKET_TRANSITIONS[currentBucket];
@@ -755,6 +795,9 @@ function pickNextBucket(currentBucket) {
   return weightedRandom(trans.map(t => ({ item: t.next, weight: t.weight })));
 }
 
+/**
+ * Adjusts candidate weights by a per-bucket pitch class tension bias map.
+ */
 function applyBucketTensionBias(candidates, bucket) {
   // BOOST PITCH CLASSES THAT ALIGN WITH THIS BUCKET'S TENSION TARGET
   const biasMap = BUCKET_TENSION_MAP.pitchBias?.[bucket] ?? {};
@@ -766,6 +809,9 @@ function applyBucketTensionBias(candidates, bucket) {
   });
 }
 
+/**
+ * Chooses a note duration (in seconds) biased by the given bucket and rhythm flow smoothness.
+ */
 function getBucketRhythmDuration(bucket, atTime, prevDurType) {
   // DURATION-TYPE BIASED BY BUCKET, THEN SMOOTHED BY RHYTHM FLOW
   const biasObj = BUCKET_RHYTHM_BIAS[bucket] ?? {};
@@ -833,6 +879,9 @@ let rhythmMotifState = {
   barStartTime: 0,    // engineStartTime-relative time when we entered this bar
 };
 
+/**
+ * Selects a new rhythmic motif pattern from rules or built-in fallback patterns.
+ */
 function selectRhythmMotif() {
   // Prefer patterns from rules.js; fall back to built-ins
   const rulesPatterns = musicRules.rhythmPatterns ?? [];
@@ -847,6 +896,9 @@ function selectRhythmMotif() {
   rhythmMotifState.pos     = 0;
 }
 
+/**
+ * Returns the next duration from the locked rhythm motif, with occasional variation.
+ */
 function getLockedRhythmDuration(bucket, atTime, prevDurType) {
   // Only lock rhythm for melody voice — bars/harmony use free rhythm
   if (!rhythmMotifState.pattern.length) selectRhythmMotif();
@@ -910,6 +962,9 @@ let staccatoBurstState = {
   lastBurstBar:  -999,    // bar when last burst started
 };
 
+/**
+ * Attempts to start a staccato burst run based on tension, phrase position, and cooldown.
+ */
 function maybeStartStaccatoBurst(currentBar, phrasePos, tension) {
   // Don't start mid-gap
   if (staccatoBurstState.gapBeatsLeft > 0) return false;
@@ -939,6 +994,9 @@ function maybeStartStaccatoBurst(currentBar, phrasePos, tension) {
   return true;
 }
 
+/**
+ * Returns the next duration for an active staccato burst, or null if burst is finished.
+ */
 function getStaccatoBurstDuration() {
   if (!staccatoBurstState.active || !staccatoBurstState.pattern.length) return null;
   const dur = staccatoBurstState.pattern[staccatoBurstState.patternPos % staccatoBurstState.pattern.length];
@@ -952,6 +1010,9 @@ function getStaccatoBurstDuration() {
 
 // ── COMPOSITIONAL BIAS HELPERS ────────────────────────────────────────────────
 
+/**
+ * Modifies a weight by the gravity model's tonal pull (tonic/dominant/mediant) for the pitch class.
+ */
 function applyGravityBias(note, base) {
   if (!compRules?.gravity_model) return base;
   const gm = compRules.gravity_model;
@@ -966,12 +1027,18 @@ function applyGravityBias(note, base) {
   return base * (0.5 + 0.5 * pull);
 }
 
+/**
+ * Modifies a weight to favor notes whose tension is close to the target tension.
+ */
 function applyTensionBias(note, base, target) {
   if (target === undefined || target === null) return base;
   const dev = Math.abs(getTension(note) - target);
   return base * (0.2 + 0.8 * (1.0 - dev));
 }
 
+/**
+ * Modifies a weight based on phrase position to drive the melody toward the destination chord.
+ */
 function applyDestinationBias(note, base, phrasePos) {
   if (!compRules?.phrase_destination_rules) return base;
   const dests = compRules.phrase_destination_rules['4_bar_phrase'];
@@ -993,6 +1060,9 @@ function applyDestinationBias(note, base, phrasePos) {
   return base * (1.0 - ramp * 0.7);                // soften non-targets in approach
 }
 
+/**
+ * Applies gravity, tension, destination, and skeleton biases to a list of candidate notes.
+ */
 function applyCompositionalBiases(candidates, context = {}) {
   const { targetTension, phraseEnd, phrasePos, bucket } = context;
   return candidates.map(c => {
@@ -1006,6 +1076,9 @@ function applyCompositionalBiases(candidates, context = {}) {
   });
 }
 
+/**
+ * Updates the generation state's structural role based on measure count and role transition weights.
+ */
 function updateStructuralRole(measureCount) {
   if (!compRules?.role_transitions) return;
   if (measureCount < generationState.nextRoleChangeMeasure) return;
@@ -1023,6 +1096,9 @@ function updateStructuralRole(measureCount) {
   logToConsole(`🎭 Structural role → ${chosen}`);
 }
 
+/**
+ * Computes a target tension value from the song macro arc based on fraction completion.
+ */
 function getTargetTensionFromArc(frac) {
   if (!compRules?.tension_arc_templates?.length) return 0.3;
   const arcs = compRules.tension_arc_templates;
@@ -1047,6 +1123,9 @@ const FALLBACK_ARCS = [
   { name:'wave',      points:[0.2, 0.6, 0.3, 0.7, 0.4, 0.6, 0.15] },
 ];
 
+/**
+ * Selects a contour arc shape for the current 4-bar phrase from rules or fallback arcs.
+ */
 function selectPhraseArc() {
   // Pick from musicRules.contourArcs (MusicXML-derived) or fallback shapes
   const arcs = musicRules.contourArcs?.length
@@ -1056,6 +1135,9 @@ function selectPhraseArc() {
   currentPhraseArc = arcs[idx];
 }
 
+/**
+ * Returns the target tension at a given phrase position using the current phrase arc.
+ */
 function getPhraseTargetTension(phrasePos) {
   // phrasePos: 0.0 (phrase start) → 1.0 (phrase end)
   // Always resolve to low tension in the final 15% of the phrase
@@ -1075,6 +1157,9 @@ function getPhraseTargetTension(phrasePos) {
   return pts[lo] + (pts[hi] - pts[lo]) * t;
 }
 
+/**
+ * Computes phrase-level tension, position, and structural flags for the current 4-bar phrase.
+ */
 function getPhraseBias(totalMeasures) {
   // Returns { phraseTension, phrasePos, isResolution, isBuilding, isPeak }
   // so tickVoice can make richer decisions
@@ -1099,6 +1184,9 @@ function getPhraseBias(totalMeasures) {
 
 // ── PROBABILITY HELPERS ───────────────────────────────────────────────────────
 
+/**
+ * Picks a random item from an array of objects with a 'weight' property.
+ */
 function weightedRandom(items) {
   // ITEMS: [{ITEM, WEIGHT}] OR [{NOTE, WEIGHT}] OR [{DURATION, WEIGHT}]
   if (!items?.length) return null;
@@ -1113,6 +1201,9 @@ function weightedRandom(items) {
   return last.item ?? last.note ?? last.duration ?? null;
 }
 
+/**
+ * Picks a random key from an object where values are weights.
+ */
 function weightedRandomFromObj(obj) {
   const keys   = Object.keys(obj);
   const total  = keys.reduce((s,k) => s + obj[k], 0);
@@ -1121,17 +1212,26 @@ function weightedRandomFromObj(obj) {
   return keys[0];
 }
 
+/**
+ * Converts a duration type string (e.g., 'quarter') to its duration in seconds.
+ */
 function durTypeSec(durType) {
   return HALF_QUARTER_SEC * (DUR_TYPE_TO_MULT[durType] ?? 1);
 }
 
 // ── BEAT / RHYTHM ─────────────────────────────────────────────────────────────
 
+/**
+ * Returns the current beat position within a measure based on the given audio time.
+ */
 function getCurrentBeatPosition(atTime) {
   const pos  = (atTime - engineStartTime) % MEASURE_DUR_SEC;
   return Math.round(((pos / BEAT_SEC) + 1) * 100) / 100;
 }
 
+/**
+ * Finds the closest defined beat position key from the beat duration rules.
+ */
 function getNearestBeatKey(beat) {
   const rules = musicRules.beatDurationRules;
   if (!rules) return null;
@@ -1142,6 +1242,9 @@ function getNearestBeatKey(beat) {
   return minDist <= 0.5 ? String(closest) : null;
 }
 
+/**
+ * Chooses a rhythm sequence (array of durations in seconds) based on beat position or fallback patterns.
+ */
 function getRhythmSequence(atTime = null, prevDurType = null) {
   if (atTime !== null && engineStartTime > 0) {
     const beat     = getCurrentBeatPosition(atTime);
@@ -1190,6 +1293,9 @@ function getRhythmSequence(atTime = null, prevDurType = null) {
 
 // ── MOTIF ─────────────────────────────────────────────────────────────────────
 
+/**
+ * Checks if a memorized motif should be recalled based on distance and probability.
+ */
 function maybeInjectMotif(currentPitch) {
   if (!compRules?.emotional_memory_rules) return null;
   const mem   = compRules.emotional_memory_rules;
@@ -1214,6 +1320,9 @@ function maybeInjectMotif(currentPitch) {
 
 // ── PITCH UTILITIES ───────────────────────────────────────────────────────────
 
+/**
+ * Converts a pitch name (e.g., 'G4') to a MIDI note number.
+ */
 function pitchToMidi(pitch) {
   if (!pitch || pitch === 'REST') return null;
   const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -1226,6 +1335,9 @@ function pitchToMidi(pitch) {
   return idx < 0 ? null : idx + oct * 12;
 }
 
+/**
+ * Returns the pitch name that is a given number of semitones above or below a base pitch.
+ */
 function getNoteAtInterval(base, semitones) {
   const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
   try {
@@ -1243,6 +1355,9 @@ function getNoteAtInterval(base, semitones) {
 
 // ── NOTE SELECTION ────────────────────────────────────────────────────────────
 
+/**
+ * Selects the next melody note using transition rules with various musical biases.
+ */
 function getWeightedNextNote(currentNote, prevNote=null, forceDiff=false, forceNonRest=false, context={}) {
   const rules = musicRules.transitionRules;
   let candidates = rules[currentNote];
@@ -1295,6 +1410,9 @@ function getWeightedNextNote(currentNote, prevNote=null, forceDiff=false, forceN
   return weightedRandom(norm.map(c => ({ item:c.note, weight:c.weight }))) ?? currentNote;
 }
 
+/**
+ * Picks a suspension resolution note for the given pitch if suspension rules exist.
+ */
 function getSuspensionResolution(fromNote) {
   const sus = musicRules.suspensionRules;
   if (!sus?.length) return null;
@@ -1309,6 +1427,9 @@ function getSuspensionResolution(fromNote) {
 const MELODY_LOG_SIZE = 8;
 const melodyNoteLog   = [];   // [{note, midi, time}]
 
+/**
+ * Records a melody note's pitch, MIDI, and time for voice-leading coordination.
+ */
 function logMelodyNote(note, atTime) {
   if (!note || note === 'REST') return;
   const midi = pitchToMidi(note);
@@ -1316,6 +1437,9 @@ function logMelodyNote(note, atTime) {
   if (melodyNoteLog.length > MELODY_LOG_SIZE) melodyNoteLog.shift();
 }
 
+/**
+ * Returns the current melody context (last note, MIDI, direction) for harmony generation.
+ */
 function getMelodyContext(atTime) {
   // Returns { currentNote, currentMidi, prevMidi, direction }
   // direction: -1=melody went down, 0=same, 1=melody went up
@@ -1335,6 +1459,9 @@ function getMelodyContext(atTime) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Determines the harmony note to play beneath a given melody note using voice-leading rules.
+ */
 function getHarmonyNote(melodyNote, currentHarmonyNote, atTime = null, phrasePos = 0) {
   if (!melodyNote || melodyNote === 'REST') return 'REST';
   const melPc   = melodyNote.replace(/\d/g, '');
@@ -1472,40 +1599,13 @@ function getHarmonyNote(melodyNote, currentHarmonyNote, atTime = null, phrasePos
 
 const missingSampleWarned = new Set();
 
+/**
+ * Maps a pitch and bucket to a sample name (e.g., 'g') for audio playback.
+ */
 function pitchToSampleName(pitch, bucket) {
   if (!pitch || pitch === 'REST') return null;
-  const base = pitch.replace(/\d/g,'').replace('♯','#').replace('♭','-');
-  const PC_MAP = {
-    'G':'g','G#':'g','Gb':'g','A':'a','A#':'a','Ab':'a',
-    'B':'b','B#':'b','Bb':'b','C':'c','C#':'c','Cb':'c',
-    'D':'d','D#':'d','Db':'d','E':'e','E#':'e','Eb':'e',
-    'F':'f','F#':'f','Fb':'f',
-  };
-
-  // PREFER THE NOTE-NAME THE ANALYZER ALREADY CHOSE FOR THIS PITCH+BUCKET
-  const pc = base;
-  const preferred = BUCKET_BY_PITCH[pc]?.[bucket];
-  if (preferred) {
-    const buffers = bucket === 'long' ? longBuffers : bucket === 'medium' ? medBuffers : shortBuffers;
-    if (buffers[preferred]) return preferred;
-  }
-
-  // FALLBACK: DERIVE FROM PITCH CLASS + OCTAVE (G2 = HIGH G IN OCTAVE 5+)
-  let sample = PC_MAP[base] ?? 'c';
-  if ((base === 'G' || base === 'G#') && pitch.includes('5')) sample = 'g2';
-
-  const buffers = bucket === 'long' ? longBuffers : bucket === 'medium' ? medBuffers : shortBuffers;
-  if (!buffers[sample]) {
-    const key = `${pitch}:${bucket}`;
-    if (!missingSampleWarned.has(key)) {
-      logToConsole(`⚠️ Missing ${bucket}/${sample}.m4a for ${pitch} — fallback 'g'`);
-      missingSampleWarned.add(key);
-    }
-    return buffers['g'] ? 'g' : null;
-  }
-  return sample;
+  return pitch;
 }
-
 // ── VELOCITY LAYER SYSTEM ────────────────────────────────────────────────────
 //
 // "Velocity" here is a 0.0→1.0 value derived at note-play time from:
@@ -1520,6 +1620,9 @@ function pitchToSampleName(pitch, bucket) {
 //
 // This simulates multi-velocity sample layers without needing multiple files.
 
+/**
+ * Calculates a velocity value (0-1) based on bucket, tension, metrical strength, and humanisation.
+ */
 function computeVelocity(bucket, tension, atTime) {
   // ── Metrical accent: which beat of the bar are we on? ─────────────────────
   // Beat 1 gets the strongest accent, beat 3 medium, 2 & 4 lightest.
@@ -1548,6 +1651,9 @@ function computeVelocity(bucket, tension, atTime) {
   return velocity;
 }
 
+/**
+ * Converts a velocity value to a low-pass filter cutoff frequency for brightness control.
+ */
 function velocityToFilterCutoff(velocity) {
   // Map velocity 0→1 to filter cutoff frequency
   // Soft (0.0) → 900 Hz  (dark, warm)
@@ -1563,6 +1669,17 @@ function velocityToFilterCutoff(velocity) {
 //   MEDIUM → MELODIC:   MEDIUM ATTACK/RELEASE
 //   SHORT  → STACCATO:  SHARP ATTACK, VERY SHORT RELEASE, TIGHT CUTOFF
 
+
+function pitchToFreq(pitch) {
+  const NOTE_MAP = {C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+  const m = pitch.match(/([A-G]#?)(\d)/);
+  if (!m) return 440;
+  return 440 * Math.pow(2, (parseInt(m[2]) * 12 + 12 + NOTE_MAP[m[1]] - 69) / 12);
+}
+
+/**
+ * Schedules a bucket-specific note with envelope, filter, and gain curve for playback.
+ */
 function playNote(bucket, pitch, durationSec, gainNode, atTime, tension = 0.4) {
   // UPDATE TELEMETRY
   const delay = Math.max(0, (atTime - actx.currentTime) * 1000);
@@ -1582,9 +1699,6 @@ function playNote(bucket, pitch, durationSec, gainNode, atTime, tension = 0.4) {
   if (!pitch || pitch === 'REST') return;
   const sample = pitchToSampleName(pitch, bucket);
   if (!sample) return;
-  const buffers = bucket === 'long' ? longBuffers : bucket === 'medium' ? medBuffers : shortBuffers;
-  const buffer  = buffers[sample];
-  if (!buffer) return;
 
   // ── VELOCITY ───────────────────────────────────────────────────────────────
   // Computed from tension, metrical position, bucket, and humanisation.
@@ -1614,43 +1728,95 @@ function playNote(bucket, pitch, durationSec, gainNode, atTime, tension = 0.4) {
   const stopAt  = atTime + durationSec + tail;
 
   try {
-    const source   = actx.createBufferSource();
+    const freq = pitchToFreq(pitch);
     const noteGain = actx.createGain();
 
     // ── LOW-PASS FILTER (velocity → brightness) ───────────────────────────
-    // Inserted between source and gain so it doesn't affect the gain envelope.
-    // Soft notes are dark and warm; loud notes are fully open and bright.
-    // Q=0.8 keeps the filter neutral (no resonance peak).
-    const filter       = actx.createBiquadFilter();
-    filter.type        = 'lowpass';
+    const filter = actx.createBiquadFilter();
+    filter.type = 'lowpass';
     filter.frequency.setValueAtTime(filterHz, atTime);
-    // For long notes: slowly open the filter over the note duration (swell effect)
     if (bucket === 'long') {
       const openHz = Math.min(filterHz * 2.2, 20000);
       filter.frequency.linearRampToValueAtTime(openHz, atTime + durationSec * 0.7);
     }
     filter.Q.value = 0.8;
 
-    source.connect(filter);
     filter.connect(noteGain);
     noteGain.connect(gainNode);
 
     // ── GAIN CURVE (velocity-scaled peak) ────────────────────────────────
-    // Peak gain = velocity (0→1), so soft notes never reach full gain.
-    // This is the amplitude layer without needing multiple sample recordings.
     const peakGain = Math.max(0.0001, velocity);
     noteGain.gain.setValueAtTime(0.0001, atTime);
     noteGain.gain.linearRampToValueAtTime(peakGain, atTime + attack);
     noteGain.gain.setValueAtTime(peakGain, Math.max(atTime + attack + 0.001, holdEnd));
     noteGain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
 
-    source.start(atTime);
-    source.stop(stopAt + 0.05);
+    // ── SYNTHESIS ENGINE ──────────────────────────────────────────────────
+    const oscillators = [];
+
+    if (bucket === 'long') {
+      const osc1 = actx.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.value = freq;
+      osc1.detune.value = -4;
+
+      const osc2 = actx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = freq;
+      osc2.detune.value = 4;
+
+      osc1.connect(filter);
+      osc2.connect(filter);
+      oscillators.push(osc1, osc2);
+      
+    } else if (bucket === 'medium') {
+      const osc1 = actx.createOscillator();
+      osc1.type = 'triangle';
+      osc1.frequency.value = freq;
+
+      const osc2 = actx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = freq * 2;
+
+      const osc2Gain = actx.createGain();
+      osc2Gain.gain.value = 0.2;
+      osc2.connect(osc2Gain);
+      osc2Gain.connect(filter);
+
+      osc1.connect(filter);
+      oscillators.push(osc1, osc2);
+
+    } else if (bucket === 'short') {
+      const osc1 = actx.createOscillator();
+      osc1.type = 'sawtooth';
+      osc1.frequency.value = freq;           // ← existing line
+      osc1.frequency.setValueAtTime(freq * 1.08, atTime);          // ← add here
+      osc1.frequency.exponentialRampToValueAtTime(freq, atTime + 0.04); // ← and here
+
+      const hpFilter = actx.createBiquadFilter();
+      hpFilter.type = 'highpass';
+      hpFilter.frequency.value = 200;
+
+      osc1.connect(hpFilter);
+      hpFilter.connect(filter);
+      oscillators.push(osc1);
+    }
+
+    // Replace the oscillators.forEach at the bottom with:
+    oscillators.forEach(osc => {
+      osc.start(atTime);
+      osc.stop(stopAt + 0.05);
+      osc.onended = () => {
+        try { osc.disconnect(); } catch(e) {}
+      };
+    });
+    // Also add for osc2Gain in medium branch:
+    osc2.onended = () => { try { osc2Gain.disconnect(); } catch(e) {} };
+
   } catch(err) {
     console.warn(`playNote error [${bucket}] ${pitch}:`, err);
   }
 }
-
 // ── VOICE STATE ───────────────────────────────────────────────────────────────
 
 // ── 8-BAR LOOP ALIGNMENT ─────────────────────────────────────────────────────
@@ -1660,6 +1826,9 @@ function playNote(bucket, pitch, durationSec, gainNode, atTime, tension = 0.4) {
 const BEAT_LOOP_BARS        = 8;
 const RESYNC_EVERY_MEASURES = BEAT_LOOP_BARS;   // resync on every beat-loop boundary
 
+/**
+ * Creates a fresh voice state object with initial default values.
+ */
 function makeVoiceState() {
   return {
     currentNote: null, prevNote: null,
@@ -1671,6 +1840,9 @@ function makeVoiceState() {
   };
 }
 
+/**
+ * Advances a voice (melody/harmony/bar) by one scheduled note, returning the played note and tension.
+ */
 function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
   const elapsed       = atTime - engineStartTime;
   const totalMeasures = elapsed / MEASURE_DUR_SEC;
@@ -1888,6 +2060,9 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
 // ── BAR CENTER LAYER ──────────────────────────────────────────────────────────
 // UNCHANGED LOGIC — USES THE FIXED FULL-PITCH-KEY BARCENTERRULES FROM RULES.JS V6.0
 
+/**
+ * Selects a bar center note based on bar transition rules and smoothness.
+ */
 function getSmoothBarCandidate(prevBarNote, forceDifferent=false) {
   if (!musicRules.barCenterRules || !Object.keys(musicRules.barCenterRules).length) {
     const notes = ['G3','C4','D4','E4','G4'];
@@ -1963,8 +2138,14 @@ let phraseSkeletonState = {
   stepIndex:      0,     // which skeleton step we're on
 };
 
+/**
+ * Returns the pitch class (0-11) for a given MIDI note number.
+ */
 function midiToPc(midi) { return midi % 12; }
 
+/**
+ * Finds the nearest scale pitch (in MIDI) to a target MIDI within a given scale.
+ */
 function nearestScaleMidi(targetMidi, rootMidi, scaleSteps) {
   // Find the scale pitch closest to targetMidi (within ±1 octave)
   let best = null, bestDist = Infinity;
@@ -1978,6 +2159,9 @@ function nearestScaleMidi(targetMidi, rootMidi, scaleSteps) {
   return best;
 }
 
+/**
+ * Builds a skeleton of target MIDI pitches for a phrase shaped by role and destination chord.
+ */
 function buildPhraseSkeleton(startNote, destinationChord, role, phraseLen = 6) {
   // ── 1. resolve start and end MIDI ─────────────────────────────────────────
   const startMidi = pitchToMidi(startNote) ?? 64;
@@ -2024,6 +2208,9 @@ function buildPhraseSkeleton(startNote, destinationChord, role, phraseLen = 6) {
   return skeleton;
 }
 
+/**
+ * Returns a weight multiplier that biases a candidate note toward the phrase skeleton target.
+ */
 function getSkeletonBias(candidateNote, stepIndex, skeleton) {
   if (!skeleton?.length || stepIndex >= skeleton.length) return 1.0;
   const target = skeleton[stepIndex];
@@ -2069,6 +2256,9 @@ let lastCrashBar   = -999;             // bar number of the last crash event
 let smoothedTension = 0;              // EMA tension value
 let prevSmoothedTension = 0;          // for rise/fall detection
 
+/**
+ * Computes an exponential moving average tension from the tension arc buffer.
+ */
 function getSmoothedTension() {
   if (!tensionArc.length) return 0;
   // EMA over the arc buffer — alpha 0.12 gives ~8-note smoothing
@@ -2079,16 +2269,25 @@ function getSmoothedTension() {
   return ema;
 }
 
+/**
+ * Returns the current bar number based on engine start time and measure duration.
+ */
 function getCurrentBar() {
   if (!engineStartTime || !actx) return 0;
   return Math.floor((actx.currentTime - engineStartTime) / MEASURE_DUR_SEC);
 }
 
+/**
+ * Calculates the absolute time of a future bar boundary offset by a given number of bars.
+ */
 function nextBarBoundaryTime(barsAhead = 1) {
   const currentBar = getCurrentBar();
   return engineStartTime + (currentBar + barsAhead) * MEASURE_DUR_SEC;
 }
 
+/**
+ * Starts playback of a random riser sound at the specified time with fade-in.
+ */
 function triggerRiser(atTime) {
   const available = riserBuffers.map((b,i) => b ? i : -1).filter(i => i >= 0);
   if (!available.length || !riserGain || !actx) return;
@@ -2116,6 +2315,9 @@ function triggerRiser(atTime) {
   logToConsole(`🚀 Riser ${idx} → bar ${riserState.startBar}`);
 }
 
+/**
+ * Fades out the active riser and triggers a crash one-shot at the specified time.
+ */
 function triggerCrash(atTime) {
   // Fade out the riser
   if (riserState.source && riserGain) {
@@ -2148,6 +2350,9 @@ function triggerCrash(atTime) {
   lastCrashBar = getCurrentBar();
 }
 
+/**
+ * Evaluates tension to decide whether to trigger a riser or crash based on thresholds.
+ */
 function tickRiserSystem() {
   if (!running || !actx) return;
 
@@ -2187,6 +2392,9 @@ function tickRiserSystem() {
 
 // ── SCHEDULERS ────────────────────────────────────────────────────────────────
 
+/**
+ * Schedules upcoming melody notes by calling tickVoice repeatedly within the lookahead window.
+ */
 function scheduleMelody() {
   if (!running) return;
   const now = actx.currentTime;
@@ -2199,6 +2407,9 @@ function scheduleMelody() {
   schedulerTimer = setTimeout(scheduleMelody, SCHEDULE_INTERVAL_MS);
 }
 
+/**
+ * Schedules upcoming harmony notes, referencing the current melody note.
+ */
 function scheduleHarmony() {
   if (!running) return;
   const now     = actx.currentTime;
@@ -2209,6 +2420,9 @@ function scheduleHarmony() {
   harmonySchedulerTimer = setTimeout(scheduleHarmony, SCHEDULE_INTERVAL_MS);
 }
 
+/**
+ * Schedules bar center (long pad) notes on measure boundaries.
+ */
 function scheduleBar() {
   if (!running) return;
   const now = actx.currentTime;
@@ -2226,6 +2440,9 @@ const ctx2d   = canvas.getContext('2d');
 let points    = Array(35).fill(0).map(() => Math.random()*350);
 const tensionArc = new Array(44).fill(0);
 
+/**
+ * Resizes the visualization canvas to fill its parent container.
+ */
 function resizeCanvas() {
   const parent = canvas.parentElement;
   canvas.height = Math.min(320, Math.max(200, parent.clientHeight - 60));
@@ -2255,6 +2472,9 @@ let dancerDirection = 1;
 const dancerTrail = [];
 const MAX_TRAIL = 10;
 
+/**
+ * Draws the animated dancer sprite on the canvas with trailing motion.
+ */
 function drawDancer() {
   if (!dancerSprite.complete) return;
 
@@ -2333,6 +2553,9 @@ function drawDancer() {
   ctx2d.restore();
 }
 
+/**
+ * Renders the full visual layer: grid, dancer, tension waveform, and watermark.
+ */
 function renderVisuals() {
   if (!canvas || !ctx2d) return;
   ctx2d.fillStyle = 'rgba(23,0,50,0.15)';
@@ -2389,6 +2612,9 @@ renderVisuals();
 
 // ── FX HELPERS ───────────────────────────────────────────────────────────────
 
+/**
+ * Synthesizes a convolution reverb impulse response with specified decay and pre-delay.
+ */
 function buildReverbIR(actx, decaySec = 2.8, predelayMs = 18) {
   // Synthesise a plausible convolution reverb impulse response entirely in JS.
   // This avoids needing an external IR file.
@@ -2425,34 +2651,18 @@ function buildReverbIR(actx, decaySec = 2.8, predelayMs = 18) {
 
 // ── ASSET LOADING ─────────────────────────────────────────────────────────────
 
+/**
+ * Loads audio samples for a given bucket into a buffer map from the configured URL root.
+ */
 async function loadSamples(bucket, bufMap) {
-  const root = AUDIO_PATHS[bucket] ?? `../projects/audio/notes/${bucket}`;
-  let loaded = 0;
-  await Promise.all(SAMPLE_NAMES.map(async s => {
-    const url = `${root}/${s}.m4a`;
-    try {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      bufMap[s] = await actx.decodeAudioData(await r.arrayBuffer());
-      loaded++;
-      console.log(`✅ Loaded: ${url}`);  // ADD THIS
-    } catch(e) { 
-      console.warn(`❌ Failed: ${url} — ${e.message}`);  // MODIFY THIS
-    }
-  }));
-  return loaded;
+  return 0;
 }
-
+/**
+ * Loads all sample banks, stems, risers, and crashes, then enables the play button.
+ */
 async function loadAllAssets() {
-  logToConsole('Loading sample banks...');
-  const [lLd, mLd, sLd] = await Promise.all([
-    loadSamples('long',   longBuffers),
-    loadSamples('medium', medBuffers),
-    loadSamples('short',  shortBuffers),
-  ]);
-  logToConsole(`Samples — long:${lLd} · med:${mLd} · short:${sLd}`);
-
- const STEM_BASE = 'https://uknctjnhzxedyxlioloq.supabase.co/storage/v1/object/public/meowREMIX';
+  logToConsole('Loading stems...');
+  const STEM_BASE = 'https://uknctjnhzxedyxlioloq.supabase.co/storage/v1/object/public/meowREMIX';
 
   for (const name of ['ambience', 'beat']) {
       try {
@@ -2466,33 +2676,17 @@ async function loadAllAssets() {
       } catch { logToConsole(`⚠️ missing ${name}.m4a`); }
   }
 
-  // Load risers and crashes (non-blocking — engine works fine without them)
-  await Promise.all([
-    ...[0,1,2,3].map(i => (async () => {
-      try {
-        const r = await fetch(`${STEM_BASE}/riser0${i}.m4a`);
-        if (r.ok) { riserBuffers[i] = await actx.decodeAudioData(await r.arrayBuffer()); }
-      } catch {}
-    })()),
-    ...[0,1,2,3].map(i => (async () => {
-      try {
-        const r = await fetch(`${STEM_BASE}/crash0${i}.m4a`);
-        if (r.ok) { crashBuffers[i] = await actx.decodeAudioData(await r.arrayBuffer()); }
-      } catch {}
-    })()),
-  ]);
-  const risersLoaded = riserBuffers.filter(Boolean).length;
-  const crashesLoaded = crashBuffers.filter(Boolean).length;
-  logToConsole(`Risers: ${risersLoaded}/4 · Crashes: ${crashesLoaded}/4`);
-
- 
   playBtn.disabled = false;
   logToConsole('All assets linked. Engine ready.');
 }
+
 loadAllAssets();
 
 // ── START / STOP ──────────────────────────────────────────────────────────────
 
+/**
+ * Initializes audio nodes, starts stem loops, resets state, and begins scheduling.
+ */
 async function startEngine() {
   if (running) return;
   await actx.resume();
@@ -2634,6 +2828,9 @@ async function startEngine() {
   logToConsole(`Engine active — compRules:${compRules ? '✓' : '✗'} · smoothness:${SMOOTHNESS_BIAS} · buckets:[${Object.keys(BUCKET_WEIGHTS).join(',')}]`);
 }
 
+/**
+ * Stops all scheduling, disconnects audio nodes, and resets the engine to idle.
+ */
 function stopEngine() {
   running = false;
   [schedulerTimer, harmonySchedulerTimer, barSchedulerTimer].forEach(t => t && clearTimeout(t));
@@ -2687,6 +2884,9 @@ playBtn.addEventListener('click', () => running ? stopEngine() : startEngine());
 // (analyze all songs → compile rules → save to Neon) in the background.
 // The *current* visit uses whatever rules.js is already cached in Neon.
 // The *next* visit will get the freshly compiled rules (~30-60s later).
+/**
+ * Triggers a background rebuild of the composition rules by calling the analysis and compile endpoints.
+ */
 (async function pingRebuild() {
   try {
     // Step 1: analyze all songs — waits for response before continuing
@@ -2698,5 +2898,11 @@ playBtn.addEventListener('click', () => running ? stopEngine() : startEngine());
   } catch(e) { /* silent fail — never blocks the engine */ }
 })();
 </script>
+
+
+
+
+
+
 </body>
 </html>
