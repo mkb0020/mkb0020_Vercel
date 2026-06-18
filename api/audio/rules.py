@@ -1,45 +1,3 @@
-#!/usr/bin/env python3
-"""
-meowREMIX Rule Compiler v6.0  (DB-backed)
-==========================================
-Reads all analysis data from Neon (written by api/audio/analyze.py) and
-generates forms/rules.js — a single ES-module file consumed directly by
-meowREMIX.html.
-
-Changes from v5.0
------------------
-BUG FIXES
-  • build_bar_center_rules: keys now include octave (e.g. "G4" not "G") so the
-    engine's getSmoothBarCandidate() finds real matches instead of always falling
-    back to defaults.  Pass 1 derives centres from real event durations; Pass 2
-    falls back to structural-role mapping only when no event data exists.
-  • build_compositional_rules: structural role-transitions are now derived from
-    the section_rows already loaded from audio_section_analysis (which has a
-    structural_role column) instead of the missing "structural_roles" key that
-    v5.0 tried to read from full_json.
-  • JSON safety pass in write_rules_js: NaN / Infinity values are replaced with
-    0.0 before serialisation so the browser never receives invalid JSON.
-
-ENHANCEMENTS
-  • --all-songs flag: blend rules from every analysed song in the DB,
-    count-weighted, so the more songs you ingest the richer the output.
-  • build_bucket_transition_rules (NEW): encodes which bucket naturally follows
-    which (long→medium, short→medium arcs etc.) so the engine picks note lengths
-    that feel musically coherent rather than random.
-  • build_bucket_rhythm_bias (NEW): maps each bucket to duration-type
-    probabilities so the engine pairs long notes with slow rhythms and short
-    notes with fast ones automatically.
-  • build_bucket_tension_map (NEW): per-bucket tension statistics so the engine
-    can bias toward calm pitches on long notes and expressive pitches on short
-    staccato ones.
-  • --minify flag: write compact JS for production builds.
-
-Audio asset paths (relative to forms/ dir):
-  projects/audio/notes/long/{note}.m4a
-  projects/audio/notes/medium/{note}.m4a
-  projects/audio/notes/short/{note}.m4a
-"""
-
 import os
 import re
 import math
@@ -52,6 +10,7 @@ from pathlib import Path
 from datetime import datetime
 from collections import defaultdict, Counter
 from dotenv import load_dotenv
+from analyze import _build_moment_tokens, _build_token_ngrams
 
 warnings.filterwarnings('ignore')
 
@@ -113,6 +72,7 @@ BUCKET_TENSION_TARGET = {"long": 0.15, "medium": 0.30, "short": 0.55}
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _connect():
+    """Create a new psycopg connection using the DATABASE_URL from the .env file."""
     from dotenv import load_dotenv
     load_dotenv(ENV_PATH, override=True)
     db_url = os.environ.get("DATABASE_URL")
@@ -122,6 +82,7 @@ def _connect():
 
 
 def _rows_as_dicts(cur):
+    """Return all rows from the cursor as a list of dicts keyed by column name."""
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, row)) for row in cur.fetchall()]
 
@@ -199,6 +160,7 @@ def _fetch_rules_data(all_songs=False, song_id=None):
 
 
 def _coerce(row):
+    """Convert database row values: parse JSON strings and ensure floats where needed."""
     out = {}
     for k, v in row.items():
         if k.endswith('_json') and isinstance(v, str):
@@ -283,6 +245,7 @@ def pick_song(conn, song_id=None, all_songs=False):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def load_transitions(conn, song_id):
+    """Load pitch transition rows for a given song."""
     with conn.cursor() as cur:
         cur.execute("""
             SELECT t.from_pitch, t.to_pitch, t.count, t.probability
@@ -295,6 +258,7 @@ def load_transitions(conn, song_id):
 
 
 def load_intervals(conn, song_id):
+    """Load interval distribution rows for a given song."""
     with conn.cursor() as cur:
         cur.execute("""
             SELECT i.interval, i.frequency, i.percentage
@@ -307,6 +271,7 @@ def load_intervals(conn, song_id):
 
 
 def load_phrases(conn, song_id):
+    """Load phrase analysis rows for a given song."""
     with conn.cursor() as cur:
         cur.execute("""
             SELECT p.phrase_id, p.start_measure, p.end_measure,
@@ -322,6 +287,7 @@ def load_phrases(conn, song_id):
 
 
 def load_sections(conn, song_id):
+    """Load section analysis rows for a given song."""
     with conn.cursor() as cur:
         cur.execute("""
             SELECT s.section_id, s.start_bar, s.end_bar,
@@ -336,6 +302,7 @@ def load_sections(conn, song_id):
 
 
 def load_motifs(conn, song_id):
+    """Load motif analysis rows for a given song."""
     with conn.cursor() as cur:
         cur.execute("""
             SELECT m.motif_str, m.motif_length, m.reuse_count,
@@ -350,6 +317,7 @@ def load_motifs(conn, song_id):
 
 
 def load_summary(conn, song_id):
+    """Load the most recent analysis summary row for a given song."""
     with conn.cursor() as cur:
         cur.execute("""
             SELECT avg_interval_size, stepwise_motion_ratio, motif_density,
@@ -376,6 +344,7 @@ def load_summary(conn, song_id):
 
 
 def load_note_events_aggregated(conn, song_id):
+    """Load all note events for a given song, ordered by offset and voice."""
     with conn.cursor() as cur:
         cur.execute("""
             SELECT event_index, measure_number, beat_position,
@@ -424,6 +393,7 @@ def _merge_transitions(all_rows):
 
 
 def _merge_intervals(all_rows):
+    """Merge interval frequency rows from multiple songs into a single distribution."""
     freq_map = Counter()
     for rows in all_rows:
         for r in rows:
@@ -440,6 +410,7 @@ def _merge_intervals(all_rows):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def filter_low_frequency(items, count_key='count', bottom_percent=10):
+    """Remove items whose count falls into the lowest given percentile."""
     if not items:
         return items
     counts = [r[count_key] for r in items if r.get(count_key) is not None]
@@ -452,6 +423,7 @@ def filter_low_frequency(items, count_key='count', bottom_percent=10):
 
 
 def normalize_weights(items, weight_key='weight'):
+    """Normalize weights in-place so they sum to 1.0."""
     total = sum(r.get(weight_key, 0) for r in items)
     if total > 0:
         for r in items:
@@ -460,10 +432,12 @@ def normalize_weights(items, weight_key='weight'):
 
 
 def is_degenerate_motif(pattern_list):
+    """Return True if the motif is empty or consists entirely of the same pitch."""
     return not pattern_list or all(p == pattern_list[0] for p in pattern_list)
 
 
 def repair_split_pitch_tokens(tokens):
+    """Rejoin tokens where a note letter and octave were split by whitespace."""
     repaired, i = [], 0
     while i < len(tokens):
         t = tokens[i].strip()
@@ -478,12 +452,14 @@ def repair_split_pitch_tokens(tokens):
 
 
 def parse_motif_robust(motif_str):
+    """Parse a raw motif string into a list of valid pitch tokens or REST."""
     raw = repair_split_pitch_tokens(motif_str.split())
     valid = [p for p in raw if re.match(r'^[A-G][#\-]?\d*$', p) or p == 'REST']
     return valid if len(valid) == len(raw) else []
 
 
 def pitch_to_midi(pitch_str):
+    """Convert a pitch string (e.g. 'C4') to its MIDI note number, or None."""
     if not pitch_str or pitch_str == 'REST':
         return None
     m = re.match(r'^([A-G][#b\-]?)(\d+)$', str(pitch_str))
@@ -501,6 +477,7 @@ def pitch_to_midi(pitch_str):
 
 
 def voice_leading_penalty(melody_note, harmony_note):
+    """Return a voice-leading penalty factor based on interval class between melody and harmony."""
     midi_mel = pitch_to_midi(melody_note)
     midi_harm = pitch_to_midi(harmony_note)
     if midi_mel is None or midi_harm is None:
@@ -517,6 +494,7 @@ def voice_leading_penalty(melody_note, harmony_note):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_transition_rules(transition_rows):
+    """Build per-pitch transition rules with normalized weights and a same-note penalty."""
     rows = filter_low_frequency(transition_rows, 'count', bottom_percent=10)
     by_pitch = defaultdict(list)
     for r in rows:
@@ -534,6 +512,7 @@ def build_transition_rules(transition_rows):
 
 
 def build_interval_bias(interval_rows):
+    """Compute a normalized interval bias map from interval frequency data."""
     rows = filter_low_frequency(interval_rows, 'frequency', bottom_percent=10)
     result = {}
     for r in rows:
@@ -550,6 +529,7 @@ def build_interval_bias(interval_rows):
 
 
 def build_motif_bank(motif_rows):
+    """Build a list of weighted reusable motifs and an index by first pitch."""
     rows = [r for r in motif_rows if _safe(r.get('reuse_count')) >= 2]
     rows = filter_low_frequency(rows, 'reuse_count', bottom_percent=10)
     if not rows:
@@ -569,6 +549,7 @@ def build_motif_bank(motif_rows):
 
 
 def build_rhythm_patterns(events):
+    """Extract rhythm pattern probabilities (bigrams/trigrams) and single duration weights."""
     DUR_QL = {
         'whole': 4.0, 'half': 2.0, 'quarter': 1.0, 'eighth': 0.5,
         'sixteenth': 0.25, 'thirty-second': 0.125,
@@ -618,6 +599,7 @@ def build_rhythm_patterns(events):
 
 
 def build_beat_duration_rules(events):
+    """Build per-beat-position probabilities over duration types."""
     DUR_QL = {
         'whole': 4.0, 'half': 2.0, 'quarter': 1.0, 'eighth': 0.5,
         'sixteenth': 0.25, 'thirty-second': 0.125,
@@ -647,6 +629,7 @@ def build_beat_duration_rules(events):
 
 
 def build_contour_rules(events):
+    """Build contour sequence patterns (UP/DOWN/SAME) with weights."""
     def to_contour(iv):
         if iv is None:
             return None
@@ -673,6 +656,7 @@ def build_contour_rules(events):
 
 
 def build_suspension_rules(events):
+    """Identify high-tension descending note pairs and build weighted suspension rules."""
     notes = [e for e in events
              if not e['is_rest']
              and e.get('tension_score') is not None
@@ -704,6 +688,7 @@ def build_suspension_rules(events):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_harmony_rules(events):
+    """Build melody-to-harmony candidate weights using interval consonance and voice leading."""
     # Consonance weight by interval class (semitones mod 12)
     CONSONANCE = {
         0: 0.5,   # unison — boring
@@ -886,6 +871,7 @@ def build_vertical_harmony_rules(events):
 
 
 def build_phrase_templates(phrase_rows):
+    """Build phrase length distribution, tension arcs, and contour shape probabilities."""
     if not phrase_rows:
         return {}
     lengths = [_safe(r.get('length_beats')) for r in phrase_rows]
@@ -917,6 +903,7 @@ def build_phrase_templates(phrase_rows):
 
 
 def build_contour_arcs_from_phrases(phrase_rows):
+    """Map phrase curve types to weighted contour arc definitions (UP/DOWN/SAME patterns)."""
     ARC_DEFS = [
         ("arch", ["UP", "UP", "DOWN"], 0.25),
         ("rise_plateau", ["UP", "SAME", "DOWN"], 0.20),
@@ -949,6 +936,7 @@ def build_contour_arcs_from_phrases(phrase_rows):
 
 
 def build_style_biases():
+    """Return default style interpolation biases and rule bias weights."""
     return {
         "ruleBiases": {
             'transition': 0.3, 'harmony': 0.6, 'rhythm': 0.2,
@@ -1034,6 +1022,7 @@ def build_bar_center_rules(section_rows, events):
 
 
 def build_smoothness_rules(events):
+    """Build transition smoothness and rhythm flow rules from event connection data."""
     smooth_map = defaultdict(lambda: defaultdict(list))
     for e in events:
         pp = e.get('previous_pitch')
@@ -1070,6 +1059,7 @@ def build_smoothness_rules(events):
 
 
 def build_note_length_rules(events):
+    """Build note-length bucket weights and per-pitch-class default note mappings."""
     bucket_counts = Counter()
     pc_bucket_note = defaultdict(lambda: defaultdict(Counter))
     for e in events:
@@ -1129,6 +1119,91 @@ def build_bucket_transition_rules(events):
         ]
     return rules
 
+def build_token_ngram_rules(token_ngrams: dict, min_count: int = 2) -> dict:
+    """
+    Convert raw token n-gram counts into normalized probability distributions
+    suitable for consumption by the meowREMIX audio engine.
+
+    Filters n-grams below min_count to remove noise (analogous to BPE
+    minimum frequency threshold), then normalizes each context's successors
+    into a probability distribution.
+
+    Returns:
+      {
+        'unigram_probs':  { token_key: probability },
+        'bigram_probs':   { context_key: [ {token, prob, token_data}, ... ] },
+        'trigram_probs':  { context_key: [ {token, prob, token_data}, ... ] },
+        'vocab':          { token_key: token_dict }
+      }
+    """
+    vocab     = token_ngrams.get('vocab', {})
+    unigrams  = token_ngrams.get('unigrams', {})
+    bigrams   = token_ngrams.get('bigrams', {})
+    trigrams  = token_ngrams.get('trigrams', {})
+
+    # ── Unigram probabilities ─────────────────────────────────────────────
+    total_uni = max(1, sum(unigrams.values()))
+    unigram_probs = {k: v / total_uni for k, v in unigrams.items()}
+
+    # ── Bigram probabilities ──────────────────────────────────────────────
+    # Group by context (left token), normalize over successors
+    bigram_contexts = {}
+    for pair, count in bigrams.items():
+        if count < min_count:
+            continue
+        parts = pair.split(' -> ')
+        if len(parts) != 2:
+            continue
+        ctx, nxt = parts
+        if ctx not in bigram_contexts:
+            bigram_contexts[ctx] = {}
+        bigram_contexts[ctx][nxt] = bigram_contexts[ctx].get(nxt, 0) + count
+
+    bigram_probs = {}
+    for ctx, successors in bigram_contexts.items():
+        total = max(1, sum(successors.values()))
+        bigram_probs[ctx] = [
+            {
+                'token':      nxt,
+                'prob':       cnt / total,
+                'token_data': vocab.get(nxt, {}),
+            }
+            for nxt, cnt in sorted(successors.items(), key=lambda x: -x[1])
+        ]
+
+    # ── Trigram probabilities ─────────────────────────────────────────────
+    # Group by 2-token context, normalize over successors
+    trigram_contexts = {}
+    for triple, count in trigrams.items():
+        if count < min_count:
+            continue
+        parts = triple.split(' -> ')
+        if len(parts) != 3:
+            continue
+        ctx = f'{parts[0]} -> {parts[1]}'
+        nxt = parts[2]
+        if ctx not in trigram_contexts:
+            trigram_contexts[ctx] = {}
+        trigram_contexts[ctx][nxt] = trigram_contexts[ctx].get(nxt, 0) + count
+
+    trigram_probs = {}
+    for ctx, successors in trigram_contexts.items():
+        total = max(1, sum(successors.values()))
+        trigram_probs[ctx] = [
+            {
+                'token':      nxt,
+                'prob':       cnt / total,
+                'token_data': vocab.get(nxt, {}),
+            }
+            for nxt, cnt in sorted(successors.items(), key=lambda x: -x[1])
+        ]
+
+    return {
+        'unigram_probs': unigram_probs,
+        'bigram_probs':  bigram_probs,
+        'trigram_probs': trigram_probs,
+        'vocab':         vocab,
+    }
 
 def build_bucket_rhythm_bias(events):
     """
@@ -1370,6 +1445,7 @@ def build_trajectory_tension_curve(summary, section_rows):
         ]
 
     def _section_target(progress):
+        """Return the structural role tension target for a timeline progress point."""
         for seg in reversed(section_targets):
             if progress >= seg['start']:
                 seg_len = seg['end'] - seg['start']
@@ -1380,10 +1456,12 @@ def build_trajectory_tension_curve(summary, section_rows):
         return section_targets[0]['target'] if section_targets else 0.35
 
     def _climax_bump(progress):
+        """Return a Gaussian bump contribution near the climax location."""
         sigma = 0.12
         return 0.25 * _math.exp(-0.5 * ((progress - climax_loc) / sigma) ** 2)
 
     def _resolution_dip(progress):
+        """Return a tension dip in the final 15% of the song."""
         if progress < 0.85:
             return 0.0
         t = (progress - 0.85) / 0.15
@@ -1402,6 +1480,7 @@ def build_trajectory_tension_curve(summary, section_rows):
     climax_t = round(max(raw_values), 4)
 
     def _bucket_targets(progress):
+        """Return per-bucket tension targets for a given progress point."""
         idx   = min(int(progress * N_SAMPLES), N_SAMPLES - 1)
         cv    = samples[idx]['tensionTarget']
         scale = cv / max(climax_t, 0.01)
@@ -1688,6 +1767,7 @@ def write_rules_js(output_path, song_name, music_rules, comp_library, meta,
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main():
+    """Parse CLI arguments and run the meowREMIX rule compiler."""
     import argparse
     parser = argparse.ArgumentParser(
         description="meowREMIX Rule Compiler v6.0 — fetches from Vercel, writes forms/rules.js"
@@ -1970,7 +2050,7 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
         logger.info("[1-7] Blending data from all songs...")
         trans_rows    = _merge_transitions([get(sid, "transitions") for sid in song_ids])
         interval_rows = _merge_intervals([get(sid, "intervals")    for sid in song_ids])
-        primary_id    = song_ids[-1]    # most recent song for structural data
+        primary_id    = song_ids[-1]
         phrase_rows   = get(primary_id, "phrases")
         section_rows  = get(primary_id, "sections")
         motif_rows    = get(primary_id, "motifs")
@@ -2086,6 +2166,32 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
     else:
         logger.info("    No preference data yet — skipping boosts")
 
+    # ── TOKEN NGRAM RULES (new) ───────────────────────────────────────────────
+    # Built after RLHF boosts so events reflect any preference-adjusted
+    # tension values. In blend mode we build tokens across all songs and
+    # merge the ngram counts so the joint distribution spans the full corpus.
+    logger.info("[S] Building moment token n-grams...")
+    if blend_mode:
+        # Build tokens per-song then concatenate — preserves per-song phrase
+        # context rather than treating the blended event list as one sequence.
+        all_moment_tokens = []
+        for sid in song_ids:
+            sid_events  = get(sid, "events")
+            sid_phrases = get(sid, "phrases")
+            all_moment_tokens.extend(_build_moment_tokens(sid_events, sid_phrases))
+        moment_tokens = all_moment_tokens
+    else:
+        sid_phrases   = get(song_ids[0], "phrases")
+        moment_tokens = _build_moment_tokens(events, sid_phrases)
+
+    token_ngrams      = _build_token_ngrams(moment_tokens, n=2)
+    token_ngram_rules = build_token_ngram_rules(token_ngrams)
+    logger.info(f"    {len(moment_tokens)} tokens — "
+                f"{len(token_ngram_rules.get('unigram_probs', {}))} unique — "
+                f"{len(token_ngram_rules.get('bigram_probs', {}))} bigram contexts — "
+                f"{len(token_ngram_rules.get('trigram_probs', {}))} trigram contexts")
+    # ─────────────────────────────────────────────────────────────────────────
+
     # ── ASSEMBLE MUSICRULES ───────────────────────────────────────────────────
     total_trans = sum(len(v) for v in transitions.values())
     meta = {
@@ -2101,6 +2207,10 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
         "blendMode":         blend_mode,
         "noteBuckets":       list(audio_paths.keys()),
         "sampleNames":       SAMPLE_NAMES,
+        # ── new ──
+        "totalMomentTokens":   len(moment_tokens),
+        "tokenVocabSize":      len(token_ngram_rules.get('unigram_probs', {})),
+        "tokenBigramContexts": len(token_ngram_rules.get('bigram_probs', {})),
     }
 
     music_rules = {
@@ -2136,7 +2246,9 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
         },
         "preferenceSignals":      pref_signals,
         "trajectoryTensionCurve": trajectory_tension,
-        "tensionHoldRules":        tension_hold_rules,
+        "tensionHoldRules":       tension_hold_rules,
+        # ── new ──
+        "tokenNgramRules":        token_ngram_rules,
     }
 
     # ── BUILD COMPOSITIONAL RULE LIBRARY ──────────────────────────────────────
@@ -2160,8 +2272,12 @@ def compile_rules(all_songs=True, song_id=None, minify=False, write_file=False) 
         "bucket_weights":     list(bucket_weights.keys()),
         "bucket_transitions": list(bucket_transitions.keys()),
         "vertical_intervals": len(vertical_harmony.get("preferredIntervals", {})),
+        # ── new ──
+        "moment_tokens":      len(moment_tokens),
+        "token_vocab_size":   len(token_ngram_rules.get('unigram_probs', {})),
+        "token_bigrams":      len(token_ngram_rules.get('bigram_probs', {})),
+        "token_trigrams":     len(token_ngram_rules.get('trigram_probs', {})),
     }
-
 
 if __name__ == "__main__":
     main()

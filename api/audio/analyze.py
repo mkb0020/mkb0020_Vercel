@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 meowREMIX Music Pattern Analyzer v4.0  (DB-backed Flask Blueprint)
@@ -48,6 +49,7 @@ audio_analyze_bp = Blueprint("audio_analyze", __name__)
 
 # ── DB HELPERS ────────────────────────────────────────────────────────────────
 def _connect():
+    """Open a psycopg connection to the database using DATABASE_URL."""
     import psycopg
     if not DB_URL:
         raise RuntimeError("DATABASE_URL not set.")
@@ -55,11 +57,13 @@ def _connect():
 
 
 def _rows_as_dicts(cur):
+    """Convert cursor rows into a list of dicts keyed by column name."""
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
 def _safe_float(v):
+    """Safely convert a value to float, returning None on failure."""
     try:
         return float(v) if v is not None else None
     except (TypeError, ValueError):
@@ -67,6 +71,7 @@ def _safe_float(v):
 
 
 def _safe_int(v):
+    """Safely convert a value to int, returning None on failure."""
     try:
         return int(v) if v is not None else None
     except (TypeError, ValueError):
@@ -153,18 +158,21 @@ def _load_events(conn, song_id: int) -> list[dict]:
 
 # ANALYSIS ENGINE - ALL FUNCTIONS RECEIVE A LIST OF DICTS EVENTS AND RETURN PLAIN PYTHON STRUCTURES 
 def _notes_only(events: list[dict]) -> list[dict]:
+    """Filter out rest events, returning only note events."""
     return [e for e in events if not e.get("is_rest")]
 
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
 
 def _strip_octave(pitch_str):
+    """Return the pitch-class portion of a pitch string by stripping digits and '-'."""
     if not pitch_str or pitch_str == "REST":
         return pitch_str
     return "".join(c for c in str(pitch_str) if not c.isdigit() and c != "-")
 
 
 def _pitch_to_midi(pitch_str):
+    """Convert a pitch string like 'C4' to a MIDI note number, or None if unparsable."""
     import re
     if not pitch_str or pitch_str == "REST":
         return None
@@ -183,6 +191,7 @@ def _pitch_to_midi(pitch_str):
 
 
 def _get_ngrams(seq, n):
+    """Generate all n-grams of length n from sequence seq."""
     return [tuple(seq[i:i + n]) for i in range(len(seq) - n + 1)]
 
 
@@ -195,10 +204,12 @@ DUR_QL = {
 
 
 def _ql_sum(pattern):
+    """Sum the quarter-length values for a list of duration type strings."""
     return sum(DUR_QL.get(d, 1.0) for d in pattern)
 
 
 def _is_measure_valid(pattern, beats=4):
+    """Check if a duration pattern fills an integer number of measures within tolerance."""
     total = _ql_sum(pattern)
     if total <= 0:
         return False
@@ -307,6 +318,7 @@ def _analyze_transitions(events: list[dict]) -> list[dict]:
 
 
 def _analyze_intervals(events: list[dict]) -> list[dict]:
+    """Return frequency and percentage distribution of melodic intervals from consecutive notes."""
     from collections import Counter
     notes = [e for e in events if not e.get("is_rest") and e.get("interval_from_previous") is not None]
     counts = Counter(int(e["interval_from_previous"]) for e in notes)
@@ -319,6 +331,7 @@ def _analyze_intervals(events: list[dict]) -> list[dict]:
 
 
 def _classify_tension_curve(tensions: list) -> str:
+    """Classify a tension list into a shape category: rise, fall, plateau, rise-fall, etc."""
     if len(tensions) < 2:
         return "flat"
     x = tensions
@@ -345,6 +358,7 @@ def _classify_tension_curve(tensions: list) -> str:
 
 
 def _detect_cadences(events: list[dict]) -> list[dict]:
+    """Detect cadence types at phrase endings using scale degrees or pitch classes."""
     from collections import defaultdict
     by_phrase = defaultdict(list)
     for e in events:
@@ -388,6 +402,7 @@ def _detect_cadences(events: list[dict]) -> list[dict]:
 
 
 def _analyze_phrases_detailed(events: list[dict], cadences: list[dict]) -> tuple[list, dict]:
+    """Compute per-phrase statistics and destination scale-degree probabilities."""
     from collections import Counter, defaultdict
     by_phrase = defaultdict(list)
     for e in events:
@@ -603,6 +618,7 @@ def _analyze_motifs_detailed(events: list[dict]) -> list[dict]:
 
 
 def _discover_sections(events: list[dict], phrases: list[dict]) -> list[dict]:
+    """Group phrases into structural sections based on cadence boundaries and compute section-level tension and structural role."""
     if not phrases:
         return []
 
@@ -675,6 +691,7 @@ def _discover_sections(events: list[dict], phrases: list[dict]) -> list[dict]:
 
 
 def _detect_expectation_delays(phrases: list[dict]) -> list[dict]:
+    """Detect deferred resolutions where a half cadence is not immediately followed by tonic."""
     events = []
     for i in range(len(phrases) - 1):
         cur, nxt = phrases[i], phrases[i + 1]
@@ -691,6 +708,7 @@ def _detect_expectation_delays(phrases: list[dict]) -> list[dict]:
 
 
 def _extract_emotional_features(events: list[dict]) -> dict:
+    """Extract emotion-related features: stepwise ratio, tension variance, smoothness, large leaps, note bucket distribution."""
     notes = [e for e in events if not e.get("is_rest")]
     if not notes:
         return {}
@@ -718,9 +736,176 @@ def _extract_emotional_features(events: list[dict]) -> dict:
         "note_bucket_distribution": {k: round(v / total_b, 4) for k, v in buckets.items()},
     }
 
+def _quantize_tension(tension_val):
+    """Quantize a continuous tension value (0-1) into 5 discrete bins (0-4)."""
+    if tension_val is None:
+        return 2  # default to mid
+    t = max(0.0, min(1.0, float(tension_val)))
+    return min(4, int(t * 5))
+
+
+def _build_moment_tokens(events: list[dict], phrases: list[dict]) -> list[dict]:
+    """
+    Collapse each note event into a structured musical token capturing
+    pitch class, octave, duration bucket, melodic contour, tension bin,
+    phrase position, and structural role.
+
+    These tokens form the vocabulary for joint n-gram analysis — each token
+    encodes multiple musical dimensions simultaneously rather than treating
+    them as independent distributions.
+
+    Returns a list of token dicts, one per non-rest note event.
+    """
+    notes = _notes_only(events)
+    if not notes:
+        return []
+
+    # Build a phrase lookup by event offset so we can tag each note
+    # with its phrase context (position within phrase, structural role).
+    phrase_map = {}
+    for ph in phrases:
+        start = ph.get('start_offset', 0)
+        end   = ph.get('end_offset', start)
+        role  = ph.get('structural_role', 'verse')
+        length = max(1, end - start)
+        for ev in notes:
+            o = ev.get('offset', 0)
+            if start <= o < end:
+                frac = (o - start) / length
+                if frac < 0.2:
+                    pos = 'start'
+                elif frac > 0.8:
+                    pos = 'end'
+                else:
+                    pos = 'mid'
+                phrase_map[id(ev)] = {'phrase_position': pos, 'structural_role': role}
+
+    tokens = []
+    prev_midi = None
+
+    for i, ev in enumerate(notes):
+        pitch_str = ev.get('pitch', '')
+        midi      = _pitch_to_midi(pitch_str)
+        if midi is None:
+            continue
+
+        # Pitch class and octave
+        pitch_class = _strip_octave(pitch_str)
+        octave_str  = ''.join(c for c in pitch_str if c.isdigit())
+        octave      = int(octave_str) if octave_str else 4
+
+        # Duration bucket (reuse existing bucket assignment if present,
+        # otherwise derive from quarter-length)
+        bucket = ev.get('bucket', None)
+        if bucket not in ('long', 'medium', 'short'):
+            ql = ev.get('quarter_length', ev.get('duration', 1.0))
+            try:
+                ql = float(ql)
+            except (TypeError, ValueError):
+                ql = 1.0
+            if ql >= 2.0:
+                bucket = 'long'
+            elif ql >= 0.75:
+                bucket = 'medium'
+            else:
+                bucket = 'short'
+
+        # Melodic contour relative to previous note
+        if prev_midi is None:
+            contour = 'SAME'
+        elif midi > prev_midi + 1:
+            contour = 'UP'
+        elif midi < prev_midi - 1:
+            contour = 'DOWN'
+        else:
+            contour = 'SAME'
+
+        # Tension bin
+        tension_raw = ev.get('tension', 0.4)
+        tension_bin = _quantize_tension(tension_raw)
+
+        # Phrase context
+        ctx = phrase_map.get(id(ev), {'phrase_position': 'mid', 'structural_role': 'verse'})
+
+        tokens.append({
+            'pitch_class':      pitch_class,
+            'octave':           octave,
+            'duration_bucket':  bucket,
+            'contour':          contour,
+            'tension_bin':      tension_bin,
+            'phrase_position':  ctx['phrase_position'],
+            'structural_role':  ctx['structural_role'],
+            # Keep raw midi for n-gram sequencing
+            '_midi':            midi,
+        })
+
+        prev_midi = midi
+
+    return tokens
+
+
+def _build_token_ngrams(tokens: list[dict], n: int = 2) -> dict:
+    """
+    Build joint n-gram frequency counts over full musical token tuples.
+
+    Unlike the existing transition rules which count pitch->pitch transitions
+    independently of rhythm or tension, this counts co-occurrences of the
+    complete token tuple, capturing correlations like:
+    'high-tension mid-phrase UP token tends to be followed by
+     short-duration DOWN token resolving toward tonic.'
+
+    Returns a dict:
+      {
+        'bigrams':  { 'token_key -> token_key': count },
+        'trigrams': { 'token_key -> token_key -> token_key': count },
+        'unigrams': { 'token_key': count },
+        'vocab':    { 'token_key': token_dict }  # reverse lookup
+      }
+    """
+    def token_key(t):
+        # Exclude _midi from the key — it's internal scaffolding
+        return '{pc}|{oct}|{bkt}|{con}|{ten}|{pos}|{rol}'.format(
+            pc=t['pitch_class'],
+            oct=t['octave'],
+            bkt=t['duration_bucket'],
+            con=t['contour'],
+            ten=t['tension_bin'],
+            pos=t['phrase_position'],
+            rol=t['structural_role'],
+        )
+
+    unigrams  = {}
+    bigrams   = {}
+    trigrams  = {}
+    vocab     = {}
+
+    keys = []
+    for t in tokens:
+        k = token_key(t)
+        vocab[k] = {kk: vv for kk, vv in t.items() if not kk.startswith('_')}
+        unigrams[k] = unigrams.get(k, 0) + 1
+        keys.append(k)
+
+    # Bigrams
+    for a, b in zip(keys, keys[1:]):
+        bg = f'{a} -> {b}'
+        bigrams[bg] = bigrams.get(bg, 0) + 1
+
+    # Trigrams
+    for a, b, c in zip(keys, keys[1:], keys[2:]):
+        tg = f'{a} -> {b} -> {c}'
+        trigrams[tg] = trigrams.get(tg, 0) + 1
+
+    return {
+        'unigrams': unigrams,
+        'bigrams':  bigrams,
+        'trigrams': trigrams,
+        'vocab':    vocab,
+    }
 
 
 def _compute_familiarity_novelty(motif_detailed: list[dict]) -> dict:
+    """Compute familiarity and novelty scores based on total motif reuse."""
     if not motif_detailed:
         return {"familiarity_score": 0.0, "novelty_score": 1.0}
     total    = sum(m["reuse_count"] for m in motif_detailed) or 1
@@ -730,6 +915,7 @@ def _compute_familiarity_novelty(motif_detailed: list[dict]) -> dict:
 
 
 def _compute_return_to_familiarity(motif_detailed: list[dict]) -> dict:
+    """Compute the rate of motifs that return and their average return distance in bars."""
     if not motif_detailed:
         return {"motif_return_rate": 0.0, "average_return_distance": 0.0}
     total = len(motif_detailed) or 1
@@ -742,6 +928,7 @@ def _compute_return_to_familiarity(motif_detailed: list[dict]) -> dict:
 
 
 def _analyze_song_trajectory(phrases: list[dict], sections: list[dict]) -> dict:
+    """Identify intro, climax, and resolution regions and the normalised climax location."""
     if not sections:
         return {}
     total_bars = max((s.get("end_bar") or 0) for s in sections) or 1
@@ -770,7 +957,10 @@ def _smoothness_stats(events: list[dict]) -> dict:
 def _build_full_json(events, phrases, dest_probs, motif_detailed,
                      sections, expectation_events, emotional_features,
                      familiarity_data, return_fam_data, trajectory,
-                     preference_signals: dict | None = None) -> dict:
+                     preference_signals: dict | None = None,
+                     moment_tokens: list | None = None,
+                     token_ngrams: dict | None = None) -> dict:
+    """Assemble the full hierarchical analysis JSON from all computed analysis results."""
     source = ""
     for e in events:
         if e.get("pitch"):
@@ -784,19 +974,21 @@ def _build_full_json(events, phrases, dest_probs, motif_detailed,
                 len([p for p in phrases if p.get("cadence_type")]) / len(phrases)
                 if phrases else 0.0
             ),
-            "emotional_features":         emotional_features,
-            "familiarity_novelty_balance": familiarity_data,
-            "return_to_familiarity":       return_fam_data,
+            "emotional_features":              emotional_features,
+            "familiarity_novelty_balance":     familiarity_data,
+            "return_to_familiarity":           return_fam_data,
             "phrase_destination_distribution": dest_probs,
         },
-        "section_analysis":  sections,
-        "phrase_analysis":   phrases,
-        "motif_analysis":    motif_detailed,
+        "section_analysis":   sections,
+        "phrase_analysis":    phrases,
+        "motif_analysis":     motif_detailed,
         "expectation_events": expectation_events,
         "trajectory_analysis": trajectory,
         "preference_signals": preference_signals or {},
+        # ── new ──
+        "moment_tokens":      moment_tokens or [],
+        "token_ngrams":       token_ngrams or {},
     }
-
 
 # DB WRITERS
 def _write_to_db(conn, song_id: int,
@@ -1044,9 +1236,11 @@ def _analyze_preference_signals(
         return {"total_ratings": 0, "message": "No preference data found."}
 
     def _avg_list(lst):
+        """Return the average of a list of numbers, or None if empty."""
         return round(sum(lst) / len(lst), 4) if lst else None
 
     def _avg_sliders(slider_list):
+        """Average each slider key across a list of slider dicts."""
         if not slider_list:
             return {}
         keys = ["suspension_risk", "long_volume", "medium_volume", "short_volume"]
@@ -1058,11 +1252,12 @@ def _analyze_preference_signals(
     }
 
     def _strip_oct(p):
-        """'G4' → 'G',  'F#3' → 'F#'"""
+        """Remove octave digits from a pitch string, e.g. 'G4' -> 'G'."""
         import re
         return re.sub(r'\d', '', p) if p else p
 
     def _extract_phrase_features(phrase_json):
+        """Extract features from a phrase JSON: note count, avg tension, pitch variety, transitions, etc."""
         if not phrase_json or not isinstance(phrase_json, dict):
             return {}
         notes = phrase_json.get("notes", [])
@@ -1122,6 +1317,7 @@ def _analyze_preference_signals(
             for t in feats.get("transitions", []): disliked_trans_phrase[t] += 1
 
     def _feature_summary(feat_list):
+        """Summarize a list of phrase feature dicts into aggregated averages."""
         if not feat_list: return {}
         tensions  = [f["avg_tension"]  for f in feat_list if f.get("avg_tension")  is not None]
         varieties = [f["pitch_variety"] for f in feat_list if f.get("pitch_variety") is not None]
@@ -1435,7 +1631,7 @@ def _analyze_preference_signals(
     }
 
 
-# FLASK ROUTES
+
 @audio_analyze_bp.route("/api/audio/analyze/<int:song_id>", methods=["POST"])
 def run_analysis(song_id: int):
     """
@@ -1492,6 +1688,18 @@ def run_analysis(song_id: int):
         logger.info("  [11] Emotional features...")
         emotional = _extract_emotional_features(events)
 
+        # ── NEW: moment tokens and joint n-gram analysis ──────────────────
+        # Must come after step 11 (_apply_contextual_tension has populated
+        # tension on each event, and _assign_phrases has set phrase context).
+        logger.info("  [11b] Building moment tokens...")
+        moment_tokens = _build_moment_tokens(events, phrases)
+        token_ngrams  = _build_token_ngrams(moment_tokens, n=2)
+        logger.info(f"        {len(moment_tokens)} tokens — "
+                    f"{len(token_ngrams.get('unigrams', {}))} unique — "
+                    f"{len(token_ngrams.get('bigrams', {}))} bigrams — "
+                    f"{len(token_ngrams.get('trigrams', {}))} trigrams")
+        # ─────────────────────────────────────────────────────────────────
+
         logger.info("  [12] Familiarity / novelty...")
         fam_data     = _compute_familiarity_novelty(motifs)
         ret_fam_data = _compute_return_to_familiarity(motifs)
@@ -1516,6 +1724,9 @@ def run_analysis(song_id: int):
             sections, expectation_events, emotional,
             fam_data, ret_fam_data, trajectory,
             pref_signals,
+            # ── new ──
+            moment_tokens=moment_tokens,
+            token_ngrams=token_ngrams,
         )
 
         logger.info("  [16] Writing results to DB...")
@@ -1540,6 +1751,10 @@ def run_analysis(song_id: int):
             "motifs":             len(motifs),
             "cadences":           len(cadences),
             "preference_records": len(prefs),
+            # ── new ──
+            "moment_tokens":      len(moment_tokens),
+            "token_ngram_vocab":  len(token_ngrams.get('unigrams', {})),
+            "token_bigrams":      len(token_ngrams.get('bigrams', {})),
         }), 201
 
     except Exception as e:

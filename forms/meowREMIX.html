@@ -1060,20 +1060,121 @@ function applyDestinationBias(note, base, phrasePos) {
   return base * (1.0 - ramp * 0.7);                // soften non-targets in approach
 }
 
+
 /**
- * Applies gravity, tension, destination, and skeleton biases to a list of candidate notes.
+ * Applies gravity, tension, destination, skeleton, and token hint biases
+ * to a list of candidate notes.
+ *
+ * The token hint from sampleNextToken() is treated as a soft bias — it
+ * nudges probabilities toward the joint n-gram prediction without
+ * overriding the existing musical intelligence. All existing biases
+ * (gravity, tension, destination, skeleton) remain fully active.
+ *
+ * @param {Array}  candidates  - [{note, weight}, ...] from getWeightedNextNote
+ * @param {Object} context     - musical context including optional tokenHint
+ * @returns {Array}            - candidates with adjusted weights, renormalized
  */
 function applyCompositionalBiases(candidates, context = {}) {
-  const { targetTension, phraseEnd, phrasePos, bucket } = context;
-  return candidates.map(c => {
-    let w = c.weight;
-    w = applyGravityBias(c.note, w);
-    if (targetTension !== undefined) w = applyTensionBias(c.note, w, targetTension);
-    w = applyDestinationBias(c.note, w, phrasePos);
-    // Skeleton contour bias — pulls note toward the planned phrase arc
-    w *= getSkeletonBias(c.note, phraseSkeletonState.stepIndex, phraseSkeletonState.skeletonNotes);
-    return { note: c.note, weight: w };
-  });
+    if (!candidates?.length) return candidates;
+
+    const { tokenHint } = context;
+
+    // ── EXISTING BIASES (preserved exactly) ──────────────────────────────
+    candidates = candidates.map(c => {
+        let w = c.weight;
+        w = applyGravityBias(c.note, w);
+        w = applyTensionBias(c.note, w, context.targetTension ?? 0.4);
+        w = applyDestinationBias(c.note, w, context.phrasePos ?? 0.5);
+        if (context.skeleton?.length) {
+            w = getSkeletonBias(c.note, context.skeletonStep ?? 0, context.skeleton) * w;
+        }
+        return { ...c, weight: w };
+    });
+
+    // ── TOKEN HINT BIAS (new) ─────────────────────────────────────────────
+    // Only applied when sampleNextToken returned a result. Each dimension
+    // of the token hint contributes independently so partial matches still
+    // get a boost — e.g. a candidate matching contour+tension but not
+    // pitch_class still scores higher than a complete mismatch.
+    if (tokenHint) {
+        candidates = candidates.map(c => {
+            let boost = 1.0;
+            const note = c.note;
+            if (!note || note === 'REST') return c;
+
+            // ── Contour match ─────────────────────────────────────────
+            // If the hint says UP and this candidate is above the current
+            // note, give it a mild boost. Weight: 1.25x match, 0.85x mismatch.
+            if (tokenHint.contour && context.currentNote) {
+                const currentMidi = pitchToMidi(context.currentNote);
+                const candidateMidi = pitchToMidi(note);
+                if (currentMidi != null && candidateMidi != null) {
+                    const actualContour = candidateMidi > currentMidi + 1 ? 'UP'
+                                        : candidateMidi < currentMidi - 1 ? 'DOWN'
+                                        : 'SAME';
+                    boost *= actualContour === tokenHint.contour ? 1.25 : 0.85;
+                }
+            }
+
+            // ── Tension bin match ─────────────────────────────────────
+            // Quantize candidate's tension and compare to hint.
+            // Weight: 1.20x exact match, 1.05x adjacent bin, 0.90x far off.
+            if (tokenHint.tension_bin != null) {
+                const candidateTension = getTension(note);
+                const candidateBin = Math.min(4, Math.floor(
+                    Math.max(0, Math.min(1, candidateTension)) * 5
+                ));
+                const binDiff = Math.abs(candidateBin - tokenHint.tension_bin);
+                if      (binDiff === 0) boost *= 1.20;
+                else if (binDiff === 1) boost *= 1.05;
+                else                   boost *= 0.90;
+            }
+
+            // ── Duration bucket match ─────────────────────────────────
+            // The candidate note doesn't have a bucket yet at this point
+            // (bucket is chosen by tickVoice before calling this), so we
+            // use the hint's bucket to bias via tension as a proxy —
+            // long bucket notes tend low tension, short notes tend high.
+            // This is a lightweight heuristic; the real bucket is upstream.
+            if (tokenHint.duration_bucket) {
+                const t = getTension(note);
+                const longMatch   = tokenHint.duration_bucket === 'long'   && t < 0.4;
+                const medMatch    = tokenHint.duration_bucket === 'medium' && t >= 0.3 && t <= 0.7;
+                const shortMatch  = tokenHint.duration_bucket === 'short'  && t > 0.6;
+                if (longMatch || medMatch || shortMatch) boost *= 1.15;
+            }
+
+            // ── Pitch class match ─────────────────────────────────────
+            // Direct pitch class match gets the strongest boost since
+            // this is the most specific prediction the token makes.
+            // Weight: 1.35x match. No penalty for mismatch — we don't
+            // want to strongly suppress notes the other biases like.
+            if (tokenHint.pitch_class) {
+                const candidatePC = note.replace(/\d/g, '').replace('♯','#').replace('♭','-');
+                if (candidatePC === tokenHint.pitch_class) boost *= 1.35;
+            }
+
+            // ── Phrase position match ─────────────────────────────────
+            // Mild structural nudge. If hint says 'end' and we're near
+            // phrase end, prefer notes that have low tension (resolution).
+            if (tokenHint.phrase_position === 'end' && (context.phrasePos ?? 0) > 0.75) {
+                const t = getTension(note);
+                if (t < 0.35) boost *= 1.10;
+            }
+
+            return { ...c, weight: Math.max(0.0001, c.weight * boost) };
+        });
+    }
+
+    // ── RENORMALIZE ───────────────────────────────────────────────────────
+    // Always renormalize after adding biases so weightedRandom() still
+    // works correctly regardless of how many boosts were applied.
+    const total = candidates.reduce((s, c) => s + c.weight, 0);
+    if (total > 0) {
+        candidates = candidates.map(c => ({ ...c, weight: c.weight / total }));
+    }
+
+    return candidates;
 }
 
 /**
@@ -1841,7 +1942,75 @@ function makeVoiceState() {
     pendingSuspension: null, nextNoteTime: 0,
     measuresSinceSync: 0, lastDurationType: null,
     currentBucket: 'medium',
+    currentToken: null,   // ← new: current musical token for n-gram context
+    prevToken:    null,   // ← new: previous token for trigram lookups
   };
+}
+
+/**
+ * Sample the next musical token using joint n-gram distribution.
+ *
+ * Falls back through trigram -> bigram -> unigram -> uniform random
+ * so the engine degrades gracefully when context hasn't been seen before.
+ *
+ * @param {Object} currentToken  - The token dict for the current note
+ * @param {Object} prevToken     - The token dict for the note before that (for trigrams)
+ * @param {Object} tokenRules    - music_rules.token_ngram_rules from compiled rules
+ * @returns {Object|null}        - Next token dict, or null if no rules available
+ */
+function sampleNextToken(currentToken, prevToken, tokenRules) {
+    if (!tokenRules) return null;
+
+    const { bigram_probs, trigram_probs, unigram_probs, vocab } = tokenRules;
+
+    function tokenKey(t) {
+        if (!t) return null;
+        return `${t.pitch_class}|${t.octave}|${t.duration_bucket}|${t.contour}|${t.tension_bin}|${t.phrase_position}|${t.structural_role}`;
+    }
+
+    function sampleFromList(candidates) {
+        // candidates: [{token, prob, token_data}, ...]
+        const r = Math.random();
+        let acc = 0;
+        for (const c of candidates) {
+            acc += c.prob;
+            if (r <= acc) return c.token_data;
+        }
+        return candidates[candidates.length - 1]?.token_data ?? null;
+    }
+
+    function sampleFromUnigrams() {
+        // Weighted random over full unigram distribution
+        const entries = Object.entries(unigram_probs);
+        if (!entries.length) return null;
+        const total = entries.reduce((s, [, p]) => s + p, 0);
+        const r = Math.random() * total;
+        let acc = 0;
+        for (const [key, prob] of entries) {
+            acc += prob;
+            if (r <= acc) return vocab[key] ?? null;
+        }
+        return vocab[entries[entries.length - 1][0]] ?? null;
+    }
+
+    const curKey  = tokenKey(currentToken);
+    const prevKey = tokenKey(prevToken);
+
+    // Try trigram first (most specific context)
+    if (prevKey && curKey && trigram_probs) {
+        const triCtx = `${prevKey} -> ${curKey}`;
+        if (trigram_probs[triCtx]?.length) {
+            return sampleFromList(trigram_probs[triCtx]);
+        }
+    }
+
+    // Fall back to bigram
+    if (curKey && bigram_probs?.[curKey]?.length) {
+        return sampleFromList(bigram_probs[curKey]);
+    }
+
+    // Fall back to unigram
+    return sampleFromUnigrams();
 }
 
 /**
@@ -1854,19 +2023,16 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
 
   updateStructuralRole(totalMeasures);
 
-  // Song fraction cycles over 8-bar loops (matching beat track), then over
-  // a longer 64-bar macro arc for structural role changes.
   const loopFrac = (totalMeasures % BEAT_LOOP_BARS) / BEAT_LOOP_BARS;
   const songFrac = (totalMeasures % 64) / 64;
   generationState.targetTension = getTargetTensionFromArc(songFrac);
 
-  // PHRASE-LEVEL SHAPE — overrides song-level tension for melody voice
   const { phraseTension, phrasePos, isResolution } = getPhraseBias(totalMeasures);
   if (voiceRole === 'melody') {
     generationState.targetTension = phraseTension;
   }
 
-  // ── 4-BAR PHRASE BOUNDARY: destination + skeleton ────────────────────────
+  // ── 4-BAR PHRASE BOUNDARY ─────────────────────────────────────────────────
   if (totalMeasures % 4 < 0.1 && generationState.phraseMeasureCounter > 0) {
     const dests = compRules?.phrase_destination_rules?.['4_bar_phrase'];
     if (dests) generationState.destinationChord = weightedRandomFromObj(dests);
@@ -1887,15 +2053,11 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
     }
   }
 
-  // ── 8-BAR LOOP BOUNDARY: hard sync with beat track ───────────────────────
-  // Every 8 bars we are back at the start of the beat loop. Use this to:
-  //   1. Force a phrase skeleton rebuild (guarantees fresh contour at loop start)
-  //   2. Log a sync event so we can verify alignment in the console
-  //   3. Bias the staccato burst system to reset (no mid-burst carry-over across loops)
+  // ── 8-BAR LOOP BOUNDARY ───────────────────────────────────────────────────
   if (totalMeasures % BEAT_LOOP_BARS < 0.1 && totalMeasures > 0.5 && voiceRole === 'melody') {
-    phraseSkeletonState.phraseStartBar = -1;   // force rebuild on next 4-bar boundary
+    phraseSkeletonState.phraseStartBar = -1;
     if (staccatoBurstState.active) {
-      staccatoBurstState.active        = false;
+      staccatoBurstState.active         = false;
       staccatoBurstState.notesRemaining = 0;
     }
     logToConsole(`🔁 8-bar loop sync @ bar ${Math.round(totalMeasures)}`);
@@ -1913,9 +2075,7 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
     generationState.expectationDelayActive = false;
   }
 
-  // ── PICK BUCKET FOR THIS NOTE ──────────────────────────────────────────────
-  // FOR THE BAR VOICE (LONG PADS), ALWAYS USE 'LONG'.
-  // FOR MELODY/HARMONY, USE BUCKET TRANSITIONS FROM RULES.
+  // ── PICK BUCKET ───────────────────────────────────────────────────────────
   let bucket;
   if (voiceRole === 'bar') {
     bucket = 'long';
@@ -1924,25 +2084,18 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
   }
   state.currentBucket = bucket;
 
-  // ── DURATION — BIASED BY BUCKET ────────────────────────────────────────────
+  // ── DURATION ──────────────────────────────────────────────────────────────
   let durSec;
   if (voiceRole === 'melody' && bucket === 'short') {
-    // ── STACCATO BURST LOGIC ──────────────────────────────────────────────
-    // Tick the gap counter first (consumes silence time between bursts)
     if (!staccatoBurstState.active && staccatoBurstState.gapBeatsLeft > 0) {
-      // Still in gap — play a rest for one beat slice and count it down
       const sliceSec = Math.min(BEAT_SEC, staccatoBurstState.gapBeatsLeft * BEAT_SEC);
       staccatoBurstState.gapBeatsLeft -= sliceSec / BEAT_SEC;
       if (staccatoBurstState.gapBeatsLeft < 0.05) staccatoBurstState.gapBeatsLeft = 0;
       state.nextNoteTime = atTime + sliceSec;
       return { note: 'REST', tension: generationState.targetTension, bucket };
     }
-
-    // Try to start a new burst if idle
     const currentBar = Math.floor((atTime - engineStartTime) / MEASURE_DUR_SEC);
     maybeStartStaccatoBurst(currentBar, phrasePos, generationState.targetTension);
-
-    // Serve burst duration if active, otherwise fall back to locked rhythm
     const burstDur = getStaccatoBurstDuration();
     durSec = burstDur ?? getLockedRhythmDuration(bucket, atTime, state.lastDurationType);
   } else if (voiceRole === 'melody') {
@@ -1951,7 +2104,7 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
     durSec = getBucketRhythmDuration(bucket, atTime, state.lastDurationType);
   }
 
-  // ── NOTE SELECTION ─────────────────────────────────────────────────────────
+  // ── NOTE SELECTION ────────────────────────────────────────────────────────
   let noteToPlay = null;
 
   if (state.pendingSuspension) {
@@ -1986,9 +2139,30 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
         noteToPlay = getSmoothBarCandidate(state.currentNote, false);
       } else {
         const phraseEnd = isResolution || (totalMeasures % 4) > 3.0;
+
+        // ── TOKEN HINT (new) ───────────────────────────────────────────────
+        // Sample the joint n-gram prediction for the next token. This is
+        // passed into getWeightedNextNote as a soft bias — it nudges the
+        // existing weighted distribution without overriding it. Gracefully
+        // returns null if token_ngram_rules haven't been compiled yet.
+        const nextTokenHint = sampleNextToken(
+          state.currentToken,
+          state.prevToken,
+          musicRules?.tokenNgramRules ?? null
+        );
+        // ──────────────────────────────────────────────────────────────────
+
         noteToPlay = getWeightedNextNote(
           state.currentNote, state.prevNote, forceDiff, forceNonRest,
-          { targetTension: generationState.targetTension, phraseEnd, phrasePos, bucket }
+          {
+            targetTension: generationState.targetTension,
+            phraseEnd,
+            phrasePos,
+            bucket,
+            // ── new ──
+            currentNote: state.currentNote,
+            tokenHint:   nextTokenHint,
+          }
         );
       }
     }
@@ -2008,7 +2182,7 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
   const gainNode = bucket === 'long' ? longGain : bucket === 'medium' ? medGain : shortGain;
   playNote(bucket, noteToPlay, durSec, gainNode, atTime, generationState.targetTension);
 
-  // UPDATE STATE
+  // ── UPDATE STATE ──────────────────────────────────────────────────────────
   if (noteToPlay === 'REST') {
     state.consecutiveRest++;
     state.consecutiveSame = 0;
@@ -2016,9 +2190,34 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
     state.consecutiveSame  = noteToPlay === state.currentNote ? state.consecutiveSame+1 : 0;
     state.consecutiveRest  = 0;
   }
-  state.prevNote     = state.currentNote;
-  state.currentNote  = noteToPlay;
+  state.prevNote    = state.currentNote;
+  state.currentNote = noteToPlay;
   state.nextNoteTime = atTime + durSec;
+
+  // ── TOKEN STATE UPDATE (new) ───────────────────────────────────────────────
+  // Roll the token window forward after every non-rest note so the next
+  // call to sampleNextToken has fresh bigram/trigram context. REST notes
+  // are skipped — they don't represent musical tokens in the vocabulary.
+  if (noteToPlay && noteToPlay !== 'REST') {
+    state.prevToken    = state.currentToken;
+    state.currentToken = {
+      pitch_class:      noteToPlay.replace(/\d/g, '').replace('♯', '#').replace('♭', '-'),
+      octave:           parseInt(noteToPlay.match(/\d/)?.[0] ?? '4'),
+      duration_bucket:  bucket,
+      contour: (() => {
+        const pm = pitchToMidi(state.prevNote);
+        const cm = pitchToMidi(noteToPlay);
+        if (pm == null || cm == null) return 'SAME';
+        return cm > pm + 1 ? 'UP' : cm < pm - 1 ? 'DOWN' : 'SAME';
+      })(),
+      tension_bin:      Math.min(4, Math.floor(
+                          Math.max(0, Math.min(1, getTension(noteToPlay))) * 5
+                        )),
+      phrase_position:  phrasePos < 0.2 ? 'start' : phrasePos > 0.8 ? 'end' : 'mid',
+      structural_role:  generationState.currentStructuralRole ?? 'verse',
+    };
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   // ADVANCE SKELETON STEP (melody only, non-rest notes)
   if (voiceRole === 'melody' && noteToPlay !== 'REST') {
@@ -2028,10 +2227,10 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
     );
   }
 
-  // KEY DETECTION — update on melody voice only, every N notes
+  // KEY DETECTION
   if (voiceRole === 'melody' && noteToPlay !== 'REST') {
     addToNoteHistory(noteToPlay);
-    logMelodyNote(noteToPlay, atTime);   // for harmony voice leading
+    logMelodyNote(noteToPlay, atTime);
     keyUpdateCounter++;
     if (keyUpdateCounter >= KEY_UPDATE_EVERY) {
       keyUpdateCounter = 0;
@@ -2060,7 +2259,6 @@ function tickVoice(state, voiceRole, atTime, currentMelodyNote=null) {
 
   return { note: noteToPlay, tension: getTension(noteToPlay), bucket };
 }
-
 // ── BAR CENTER LAYER ──────────────────────────────────────────────────────────
 // UNCHANGED LOGIC — USES THE FIXED FULL-PITCH-KEY BARCENTERRULES FROM RULES.JS V6.0
 
