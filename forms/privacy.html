@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — CatForce</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0014;
+      --surface:   #170032;
+      --border:    rgba(165, 90, 255, 0.25);
+      --purple:    #830cde;
+      --violet:    #a55aff;
+      --pink:      #dc4ce8;
+      --cyan:      #00ffff;
+      --green:     #67febd;
+      --text:      #c4b5fd;
+      --muted:     rgba(196, 181, 253, 0.45);
+      --glow-p:    rgba(131, 12, 222, 0.4);
+      --glow-pk:   rgba(220, 76, 232, 0.3);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Share Tech Mono", monospace;
+      font-size: 0.88rem;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.07) 2px,
+        rgba(0, 0, 0, 0.07) 4px
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 48px 24px 32px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(55, 2, 90, 0.6) 0%, transparent 100%);
+    }
+
+    .wordmark {
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      color: var(--pink);
+      text-shadow: 0 0 12px var(--glow-pk);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      color: #fff;
+      text-shadow: 0 0 24px var(--glow-p), 0 0 48px var(--glow-pk);
+      line-height: 1.15;
+    }
+
+    .effective {
+      margin-top: 10px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    section {
+      margin-bottom: 40px;
+      padding: 28px 28px 24px;
+      background: linear-gradient(135deg, rgba(55, 2, 90, 0.5) 0%, rgba(23, 0, 50, 0.7) 100%);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(131, 12, 222, 0.12);
+    }
+
+    h2 {
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--pink);
+      text-shadow: 0 0 8px var(--glow-pk);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    p { color: var(--text); margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+    }
+
+    ul li {
+      padding: 5px 0 5px 18px;
+      color: var(--text);
+      position: relative;
+    }
+
+    ul li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--violet);
+    }
+
+    /* ── Data table ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 0.8rem;
+    }
+
+    .data-table th {
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: var(--violet);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(165, 90, 255, 0.1);
+      color: var(--text);
+      vertical-align: top;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+    }
+
+    .tag-green {
+      background: rgba(103, 254, 189, 0.1);
+      border: 1px solid rgba(103, 254, 189, 0.3);
+      color: var(--green);
+    }
+
+    .tag-purple {
+      background: rgba(165, 90, 255, 0.1);
+      border: 1px solid rgba(165, 90, 255, 0.3);
+      color: var(--violet);
+    }
+
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-shadow: 0 0 8px var(--cyan); }
+
+    .contact-block {
+      margin-top: 10px;
+      padding: 14px 18px;
+      background: rgba(0, 255, 255, 0.04);
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      border-radius: 6px;
+      color: var(--cyan);
+      font-size: 0.82rem;
+    }
+
+    .no-sell-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: rgba(103, 254, 189, 0.06);
+      border: 1px solid rgba(103, 254, 189, 0.25);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      color: var(--green);
+      font-size: 0.8rem;
+    }
+
+    .no-sell-banner .icon { font-size: 1.2rem; flex-shrink: 0; }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 24px;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      border-top: 1px solid var(--border);
+    }
+
+    footer a { color: var(--violet); }
+
+    @media (max-width: 600px) {
+      section { padding: 20px 16px; }
+      .data-table { font-size: 0.72rem; }
+      .data-table th, .data-table td { padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">mkb0020 · CatForce</div>
+  <h1>Privacy Policy</h1>
+  <p class="effective">Effective Date: June 2026</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>01 · Who We Are</h2>
+    <p>CatForce is a personal desktop application developed by mkb0020, an independent game and software developer. This policy describes how CatForce handles data when you use the application to manage social media content.</p>
+    <p>CatForce is a private tool — it is not a public service, and access is limited to its developer and authorized users.</p>
+  </section>
+
+  <section>
+    <h2>02 · Data We Collect</h2>
+
+    <div class="no-sell-banner">
+      <span class="icon">⊘</span>
+      <span>CatForce does not sell, share, or monetize your data. Ever.</span>
+    </div>
+
+    <p>The following data is collected solely to operate CatForce's content scheduling features:</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Purpose</th>
+          <th>Stored</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Social media post content<br/><small>(text, captions, hashtags)</small></td>
+          <td>Displayed in Nova's post picker for scheduling</td>
+          <td><span class="tag tag-purple">Supabase DB</span></td>
+        </tr>
+        <tr>
+          <td>Video and image files</td>
+          <td>Uploaded to TikTok inbox or referenced for X posts</td>
+          <td><span class="tag tag-purple">Supabase Storage</span></td>
+        </tr>
+        <tr>
+          <td>TikTok OAuth tokens<br/><small>(access + refresh)</small></td>
+          <td>Authenticates CatForce to upload video drafts on your behalf</td>
+          <td><span class="tag tag-purple">Supabase DB</span></td>
+        </tr>
+        <tr>
+          <td>TikTok account identifier<br/><small>(open_id)</small></td>
+          <td>Associates tokens with the correct TikTok account</td>
+          <td><span class="tag tag-purple">Supabase DB</span></td>
+        </tr>
+        <tr>
+          <td>Posting history log</td>
+          <td>Tracks which posts have been used for rotation scheduling</td>
+          <td><span class="tag tag-purple">Supabase DB</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>03 · How We Use Your Data</h2>
+    <p>Data collected by CatForce is used exclusively for:</p>
+    <ul>
+      <li>Displaying available posts in the CatForce desktop application.</li>
+      <li>Uploading video drafts to your connected TikTok inbox.</li>
+      <li>Tracking posting history to avoid repeating recent content.</li>
+      <li>Refreshing OAuth tokens to maintain an active TikTok connection.</li>
+    </ul>
+    <p>No data is used for advertising, analytics sold to third parties, or any purpose beyond operating CatForce itself.</p>
+  </section>
+
+  <section>
+    <h2>04 · TikTok Integration</h2>
+    <p>When you connect a TikTok account to CatForce, the following occurs:</p>
+    <ul>
+      <li>You are redirected to TikTok's official authorization page in your system browser.</li>
+      <li>CatForce requests only the scopes <strong>user.info.basic</strong> and <strong>video.upload</strong>.</li>
+      <li>TikTok issues an access token and refresh token, which are stored securely in a private Supabase database.</li>
+      <li>These tokens are never stored in the CatForce desktop application itself, and never transmitted to any third party other than TikTok's official API.</li>
+    </ul>
+    <p>Videos are sent to your TikTok inbox as <strong>private drafts</strong>. CatForce does not publish content publicly — you review and publish each draft manually in the TikTok app.</p>
+    <p>You can revoke CatForce's TikTok access at any time via <a href="https://www.tiktok.com/settings/" target="_blank">TikTok Settings → Manage App Permissions</a>.</p>
+  </section>
+
+  <section>
+    <h2>05 · Data Storage & Security</h2>
+    <p>All CatForce data is stored in a private <a href="https://supabase.com" target="_blank">Supabase</a> project with the following protections:</p>
+    <ul>
+      <li>OAuth tokens are stored server-side only — they are never exposed to the desktop application's frontend.</li>
+      <li>All API access to Supabase from the CatForce backend uses a service role key, restricted to the server environment.</li>
+      <li>Row Level Security (RLS) is enabled on token tables — no anonymous or public access is permitted.</li>
+      <li>The backend runs on <a href="https://vercel.com" target="_blank">Vercel</a> with HTTPS enforced on all endpoints.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>06 · Data Retention</h2>
+    <p>Data is retained for as long as CatForce is in active use. You may request deletion of your data at any time by contacting the developer. OAuth tokens can be invalidated immediately by revoking app access through TikTok's settings.</p>
+  </section>
+
+  <section>
+    <h2>07 · Third-Party Services</h2>
+    <p>CatForce interacts with the following third-party services. Their own privacy policies apply to data processed by their platforms:</p>
+    <ul>
+      <li><a href="https://www.tiktok.com/legal/page/us/privacy-policy/en" target="_blank">TikTok Privacy Policy</a></li>
+      <li><a href="https://supabase.com/privacy" target="_blank">Supabase Privacy Policy</a></li>
+      <li><a href="https://vercel.com/legal/privacy-policy" target="_blank">Vercel Privacy Policy</a></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>08 · Your Rights</h2>
+    <p>As a user of CatForce you have the right to:</p>
+    <ul>
+      <li>Request a copy of data stored about you.</li>
+      <li>Request deletion of your data.</li>
+      <li>Revoke third-party platform access at any time through that platform's settings.</li>
+    </ul>
+    <p>To exercise any of these rights, contact the developer using the information below.</p>
+  </section>
+
+  <section>
+    <h2>09 · Changes to This Policy</h2>
+    <p>This policy may be updated as CatForce adds new features or integrations. The effective date at the top of this page will always reflect the most recent revision. Continued use of CatForce after changes are posted constitutes acceptance of the updated policy.</p>
+  </section>
+
+  <section>
+    <h2>10 · Contact</h2>
+    <p>Questions about this privacy policy can be directed to:</p>
+    <div class="contact-block">
+      itch.io: <a href="https://mkb0020.itch.io" target="_blank">mkb0020.itch.io</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>&copy; 2026 mkb0020 · <a href="/terms">Terms of Service</a> · <a href="https://mkb0020.itch.io" target="_blank">itch.io</a></p>
+</footer>
+
+</body>
+</html>

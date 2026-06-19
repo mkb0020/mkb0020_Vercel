@@ -156,5 +156,15 @@ def audio_training_page():
 def memories_page():
     return send_from_directory('forms', 'memories.html')
 
+FORMS_DIR = os.path.join(os.path.dirname(__file__), "forms")
+ 
+@app.route("/terms")
+def terms():
+    return send_from_directory(FORMS_DIR, "terms.html")
+ 
+@app.route("/privacy")
+def privacy():
+    return send_from_directory(FORMS_DIR, "privacy.html")
+
 if __name__ == '__main__':
     app.run()

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms of Service — CatForce</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0014;
+      --surface:   #170032;
+      --border:    rgba(165, 90, 255, 0.25);
+      --purple:    #830cde;
+      --violet:    #a55aff;
+      --pink:      #dc4ce8;
+      --cyan:      #00ffff;
+      --green:     #67febd;
+      --text:      #c4b5fd;
+      --muted:     rgba(196, 181, 253, 0.45);
+      --glow-p:    rgba(131, 12, 222, 0.4);
+      --glow-pk:   rgba(220, 76, 232, 0.3);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Share Tech Mono", monospace;
+      font-size: 0.88rem;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+
+    /* ── Scanline overlay ── */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.07) 2px,
+        rgba(0, 0, 0, 0.07) 4px
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 48px 24px 32px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(55, 2, 90, 0.6) 0%, transparent 100%);
+    }
+
+    .wordmark {
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      color: var(--pink);
+      text-shadow: 0 0 12px var(--glow-pk);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      color: #fff;
+      text-shadow: 0 0 24px var(--glow-p), 0 0 48px var(--glow-pk);
+      line-height: 1.15;
+    }
+
+    .effective {
+      margin-top: 10px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Layout ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Section ── */
+    section {
+      margin-bottom: 40px;
+      padding: 28px 28px 24px;
+      background: linear-gradient(135deg, rgba(55, 2, 90, 0.5) 0%, rgba(23, 0, 50, 0.7) 100%);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(131, 12, 222, 0.12);
+    }
+
+    h2 {
+      font-family: "Orbitron", sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--pink);
+      text-shadow: 0 0 8px var(--glow-pk);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    p { color: var(--text); margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+    }
+
+    ul li {
+      padding: 5px 0 5px 18px;
+      color: var(--text);
+      position: relative;
+    }
+
+    ul li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--violet);
+    }
+
+    a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+    a:hover { text-shadow: 0 0 8px var(--cyan); }
+
+    /* ── Contact block ── */
+    .contact-block {
+      margin-top: 10px;
+      padding: 14px 18px;
+      background: rgba(0, 255, 255, 0.04);
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      border-radius: 6px;
+      color: var(--cyan);
+      font-size: 0.82rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 24px;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      border-top: 1px solid var(--border);
+    }
+
+    footer a { color: var(--violet); }
+
+    @media (max-width: 600px) {
+      section { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">mkb0020 · CatForce</div>
+  <h1>Terms of Service</h1>
+  <p class="effective">Effective Date: June 2026</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>01 · Overview</h2>
+    <p>CatForce is a personal desktop application developed and operated by mkb0020 for the purpose of managing and scheduling social media content. By using CatForce, you agree to these terms.</p>
+    <p>CatForce is a private tool. Access is limited to the developer and authorized users. It is not a public service or commercial platform.</p>
+  </section>
+
+  <section>
+    <h2>02 · What CatForce Does</h2>
+    <p>CatForce connects to third-party platforms including TikTok and X (formerly Twitter) via their official APIs to assist with content scheduling and publishing. Specifically:</p>
+    <ul>
+      <li>It reads social media content you have submitted through the CatForce admin portal.</li>
+      <li>It uploads video content to your connected TikTok account's inbox as drafts for your review.</li>
+      <li>It assists with preparing text content for posting to X.</li>
+      <li>It logs posting history to a private database for scheduling purposes.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>03 · Third-Party Platform Access</h2>
+    <p>CatForce requests permission to access your TikTok account solely to upload video drafts to your inbox. The following scopes are requested:</p>
+    <ul>
+      <li><strong>user.info.basic</strong> — to verify which account is connected.</li>
+      <li><strong>video.upload</strong> — to send video drafts to your TikTok inbox.</li>
+    </ul>
+    <p>CatForce does not post publicly without your manual confirmation in the TikTok app. All uploads are sent as private drafts that you review and publish yourself.</p>
+    <p>Your use of connected platforms is also subject to their own terms of service, including the <a href="https://www.tiktok.com/legal/page/us/terms-of-service/en" target="_blank">TikTok Terms of Service</a>.</p>
+  </section>
+
+  <section>
+    <h2>04 · Data & Storage</h2>
+    <p>CatForce stores the following data in a private Supabase database:</p>
+    <ul>
+      <li>Social media post content (text, media files) submitted by you.</li>
+      <li>OAuth access and refresh tokens for connected accounts (encrypted at rest).</li>
+      <li>A posting history log for scheduling and rotation purposes.</li>
+    </ul>
+    <p>This data is never sold, shared with third parties, or used for advertising purposes. It exists solely to operate CatForce's posting workflows.</p>
+  </section>
+
+  <section>
+    <h2>05 · Your Responsibilities</h2>
+    <p>You are responsible for:</p>
+    <ul>
+      <li>Ensuring all content submitted to CatForce complies with the terms of the platforms it will be posted to.</li>
+      <li>Reviewing all draft content in TikTok or X before publishing.</li>
+      <li>Keeping your CatForce admin credentials secure.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>06 · Limitation of Liability</h2>
+    <p>CatForce is provided as-is for personal use. The developer makes no warranties regarding uptime, accuracy, or fitness for any particular purpose. The developer is not liable for any content published through connected platforms, or for any actions taken by third-party platforms including account suspension or content removal.</p>
+  </section>
+
+  <section>
+    <h2>07 · Changes to These Terms</h2>
+    <p>These terms may be updated periodically. Continued use of CatForce after changes are posted constitutes acceptance of the updated terms. The effective date at the top of this page will reflect the most recent revision.</p>
+  </section>
+
+  <section>
+    <h2>08 · Contact</h2>
+    <p>For questions about these terms, reach out via:</p>
+    <div class="contact-block">
+      itch.io: <a href="https://mkb0020.itch.io" target="_blank">mkb0020.itch.io</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>&copy; 2026 mkb0020 · <a href="/privacy">Privacy Policy</a> · <a href="https://mkb0020.itch.io" target="_blank">itch.io</a></p>
+</footer>
+
+</body>
+</html>
