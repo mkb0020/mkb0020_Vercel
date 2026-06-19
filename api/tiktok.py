@@ -16,7 +16,7 @@ import os
 import time
 import requests
 from flask import Blueprint, request, jsonify
-from .supabase_helper import get_supabase_client
+from .supabase_helper import get_supabase
 
 tiktok_bp = Blueprint("tiktok", __name__)
 
@@ -51,7 +51,7 @@ def _check_auth():
 def _save_tokens(open_id: str, access_token: str, refresh_token: str,
                  access_expires_in: int, refresh_expires_in: int):
     """Upsert token row keyed on open_id."""
-    sb = get_supabase_client()
+    sb = get_supabase()
     now = int(time.time())
     sb.table("tiktok_tokens").upsert({
         "open_id":              open_id,
@@ -65,7 +65,7 @@ def _save_tokens(open_id: str, access_token: str, refresh_token: str,
 
 def _load_tokens():
     """Return the first (and only expected) token row, or None."""
-    sb = get_supabase_client()
+    sb = get_supabase()
     result = sb.table("tiktok_tokens").select("*").limit(1).execute()
     if result.data:
         return result.data[0]
@@ -279,7 +279,7 @@ def post_to_tiktok():
         return jsonify({"error": "no_publish_id", "detail": tiktok_data}), 502
 
     # Log to posting_history (reuses existing table pattern)
-    sb = get_supabase_client()
+    sb = get_supabase()
     sb.table("posting_history").insert({
         "social_post_id": post_id,
         "platform":       "tiktok",
@@ -333,7 +333,7 @@ def post_status():
     status = data.get("status", "unknown")
 
     # Keep posting_history in sync
-    sb = get_supabase_client()
+    sb = get_supabase()
     sb.table("posting_history") \
       .update({"status": status.lower()}) \
       .eq("tiktok_publish_id", publish_id) \
