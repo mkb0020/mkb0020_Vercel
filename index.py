@@ -169,13 +169,12 @@ def privacy():
 
 
 @app.route("/tiktok-developers-site-verification.txt", strict_slashes=False)
-def tiktok_verify():
-    return "tiktok-developers-site-verification=0XfIE9m8QsN3yINsp6taabhvqqX1hYOc"
-
-
-@app.route("/tiktok-developers-site-verification.txt", strict_slashes=False)
 def tiktok_verify_txt():
-    return "tiktok-developers-site-verification=0XfIE9m8QsN3yINsp6taabhvqqX1hYOc"
+    from flask import Response
+    return Response(
+        "tiktok-developers-site-verification=0XfIE9m8QsN3yINsp6taabhvqqX1hYOc",
+        mimetype="text/plain"
+    )
 
 if __name__ == '__main__':
     app.run()
