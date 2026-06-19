@@ -21,6 +21,7 @@ from api.audio.rules_serve  import rules_serve_bp              # meowREMIX — s
 from api.audio_training     import audio_training_bp           # meowREMIX
 from api.memories import memories_bp                           # LIGHTHOUSE
 from api.catforce import catforce_bp                           # CATFORCE CONTENT SCHEDULER
+from api.tiktok import tiktok_bp                               # CATFORCE TIK TOK BLUEPRINT
 
 from api.projects import projects_bp
 
@@ -49,8 +50,7 @@ app.register_blueprint(rules_serve_bp)          # meowREMIX — rules.js from Ne
 app.register_blueprint(audio_training_bp)       # meowREMIX
 app.register_blueprint(memories_bp)             # LIGHTHOUSE
 app.register_blueprint(catforce_bp)             # CATFORCE CONTENT SCHEDULER
-
-# === NEW: PROJECT INGEST BLUEPRINT REGISTRATION ===
+app.register_blueprint(tiktok_bp)               # CATFORCE TIK TOK BP
 app.register_blueprint(projects_bp)
 
 
