@@ -166,9 +166,16 @@ def terms():
 def privacy():
     return send_from_directory(FORMS_DIR, "privacy.html")
 
-@app.route("/tiktok-developers-site-verification=1bzH94fdZqjSX9iw1cMhUdZyUgAYtpoS", strict_slashes=False)
+
+
+@app.route("/tiktok-developers-site-verification.txt", strict_slashes=False)
 def tiktok_verify():
-    return "tiktok-developers-site-verification=1bzH94fdZqjSX9iw1cMhUdZyUgAYtpoS"
+    return "tiktok-developers-site-verification=0XfIE9m8QsN3yINsp6taabhvqqX1hYOc"
+
+
+@app.route("/tiktok-developers-site-verification.txt", strict_slashes=False)
+def tiktok_verify_txt():
+    return "tiktok-developers-site-verification=0XfIE9m8QsN3yINsp6taabhvqqX1hYOc"
 
 if __name__ == '__main__':
     app.run()
