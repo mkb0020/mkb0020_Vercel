@@ -304,6 +304,67 @@ body::after {
   pointer-events: none;
 }
 
+/* ==================== HOLOGRAPHIC BUTTON SYSTEM ==================== */
+.holo-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 18px;
+  font-family: 'Segoe UI', 'SpaceLetters', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--BohrsBabyBlue);
+  background: rgba(255, 255, 255, 0.087);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  overflow: hidden;
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(0, 255, 255, 0.1);
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.holo-btn:hover {
+  color: #ffffff;
+  border-color: rgba(0, 255, 255, 0.7);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 28px -10px rgba(0, 255, 255, 0.3),
+              0 0 0 1px rgba(0, 255, 255, 0.2),
+              inset 0 1px 0 rgba(0, 255, 255, 0.15);
+}
+
+.holo-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(180, 140, 255, 0.6) 45%,
+    rgba(0, 255, 255, 0.9) 55%,
+    transparent 100%
+  );
+  transform: skewX(-18deg);
+  transition: left 0.5s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.holo-btn:hover::before {
+  left: 120%;
+}
+
 /* ── MOBILE RESPONSIVENESS  ──────────────────────────────────────── */
 @media (max-width: 768px) {
   body {
@@ -371,7 +432,7 @@ body::after {
   <!-- ── SIDEBAR ───────────────────────────────────────────────────── -->
   <section class="controls-sidebar">
 
-    <button class="btn-primary" id="playBtn" disabled>
+    <button class="btn-primary holo-btn" id="playBtn" disabled>
       <img id="playBtnImg" src="../static/images/play.png" alt="Play / Pause">
     </button>
 
