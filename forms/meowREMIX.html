@@ -304,6 +304,52 @@ body::after {
   pointer-events: none;
 }
 
+/* ── MOBILE RESPONSIVENESS  ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  body {
+    height: auto;
+    overflow-y: auto; /* Allows full-page scrolling on mobile */
+  }
+
+  .main-grid {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    gap: 16px; /* Adds a nice little gap between the canvas and your controls */
+    padding-bottom: 32px;
+  }
+
+  .visualizer-card {
+    /* Naturally sits on top! */
+    min-height: 45vh; /* Gives the canvas and console room to breathe */
+    flex-shrink: 0; /* Tells the browser NOT to squish this */
+    border-radius: 12px; /* Keeps your glassmorphism edges looking clean */
+  }
+
+  .controls-sidebar {
+    /* Naturally sits underneath */
+    border-left: none;
+    overflow-y: visible; /* Lets it expand naturally based on its content */
+    flex-shrink: 0; /* Prevents the panel from squishing */
+    height: auto;
+    padding: 0 12px;
+  }
+
+  .console-wrapper {
+    height: auto;
+    min-height: 130px;
+  }
+
+  /* Adjust the fixed dancer sprite so it stays visible */
+  .dance {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 100px;
+  }
+}
+
 /* ── CANVAS WATERMARK TEXT ─────────────────────────────────────────────────── */
 /* RENDERED BY JS, STYLED HERE FOR REFERENCE ONLY */
 </style>
