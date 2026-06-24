@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>meowRE-MIX</title>
+  <title>meowREMIX</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="/static/css/audioStyles.css">
@@ -311,24 +311,28 @@ body::after {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 18px;
   font-family: 'Segoe UI', 'SpaceLetters', monospace;
   font-size: 0.85rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.087);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid #00FFFF;
-  border-radius: 40px;
+  border: 1px solid var(--accent-1);
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.25s ease;
   overflow: hidden;
   box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(0, 255, 255, 0.1);
   z-index: 1;
   white-space: nowrap;
+  display: inline-block; 
+  width: 75px;
+  padding: 3px 0;       
+  text-align: center;    /* Keeps the text/icon perfectly centered inside the 75px box */
+  margin: 0 auto;
 }
 
 .holo-btn:hover {
