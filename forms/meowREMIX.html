@@ -317,11 +317,11 @@ body::after {
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--BohrsBabyBlue);
+  color: #ffffff;
   background: rgba(255, 255, 255, 0.087);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
+  border: 1px solid #00FFFF;
   border-radius: 40px;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -334,7 +334,6 @@ body::after {
 .holo-btn:hover {
   color: #ffffff;
   border-color: rgba(0, 255, 255, 0.7);
-  transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.12);
   box-shadow: 0 12px 28px -10px rgba(0, 255, 255, 0.3),
               0 0 0 1px rgba(0, 255, 255, 0.2),
@@ -343,6 +342,7 @@ body::after {
 
 .holo-btn::before {
   content: '';
+  display: block;
   position: absolute;
   top: 0;
   left: -100%;
