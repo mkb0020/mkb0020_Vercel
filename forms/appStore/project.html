@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MK | App</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body, html {
+  min-height: 100vh;
+  background: #170032;
+  background: radial-gradient(circle at 50% 0%, #37025a 0%, #170032 70%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: 'Inter', sans-serif;
+  color: #c4b5fd;
+  overflow-x: hidden;
+}
+
+.scanlines {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.cyber-grid {
+  position: fixed;
+  bottom: 0; left: 0; width: 100%; height: 50vh;
+  background-image:
+      linear-gradient(transparent 65%, rgba(165, 90, 255, 0.4) 66%, rgba(165, 90, 255, 0.6) 100%),
+      linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.15) 25%, transparent 26%, transparent 74%, rgba(0, 255, 255, 0.15) 75%, transparent 76%);
+  background-size: 100% 30px, 40px 100%;
+  transform: perspective(400px) rotateX(60deg);
+  transform-origin: bottom;
+  z-index: -2;
+  opacity: 0.6;
+}
+
+#stars {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: -1;
+}
+
+.star {
+  position: absolute;
+  background: #FFC7FF;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #A55AFF;
+  animation: twinkle 4s infinite;
+}
+
+@keyframes twinkle {
+  0%,100% { opacity: 0.2; transform: scale(0.8); }
+  50%     { opacity: 1; transform: scale(1.2); }
+}
+
+.navbar {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  background: rgba(23, 0, 50, 0.7);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #830cde;
+  box-shadow: 0 4px 20px rgba(131, 12, 222, 0.3);
+}
+
+.nav-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.logo {
+  font-size: 1.2rem;
+  color: #00ffff;
+  font-family: 'Orbitron', sans-serif;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(103, 254, 189, 0.6);
+  letter-spacing: 2px;
+  text-decoration: none;
+}
+
+.back-link {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #67FEBD;
+  text-decoration: none;
+}
+
+main {
+  position: relative;
+  z-index: 10;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px 100px;
+}
+
+#content .state-message {
+  text-align: center;
+  color: #9090C0;
+  font-size: 0.9rem;
+  padding: 80px 20px;
+}
+
+.hero-image {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  border: 1px solid #764ba2;
+  border-left: 4px solid #A55AFF;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
+  overflow: hidden;
+  background: linear-gradient(135deg, #37025a, #170032);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-image .fallback {
+  font-family: 'Orbitron', sans-serif;
+  color: #764ba2;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.8rem;
+  color: #00ffff;
+  text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.tagline {
+  color: #ff69b4;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #67FEBD;
+  border: 1px solid rgba(103, 254, 189, 0.4);
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+
+.description {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: #c4b5fd;
+  margin-bottom: 40px;
+  white-space: pre-line;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.btn {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 1rem 1.6rem;
+  border: 1px solid #764ba2;
+  border-left: 4px solid #A55AFF;
+  transition: all 0.2s ease-in-out;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+  cursor: pointer;
+  background: rgba(54, 0, 115, 0.386);
+  backdrop-filter: blur(5px);
+}
+
+.btn-download {
+  color: #00FFFF;
+}
+
+.btn-download:hover, .btn-download:focus {
+  border-color: #ff69b4;
+  border-left-color: #00ffff;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.btn-support {
+  color: #FFC7FF;
+  border-left-color: #ff69b4;
+}
+
+.btn-support:hover, .btn-support:focus {
+  border-color: #00ffff;
+  border-left-color: #ff69b4;
+  box-shadow: 0 0 15px rgba(255, 105, 180, 0.35);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.btn-support:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.support-note {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: #9090C0;
+}
+</style>
+</head>
+<body>
+
+  <div class="scanlines"></div>
+  <div class="cyber-grid"></div>
+  <div id="stars"></div>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="https://mkb0020.github.io" class="logo">mkb0020</a>
+      <a href="/appstore" class="back-link">&lt;&lt; All Apps</a>
+    </div>
+  </nav>
+
+  <main>
+    <div id="content">
+      <div class="state-message">Loading...</div>
+    </div>
+  </main>
+
+  <script>
+    const starsDiv = document.getElementById('stars');
+    const colors = ['#00ffff', '#A55AFF', '#FFC7FF'];
+    for (let i = 0; i < 100; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.width = star.style.height = Math.random() * 2.5 + 'px';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.background = colors[Math.floor(Math.random() * colors.length)];
+      star.style.animationDelay = Math.random() * 4 + 's';
+      starsDiv.appendChild(star);
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    // Slug comes from the URL path: /appstore/app/<slug>
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const slug = pathParts[pathParts.length - 1];
+
+    const content = document.getElementById('content');
+
+    async function supportApp(appId, appName) {
+      const btn = document.getElementById('support-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Redirecting...';
+      }
+      try {
+        const res = await fetch('/api/appstore/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ app_id: appId, app_name: appName })
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error(data.error || 'Something went wrong');
+        }
+      } catch (e) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Support this project';
+        }
+        alert('Could not start checkout right now. Please try again in a moment.');
+      }
+    }
+
+    function renderProject(project) {
+      const imageHtml = project.hero_image_url
+        ? `<img src="${escapeHtml(project.hero_image_url)}" alt="${escapeHtml(project.name)}" />`
+        : `<div class="fallback">${escapeHtml(project.name)}</div>`;
+
+      const tagsHtml = (project.tags || [])
+        .map(t => `<span class="tag">${escapeHtml(t)}</span>`)
+        .join('');
+
+      const downloadUrl = project.ms_store_url || project.itch_url || project.other_url;
+      const downloadLabel = project.ms_store_url
+        ? 'Download from Microsoft Store'
+        : project.itch_url
+          ? 'Download on itch.io'
+          : 'View Project';
+
+      content.innerHTML = `
+        <div class="hero-image">${imageHtml}</div>
+        <h1>${escapeHtml(project.name)}</h1>
+        <div class="tagline">${escapeHtml(project.tagline)}</div>
+        <div class="tags">${tagsHtml}</div>
+        <div class="description">${escapeHtml(project.description)}</div>
+        <div class="action-row">
+          ${downloadUrl ? `<a class="btn btn-download" href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener">${downloadLabel}</a>` : ''}
+          <button class="btn btn-support" id="support-btn">Support this project</button>
+        </div>
+        <div class="support-note">100% optional. This app is free forever either way.</div>
+      `;
+
+      document.getElementById('support-btn').addEventListener('click', () => {
+        supportApp(project.slug, project.name);
+      });
+    }
+
+    fetch(`/api/appstore/projects/${slug}`)
+      .then(res => res.json())
+      .then(project => {
+        if (project.error) throw new Error(project.error);
+        renderProject(project);
+      })
+      .catch(() => {
+        content.innerHTML = '<div class="state-message">Couldn\'t find that project.</div>';
+      });
+  </script>
+</body>
+</html>
