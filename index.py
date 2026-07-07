@@ -22,6 +22,8 @@ from api.audio_training     import audio_training_bp           # meowREMIX
 from api.memories import memories_bp                           # LIGHTHOUSE
 from api.catforce import catforce_bp                           # CATFORCE CONTENT SCHEDULER
 from api.tiktok import tiktok_bp                               # CATFORCE TIK TOK BLUEPRINT
+from api.appStore.checkout import appstore_checkout_bp         # APP STORE STOREFRONT
+
 
 from api.projects import projects_bp
 
@@ -52,6 +54,7 @@ app.register_blueprint(memories_bp)             # LIGHTHOUSE
 app.register_blueprint(catforce_bp)             # CATFORCE CONTENT SCHEDULER
 app.register_blueprint(tiktok_bp)               # CATFORCE TIK TOK BP
 app.register_blueprint(projects_bp)
+app.register_blueprint(appstore_checkout_bp)    # APP STORE STOREFRONT
 
 
 @app.route('/')
@@ -175,6 +178,16 @@ def tiktok_verify_txt():
         "tiktok-developers-site-verification=0XfIE9m8QsN3yINsp6taabhvqqX1hYOc",
         mimetype="text/plain"
     )
+
+
+
+@app.route('/appstore/support-success')
+def appstore_support_success_page():
+    return send_from_directory('forms/appStore', 'success.html')
+
+@app.route('/appstore/support-cancel')
+def appstore_support_cancel_page():
+    return send_from_directory('forms/appStore', 'cancel.html')
 
 if __name__ == '__main__':
     app.run()

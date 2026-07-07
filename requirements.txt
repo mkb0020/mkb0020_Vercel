@@ -10,3 +10,4 @@ numpy
 supabase
 datetime
 supabase>=2.0.0
+stripe
