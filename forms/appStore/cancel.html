@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>No Worries | MK</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body, html {
+  min-height: 100vh;
+  background: #170032;
+  background: radial-gradient(circle at 50% 0%, #37025a 0%, #170032 70%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: 'Inter', sans-serif;
+  color: #c4b5fd;
+  overflow-x: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.scanlines {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.cyber-grid {
+  position: fixed;
+  bottom: 0; left: 0; width: 100%; height: 50vh;
+  background-image:
+      linear-gradient(transparent 65%, rgba(165, 90, 255, 0.4) 66%, rgba(165, 90, 255, 0.6) 100%),
+      linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.15) 25%, transparent 26%, transparent 74%, rgba(0, 255, 255, 0.15) 75%, transparent 76%);
+  background-size: 100% 30px, 40px 100%;
+  transform: perspective(400px) rotateX(60deg);
+  transform-origin: bottom;
+  z-index: -2;
+  opacity: 0.6;
+}
+
+#stars {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: -1;
+}
+
+.star {
+  position: absolute;
+  background: #FFC7FF;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #A55AFF;
+  animation: twinkle 4s infinite;
+}
+
+@keyframes twinkle {
+  0%,100% { opacity: 0.2; transform: scale(0.8); }
+  50%     { opacity: 1; transform: scale(1.2); }
+}
+
+.panel {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 460px;
+  margin: 24px;
+  padding: 40px 32px;
+  background: rgba(54, 0, 115, 0.45);
+  border: 1px solid #764ba2;
+  border-left: 4px solid #ff69b4;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255, 105, 180, 0.15);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
+  text-align: center;
+}
+
+.badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #ff69b4;
+  text-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
+  margin-bottom: 18px;
+}
+
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.4rem;
+  color: #00ffff;
+  text-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+p {
+  font-size: 0.95rem;
+  color: #c4b5fd;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 8px;
+  text-decoration: none;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #00FFFF;
+  border: 1px solid #764ba2;
+  border-left: 4px solid #A55AFF;
+  padding: 0.9rem 1.4rem;
+  transition: all 0.2s ease-in-out;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+
+.back-link:hover, .back-link:focus {
+  border-color: #ff69b4;
+  border-left-color: #00ffff;
+  color: #00ffff;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+</style>
+</head>
+<body>
+
+  <div class="scanlines"></div>
+  <div class="cyber-grid"></div>
+  <div id="stars"></div>
+
+  <main class="panel">
+    <div class="badge">// transmission aborted</div>
+    <h1>No worries at all.</h1>
+    <p>The app is still yours, free forever, no strings attached. Come back and support it any time you like.</p>
+    <a class="back-link" href="https://mkb0020.github.io">&lt;&lt; Back to the Apps</a>
+  </main>
+
+  <script>
+    const starsDiv = document.getElementById('stars');
+    const colors = ['#00ffff', '#A55AFF', '#FFC7FF'];
+    for (let i = 0; i < 100; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.width = star.style.height = Math.random() * 2.5 + 'px';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.background = colors[Math.floor(Math.random() * colors.length)];
+      star.style.animationDelay = Math.random() * 4 + 's';
+      starsDiv.appendChild(star);
+    }
+  </script>
+</body>
+</html>
