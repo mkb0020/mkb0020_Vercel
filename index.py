@@ -1,4 +1,4 @@
-# Updated 6/15/26
+# Updated 7/7/2026
 import os
 from flask import Flask, send_from_directory
 from api.comments import comments_bp                           # GENERAL
@@ -23,14 +23,14 @@ from api.memories import memories_bp                           # LIGHTHOUSE
 from api.catforce import catforce_bp                           # CATFORCE CONTENT SCHEDULER
 from api.tiktok import tiktok_bp                               # CATFORCE TIK TOK BLUEPRINT
 from api.appStore.checkout import appstore_checkout_bp         # APP STORE STOREFRONT
-
-
+from api.appStore.projects import appstore_projects_bp   # APP STORE STOREFRONT
 from api.projects import projects_bp
-
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder='static', template_folder='forms')
 CORS(app)
+
+# ====================== REGISTER BPS ======================
 
 app.register_blueprint(comments_bp)             # GENERAL
 app.register_blueprint(feedback_bp)             # CATastrophe2
@@ -55,17 +55,18 @@ app.register_blueprint(catforce_bp)             # CATFORCE CONTENT SCHEDULER
 app.register_blueprint(tiktok_bp)               # CATFORCE TIK TOK BP
 app.register_blueprint(projects_bp)
 app.register_blueprint(appstore_checkout_bp)    # APP STORE STOREFRONT
+app.register_blueprint(appstore_projects_bp)    # APP STORE STOREFRONT
 
+FORMS_DIR = os.path.join(os.path.dirname(__file__), "forms")
+
+# ====================== ROUTES ======================
 
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
 
-@app.route('/catforce')
-def catforce_page():
-    return send_from_directory('forms', 'catforce.html')
+# ====================== MISC ======================
 
-# === NEW: PROJECT INGEST HTML serving PAGE ROUTE ===
 @app.route('/project-submit')
 def project_submit_page():
     return send_from_directory('forms', 'projectSubmit.html')
@@ -90,6 +91,18 @@ def tester_signup_page():
 def dashboard_page():
     return send_from_directory('forms', 'dashboard.html')
 
+@app.route('/steam-analysis')
+def steam_analysis_page():
+    return send_from_directory('forms', 'steam-analysis.html')
+
+@app.route('/memories')
+def memories_page():
+    return send_from_directory('forms', 'memories.html')
+
+FORMS_DIR = os.path.join(os.path.dirname(__file__), "forms")
+
+# ====================== WATWD ======================
+
 @app.route('/wormhole-feedback')
 def wormhole_feedback_page():
     return send_from_directory('forms', 'wormholeFeedback.html')
@@ -102,6 +115,8 @@ def leaderboard_page():
 def wormhole_analysis_page():
     return send_from_directory('forms', 'wormhole-analysis.html')
 
+# ====================== BLOG ======================
+
 @app.route('/blog')
 def blog_page():
     return send_from_directory('forms', 'blog.html')
@@ -109,6 +124,9 @@ def blog_page():
 @app.route('/admin/new')
 def admin_new_post_page():
     return send_from_directory('forms', 'admin_new_post.html')
+
+
+# ====================== AI DOPAMINE ======================
 
 @app.route('/response-input')
 def response_input_page():
@@ -126,9 +144,8 @@ def ai_dopamine_page():
 def scorer_page():
     return send_from_directory('forms', 'scorer.html')
 
-@app.route('/steam-analysis')
-def steam_analysis_page():
-    return send_from_directory('forms', 'steam-analysis.html')
+
+# ====================== TRUE DELTA ======================
 
 @app.route('/true-delta')
 def trueDelta_page():
@@ -140,6 +157,7 @@ def trueDelta_template():
                                as_attachment=True,
                                download_name='TrueDelta_Template.xlsx')
 
+# ====================== MEOW REMIX ======================
 
 @app.route('/meowREMIX')
 @app.route('/meowREMIX.html')
@@ -155,12 +173,13 @@ def rules_js():
 def audio_training_page():
     return send_from_directory('forms', 'audioTraining.html')
 
-@app.route('/memories')
-def memories_page():
-    return send_from_directory('forms', 'memories.html')
-
-FORMS_DIR = os.path.join(os.path.dirname(__file__), "forms")
  
+# ====================== CAT FORCE ======================
+
+@app.route('/catforce')
+def catforce_page():
+    return send_from_directory('forms', 'catforce.html')
+
 @app.route("/terms")
 def terms():
     return send_from_directory(FORMS_DIR, "terms.html")
@@ -168,8 +187,6 @@ def terms():
 @app.route("/privacy")
 def privacy():
     return send_from_directory(FORMS_DIR, "privacy.html")
-
-
 
 @app.route("/tiktok-developers-site-verification.txt", strict_slashes=False)
 def tiktok_verify_txt():
@@ -179,7 +196,7 @@ def tiktok_verify_txt():
         mimetype="text/plain"
     )
 
-
+# ====================== APP STORE ======================
 
 @app.route('/appstore/support-success')
 def appstore_support_success_page():
@@ -189,5 +206,14 @@ def appstore_support_success_page():
 def appstore_support_cancel_page():
     return send_from_directory('forms/appStore', 'cancel.html')
 
+@app.route('/appstore')
+def appstore_storefront_page():
+    return send_from_directory('forms/appStore', 'storefront.html')
+
+@app.route('/appstore/app/<slug>')
+def appstore_project_page(slug):
+    return send_from_directory('forms/appStore', 'project.html')
+
+# ====================== MAIN ======================
 if __name__ == '__main__':
     app.run()
