@@ -56,7 +56,7 @@ def slugify(text):
 @appstore_admin_bp.route('/admin/appstore/projects/new', methods=['GET'])
 @require_admin_auth
 def new_project_form():
-    return send_from_directory('forms/appStore', 'admin_new_project.html')
+    return send_from_directory('forms/appStore', 'new.html')
 
 
 # ---- API: creates a new appstore_projects row ----
