@@ -23,7 +23,9 @@ from api.memories import memories_bp                           # LIGHTHOUSE
 from api.catforce import catforce_bp                           # CATFORCE CONTENT SCHEDULER
 from api.tiktok import tiktok_bp                               # CATFORCE TIK TOK BLUEPRINT
 from api.appStore.checkout import appstore_checkout_bp         # APP STORE STOREFRONT
-from api.appStore.projects import appstore_projects_bp   # APP STORE STOREFRONT
+from api.appStore.projects import appstore_projects_bp         # APP STORE STOREFRONT
+from api.appStore.admin import appstore_admin_bp               # APP STORE STOREFRONT
+
 from api.projects import projects_bp
 from flask_cors import CORS
 
@@ -56,6 +58,7 @@ app.register_blueprint(tiktok_bp)               # CATFORCE TIK TOK BP
 app.register_blueprint(projects_bp)
 app.register_blueprint(appstore_checkout_bp)    # APP STORE STOREFRONT
 app.register_blueprint(appstore_projects_bp)    # APP STORE STOREFRONT
+app.register_blueprint(appstore_admin_bp)       # APP STORE STOREFRONT
 
 FORMS_DIR = os.path.join(os.path.dirname(__file__), "forms")
 
@@ -201,6 +204,7 @@ def tiktok_verify_txt():
 @app.route('/appstore/support-cancel')
 def appstore_support_cancel_page():
     return send_from_directory('forms/appStore', 'cancel.html')
+
 
 @app.route('/appstore/policy')
 def appstore_policy_page():
