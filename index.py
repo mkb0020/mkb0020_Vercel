@@ -198,21 +198,29 @@ def tiktok_verify_txt():
 
 # ====================== APP STORE ======================
 
-@app.route('/appstore/support-success')
-def appstore_support_success_page():
-    return send_from_directory('forms/appStore', 'success.html')
-
 @app.route('/appstore/support-cancel')
 def appstore_support_cancel_page():
     return send_from_directory('forms/appStore', 'cancel.html')
+
+@app.route('/appstore/policy')
+def appstore_policy_page():
+    return send_from_directory('forms/appStore', 'policy.html')
 
 @app.route('/appstore')
 def appstore_storefront_page():
     return send_from_directory('forms/appStore', 'storefront.html')
 
+@app.route('/appstore/support-success')
+def appstore_support_success_page():
+    return send_from_directory('forms/appStore', 'success.html')
+
 @app.route('/appstore/app/<slug>')
 def appstore_project_page(slug):
     return send_from_directory('forms/appStore', 'project.html')
+
+@app.route('/appstore/terms')
+def appstore_terms_page():
+    return send_from_directory('forms/appStore', 'terms.html')
 
 # ====================== MAIN ======================
 if __name__ == '__main__':
