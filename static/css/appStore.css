@@ -7,17 +7,13 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* Rendered height of the standard fixed navbar (from styles.css).
-     Update this one value if the navbar's padding/height ever changes --
-     .page-center and main (once storefront/project adopt the fixed nav)
-     both read from it instead of hardcoding the number separately. */
   --navbar-offset: 72px;
 }
 
 body, html {
   min-height: 100vh;
   background: #170032;
-  background: radial-gradient(circle at 50% 0%, #37025a 0%, #170032 70%);
+  background: radial-gradient(circle at 50% 0%, #26023e 0%, #110024 70%);
   background-repeat: no-repeat;
   background-attachment: fixed;
   font-family: 'Inter', sans-serif;
@@ -60,9 +56,7 @@ html::-webkit-scrollbar-thumb {
     neonFlow 8s ease-in-out infinite alternate;
 }
 
-/* Centers a single panel below the fixed navbar (success.html / cancel.html).
-   Lives on a wrapper div, not <body>, since the navbar is position: fixed
-   and would otherwise overlap body-level flex centering. */
+
 .page-center {
   min-height: calc(100vh - var(--navbar-offset));
   margin-top: var(--navbar-offset);
@@ -117,10 +111,7 @@ html::-webkit-scrollbar-thumb {
   50%     { opacity: 1; transform: scale(1.2); }
 }
 
-/* ============ NAVBAR + DROPDOWNS + MODAL (all four App Store pages) ============
-   .navbar/.nav-container/.logo (storefront, project) and .site-navbar/.site-nav-container/
-   .site-logo (success, cancel) are aliased to the same rules -- same visual nav everywhere,
-   two markup conventions currently in use across pages. */
+/* ============ NAVBAR + DROPDOWNS + MODAL ============*/
 .navbar, .site-navbar {
   position: fixed;
   top: 0;
@@ -279,9 +270,7 @@ html::-webkit-scrollbar-thumb {
 
 .dropdown-menu button:hover, .menu-item:hover {
   background: rgba(0, 255, 255, 0.08);
-  border-left: 3px solid #00ffff;
   box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.1);
-  padding-left: 26px;
   color: #00ffff;
 }
 
@@ -363,6 +352,37 @@ html::-webkit-scrollbar-thumb {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ====================== MODAL SCROLL BAR =========================*/
+.modal-content::-webkit-scrollbar {
+  width: 10px;
+  height: 14px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #0a0015;
+  border: 1px solid #830cdea2;
+  box-shadow: inset 0 0 12px #000000cc;
+  border-radius: 50px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    145deg,
+    #ff69b4 0%,
+    #c71585 5%,
+    #dc4ce8 10%,
+    #830cde 15%,
+    #00ffff 20%,
+    #67FEBD 25%
+  );
+  border-radius: 8px;
+  border: 1px solid #000000;
+  background-size: 300% 300%;
+  animation:
+    hueCycle 18s linear infinite,
+    neonFlow 8s ease-in-out infinite alternate;
+}
+
 .modal-header {
   padding: 1.5rem;
   display: flex;
@@ -419,7 +439,7 @@ html::-webkit-scrollbar-thumb {
 }
 
 .modal-body h3 {
-  color: #ff69b4;
+  color: #00ffff;
   margin: 1.5rem 0 0.5rem 0;
   font-size: 1.4rem;
   font-family: 'Orbitron', sans-serif;
@@ -434,6 +454,7 @@ html::-webkit-scrollbar-thumb {
 .modal-body ul { margin-left: 2rem; }
 .modal-body li { margin: 0.5rem 0; }
 
+.modal-body strong {color:#FFC7FF;}
 /* ============ BUTTONS ============ */
 .btn {
   display: inline-block;
@@ -877,9 +898,8 @@ main.narrow {
   margin-bottom: 32px;
 }
 
-/* ============ SUPPORT PAGE (support.html) ============
-   Page-specific styles only. Navbar, wave background, help modal,
-   Ko-fi float, and scroll-to-top still come from styles.css. */
+/* ============ SUPPORT PAGE (support.html) ============*/
+
 
 .page-content {
   margin-top: 30px;
