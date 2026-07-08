@@ -8,248 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body, html {
-  min-height: 100vh;
-  background: #170032;
-  background: radial-gradient(circle at 50% 0%, #37025a 0%, #170032 70%);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  font-family: 'Inter', sans-serif;
-  color: #c4b5fd;
-  overflow-x: hidden;
-}
-
-.scanlines {
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
-  background-size: 100% 4px;
-  pointer-events: none;
-  z-index: 9999;
-}
-
-.cyber-grid {
-  position: fixed;
-  bottom: 0; left: 0; width: 100%; height: 50vh;
-  background-image:
-      linear-gradient(transparent 65%, rgba(165, 90, 255, 0.4) 66%, rgba(165, 90, 255, 0.6) 100%),
-      linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.15) 25%, transparent 26%, transparent 74%, rgba(0, 255, 255, 0.15) 75%, transparent 76%);
-  background-size: 100% 30px, 40px 100%;
-  transform: perspective(400px) rotateX(60deg);
-  transform-origin: bottom;
-  z-index: -2;
-  opacity: 0.6;
-}
-
-#stars {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  z-index: -1;
-}
-
-.star {
-  position: absolute;
-  background: #FFC7FF;
-  border-radius: 50%;
-  box-shadow: 0 0 8px #A55AFF;
-  animation: twinkle 4s infinite;
-}
-
-@keyframes twinkle {
-  0%,100% { opacity: 0.2; transform: scale(0.8); }
-  50%     { opacity: 1; transform: scale(1.2); }
-}
-
-.navbar {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  background: rgba(23, 0, 50, 0.7);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid #830cde;
-  box-shadow: 0 4px 20px rgba(131, 12, 222, 0.3);
-}
-
-.nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  height: 56px;
-}
-
-.logo {
-  font-size: 1.2rem;
-  color: #00ffff;
-  font-family: 'Orbitron', sans-serif;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(103, 254, 189, 0.6);
-  letter-spacing: 2px;
-  text-decoration: none;
-}
-
-main {
-  position: relative;
-  z-index: 10;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 50px 24px 80px;
-}
-
-.page-header {
-  text-align: center;
-  margin-bottom: 48px;
-}
-
-.page-header .eyebrow {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #67FEBD;
-  text-shadow: 0 0 10px rgba(103, 254, 189, 0.5);
-  margin-bottom: 12px;
-}
-
-.page-header h1 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2rem;
-  color: #00ffff;
-  text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-  letter-spacing: 1px;
-  margin-bottom: 14px;
-}
-
-.page-header p {
-  color: #9090C0;
-  font-size: 0.95rem;
-  max-width: 480px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 24px;
-}
-
-.card {
-  background: rgba(54, 0, 115, 0.386);
-  border: 1px solid #764ba2;
-  border-left: 4px solid #A55AFF;
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
-  overflow: hidden;
-  text-decoration: none;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.2s ease-in-out;
-}
-
-.card:hover, .card:focus {
-  border-color: #ff69b4;
-  border-left-color: #00ffff;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.25), inset 0 0 10px rgba(0, 255, 255, 0.08);
-  transform: translateY(-4px);
-  outline: none;
-}
-
-.card-image {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: linear-gradient(135deg, #37025a, #170032);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.card-image .fallback {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.7rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #764ba2;
-}
-
-.card-body {
-  padding: 18px 20px 22px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.card-body h2 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.05rem;
-  color: #00ffff;
-  text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
-  margin-bottom: 8px;
-  letter-spacing: 0.5px;
-}
-
-.card-body p {
-  font-size: 0.85rem;
-  color: #c4b5fd;
-  line-height: 1.5;
-  flex: 1;
-  margin-bottom: 14px;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.tag {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.6rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #67FEBD;
-  border: 1px solid rgba(103, 254, 189, 0.4);
-  padding: 3px 8px;
-  border-radius: 2px;
-}
-
-.featured-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.6rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #170032;
-  background: #67FEBD;
-  padding: 4px 10px;
-  border-radius: 2px;
-  box-shadow: 0 0 10px rgba(103, 254, 189, 0.6);
-}
-
-.state-message {
-  text-align: center;
-  color: #9090C0;
-  font-size: 0.9rem;
-  padding: 60px 20px;
-  grid-column: 1 / -1;
-}
-</style>
+  <link rel="stylesheet" href="/static/css/appStore.css">
 </head>
 <body>
 
@@ -259,9 +18,64 @@ main {
 
   <nav class="navbar">
     <div class="nav-container">
-      <a href="https://mkb0020.github.io" class="logo">mkb0020</a>
+      <div class="left-dropdown">
+        <button class="menu-trigger" aria-label="Menu">
+          <img src="static/images/Niels2.png" alt="Menu" class="home-icon">
+        </button>
+        <div class="left-menu">
+          <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+          <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+          <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+          <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+          <div class="social-links">
+            <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
+              <img src="static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+            </a>
+            <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
+              <img src="static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+            </a>
+            <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
+              <img src="static/images/music-icon.png" alt="Soundcloud" class="social-icon">
+            </a>
+            <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
+              <img src="static/images/github-icon.png" alt="GitHub" class="social-icon">
+            </a>
+            <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
+              <img src="static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <a href="https://mkb0020.github.io">
+        <div class="logo">♡ mkb0020</div>
+      </a>
+
+      <div class="help-dropdown">
+        <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+          <div class="question-mark">?</div>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <button id="openMainHelp">About</button>
+         <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+        </div>
+      </div>
     </div>
   </nav>
+
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title">V4V MODEL //</h1>
+        <button class="modal-close" id="closeModal">X</button>
+      </div>
+      <div class="modal-body">
+        <h3>Everything here is free. Forever.</h3>
+        <p>Value-for-value means you use what's useful to you first, no paywall, no trial period, no catch. If something saves you time or makes your day better, there's an optional "Support this project" button on its page where you can send some value back -- money, sure, but the apps stay free either way.</p>
+        <p>No app on this store will ever be pulled behind a paywall later. What's free today stays free.</p>
+      </div>
+    </div>
+  </div>
 
   <main>
     <div class="page-header">
@@ -274,6 +88,14 @@ main {
       <div class="state-message">Loading projects...</div>
     </div>
   </main>
+
+  <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+    <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+      <img src="/static/images/top.png" alt="Scroll to top">
+    </a>
+  </div>
+
+  <script src="/static/js/KittyCore.js"></script>
 
   <script>
     const starsDiv = document.getElementById('stars');
@@ -301,11 +123,10 @@ main {
       const a = document.createElement('a');
       a.className = 'card';
       a.href = `/appstore/app/${project.slug}`;
-      a.style.position = 'relative';
 
       const imageHtml = project.hero_image_url
         ? `<img src="${escapeHtml(project.hero_image_url)}" alt="${escapeHtml(project.name)}" />`
-        : `<div class="fallback">${escapeHtml(project.name)}</div>`;
+        : `<div class="media-fallback">${escapeHtml(project.name)}</div>`;
 
       const tagsHtml = (project.tags || [])
         .map(t => `<span class="tag">${escapeHtml(t)}</span>`)
@@ -313,7 +134,7 @@ main {
 
       a.innerHTML = `
         ${project.is_featured ? '<div class="featured-badge">Featured</div>' : ''}
-        <div class="card-image">${imageHtml}</div>
+        <div class="media-frame card-image">${imageHtml}</div>
         <div class="card-body">
           <h2>${escapeHtml(project.name)}</h2>
           <p>${escapeHtml(project.tagline)}</p>

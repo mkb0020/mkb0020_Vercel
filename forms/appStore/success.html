@@ -8,152 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body, html {
-  min-height: 100vh;
-  background: #170032;
-  background: radial-gradient(circle at 50% 0%, #37025a 0%, #170032 70%);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  font-family: 'Inter', sans-serif;
-  color: #c4b5fd;
-  overflow-x: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.scanlines {
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
-  background-size: 100% 4px;
-  pointer-events: none;
-  z-index: 9999;
-}
-
-.cyber-grid {
-  position: fixed;
-  bottom: 0; left: 0; width: 100%; height: 50vh;
-  background-image:
-      linear-gradient(transparent 65%, rgba(165, 90, 255, 0.4) 66%, rgba(165, 90, 255, 0.6) 100%),
-      linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.15) 25%, transparent 26%, transparent 74%, rgba(0, 255, 255, 0.15) 75%, transparent 76%);
-  background-size: 100% 30px, 40px 100%;
-  transform: perspective(400px) rotateX(60deg);
-  transform-origin: bottom;
-  z-index: -2;
-  opacity: 0.6;
-}
-
-#stars {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  z-index: -1;
-}
-
-.star {
-  position: absolute;
-  background: #FFC7FF;
-  border-radius: 50%;
-  box-shadow: 0 0 8px #A55AFF;
-  animation: twinkle 4s infinite;
-}
-
-@keyframes twinkle {
-  0%,100% { opacity: 0.2; transform: scale(0.8); }
-  50%     { opacity: 1; transform: scale(1.2); }
-}
-
-.panel {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  max-width: 460px;
-  margin: 24px;
-  padding: 40px 32px;
-  background: rgba(54, 0, 115, 0.45);
-  border: 1px solid #764ba2;
-  border-left: 4px solid #67FEBD;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.5), 0 0 20px rgba(103, 254, 189, 0.15);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
-  text-align: center;
-}
-
-.badge {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.7rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #67FEBD;
-  text-shadow: 0 0 10px rgba(103, 254, 189, 0.6);
-  margin-bottom: 18px;
-}
-
-h1 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.5rem;
-  color: #00ffff;
-  text-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
-  letter-spacing: 1px;
-  margin-bottom: 14px;
-  line-height: 1.4;
-}
-
-.app-name {
-  color: #ff69b4;
-}
-
-p {
-  font-size: 0.95rem;
-  color: #c4b5fd;
-  line-height: 1.6;
-  margin-bottom: 8px;
-}
-
-.amount {
-  display: inline-block;
-  margin: 18px 0 24px;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.8rem;
-  color: #fad0c4;
-  text-shadow: 0 0 10px rgba(255, 105, 180, 0.4);
-}
-
-.back-link {
-  display: inline-block;
-  margin-top: 8px;
-  text-decoration: none;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #00FFFF;
-  border: 1px solid #764ba2;
-  border-left: 4px solid #A55AFF;
-  padding: 0.9rem 1.4rem;
-  transition: all 0.2s ease-in-out;
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-}
-
-.back-link:hover, .back-link:focus {
-  border-color: #ff69b4;
-  border-left-color: #00ffff;
-  color: #00ffff;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.loading {
-  font-size: 0.85rem;
-  color: #9090C0;
-  letter-spacing: 1px;
-}
-</style>
+  <link rel="stylesheet" href="/static/css/appStore.css">
 </head>
 <body>
 
@@ -161,12 +16,82 @@ p {
   <div class="cyber-grid"></div>
   <div id="stars"></div>
 
-  <main class="panel">
-    <div class="badge">// transmission received</div>
-    <h1 id="headline">Thank you for the support.</h1>
-    <p id="subtext" class="loading">Confirming your transmission...</p>
-    <a class="back-link" href="https://mkb0020.github.io">&lt;&lt; Back to the Apps</a>
-  </main>
+  <nav class="site-navbar">
+    <div class="site-nav-container">
+      <div class="left-dropdown">
+        <button class="menu-trigger" aria-label="Menu">
+          <img src="static/images/Niels2.png" alt="Menu" class="home-icon">
+        </button>
+        <div class="left-menu">
+          <a href="https://mkb0020.vercel.app/" class="menu-item">Home</a>
+          <a href="https://mkb0020.github.io/" class="menu-item">Projects</a>
+          <a href="https://mkb0020.github.io/resume.html" class="menu-item">Resume</a>
+          <a href="https://mkb0020.vercel.app/comments" class="menu-item">Guestbook</a>
+          <div class="social-links">
+            <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
+              <img src="static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+            </a>
+            <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
+              <img src="static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+            </a>
+            <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
+              <img src="static/images/music-icon.png" alt="Soundcloud" class="social-icon">
+            </a>
+            <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
+              <img src="static/images/github-icon.png" alt="GitHub" class="social-icon">
+            </a>
+            <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
+              <img src="static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <a href="https://mkb0020.github.io">
+        <div class="site-logo">♡ mkb0020</div>
+      </a>
+
+      <div class="help-dropdown">
+        <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+          <div class="question-mark">?</div>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <button id="openMainHelp">About</button>
+          <a href="https://mkb0020.vercel.app/support" class="menu-item">Report an Issue</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title">ABOUT THIS PAGE</h1>
+        <button class="modal-close" id="closeModal">X</button>
+      </div>
+      <div class="modal-body">
+        <h3>Thanks for supporting my work!</h3>
+        <p>This confirms your optional support payment went through. Every app here stays free forever either way -- this just helps keep the lights on.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-center">
+    <main class="panel">
+      <div class="badge">// transmission received</div>
+      <h1 id="headline">Thank you for the support.</h1>
+      <p id="subtext" class="loading">Confirming your transmission...</p>
+      <a class="back-link" href="https://mkb0020.github.io">&lt;&lt; Back to the Apps</a>
+    </main>
+  </div>
+
+  <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+    <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+      <img src="/static/images/top.png" alt="Scroll to top">
+    </a>
+  </div>
+
+  <script src="/static/js/KittyCore.js"></script>
 
   <script>
     const starsDiv = document.getElementById('stars');
