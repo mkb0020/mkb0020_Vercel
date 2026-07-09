@@ -91,6 +91,8 @@
     </a>
   </div>
 
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
   <script src="/static/js/KittyCore.js"></script>
 
   <script>
@@ -118,18 +120,119 @@
     const slug = pathParts[pathParts.length - 1];
 
     const content = document.getElementById('content');
+    let currentProject = null;
 
-    async function supportApp(appId, appName) {
-      const btn = document.getElementById('support-btn');
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Redirecting...';
+    // ---------- Toasts ----------
+    const toastContainer = document.getElementById('toastContainer');
+
+    function showToast(message, type = 'error', duration = 5000) {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `
+        <span class="toast-icon">${type === 'error' ? '!' : '✓'}</span>
+        <span class="toast-message">${escapeHtml(message)}</span>
+        <button class="toast-close" aria-label="Dismiss">×</button>
+      `;
+      toastContainer.appendChild(toast);
+
+      const dismiss = () => {
+        toast.classList.add('toast-out');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+      };
+
+      toast.querySelector('.toast-close').addEventListener('click', dismiss);
+      setTimeout(dismiss, duration);
+    }
+
+    // ---------- Amount selection panel ----------
+    const AMOUNT_OPTIONS = [
+      { value: '300', label: '$3' },
+      { value: '500', label: '$5' },
+      { value: '1000', label: '$10' },
+      { value: '2500', label: '$25' },
+      { value: 'custom', label: 'Custom amount' }
+    ];
+
+    function buildAmountPanel() {
+      const optionsHtml = AMOUNT_OPTIONS
+        .map(o => `<option value="${o.value}">${o.label}</option>`)
+        .join('');
+
+      return `
+        <div class="amount-panel" id="amountPanel" hidden>
+          <div class="form-group">
+            <label for="amountSelect">Choose an amount</label>
+            <select id="amountSelect">${optionsHtml}</select>
+          </div>
+          <div class="form-group custom-amount-group" id="customAmountGroup" hidden>
+            <label for="customAmountInput">Custom amount (USD)</label>
+            <div class="currency-prefix-wrap">
+              <span>$</span>
+              <input type="number" id="customAmountInput" min="1" step="1" placeholder="10" />
+            </div>
+          </div>
+          <button class="btn btn-pink submit-btn" id="confirmSupportBtn" type="button">Continue to Checkout</button>
+          <button class="cancel-support-btn" id="cancelSupportBtn" type="button">Cancel</button>
+        </div>
+      `;
+    }
+
+    function wireAmountPanel(appId, appName) {
+      const toggleBtn = document.getElementById('support-btn');
+      const panel = document.getElementById('amountPanel');
+      const select = document.getElementById('amountSelect');
+      const customGroup = document.getElementById('customAmountGroup');
+      const customInput = document.getElementById('customAmountInput');
+      const confirmBtn = document.getElementById('confirmSupportBtn');
+      const cancelBtn = document.getElementById('cancelSupportBtn');
+
+      toggleBtn.addEventListener('click', () => {
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) {
+          panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        panel.hidden = true;
+      });
+
+      select.addEventListener('change', () => {
+        customGroup.hidden = select.value !== 'custom';
+        if (!customGroup.hidden) customInput.focus();
+      });
+
+      confirmBtn.addEventListener('click', () => {
+        let amountCents;
+        if (select.value === 'custom') {
+          const dollars = parseFloat(customInput.value);
+          if (!dollars || dollars < 1) {
+            showToast('Enter a custom amount of at least $1.', 'error');
+            customInput.focus();
+            return;
+          }
+          amountCents = Math.round(dollars * 100);
+        } else {
+          amountCents = parseInt(select.value, 10);
+        }
+        supportApp(appId, appName, amountCents);
+      });
+    }
+
+    async function supportApp(appId, appName, amountCents) {
+      const confirmBtn = document.getElementById('confirmSupportBtn');
+      const cancelBtn = document.getElementById('cancelSupportBtn');
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Redirecting...';
       }
+      if (cancelBtn) cancelBtn.disabled = true;
+
       try {
         const res = await fetch('/api/appstore/create-checkout-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ app_id: appId, app_name: appName })
+          body: JSON.stringify({ app_id: appId, app_name: appName, amount: amountCents })
         });
         const data = await res.json();
         if (data.url) {
@@ -138,11 +241,12 @@
           throw new Error(data.error || 'Something went wrong');
         }
       } catch (e) {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = 'Support this project';
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Continue to Checkout';
         }
-        alert('Could not start checkout right now. Please try again in a moment.');
+        if (cancelBtn) cancelBtn.disabled = false;
+        showToast('Could not start checkout right now. Please try again in a moment.', 'error');
       }
     }
 
@@ -173,11 +277,11 @@
           <button class="btn btn-pink" id="support-btn">Support this project</button>
         </div>
         <div class="support-note">100% optional. This app is free forever either way.</div>
+        ${buildAmountPanel()}
       `;
 
-      document.getElementById('support-btn').addEventListener('click', () => {
-        supportApp(project.slug, project.name);
-      });
+      currentProject = project;
+      wireAmountPanel(project.slug, project.name);
 
       // Fill in the help modal with this specific app's info
       const modalTitle = document.getElementById('modalTitle');
