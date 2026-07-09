@@ -23,7 +23,7 @@ appstore_admin_bp = Blueprint('appstore_admin_bp', __name__)
 # ---- Supabase Storage config (for admin hero image uploads) ----
 SUPABASE_URL = os.environ.get('SUPABASE_URL')       # e.g. https://xxxx.supabase.co
 SUPABASE_SECRET = os.environ.get('SUPABASE_SECRET')  # service role key -- server-side only, never sent to the browser
-SUPABASE_BUCKET = os.environ.get('SUPABASE_DEFAULT')  # bucket name
+SUPABASE_BUCKET = os.environ.get('SUPABASE_APPSTORE_IMGS')  # bucket name
 
 ALLOWED_IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp', '.gif'}
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB
