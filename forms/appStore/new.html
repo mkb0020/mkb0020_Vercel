@@ -50,7 +50,16 @@
 
       <div class="form-group">
         <label for="hero_image_url">Hero Image URL</label>
-        <input type="url" id="hero_image_url" name="hero_image_url" autocomplete="off">
+        <input type="url" id="hero_image_url" name="hero_image_url" autocomplete="off" placeholder="https://... or upload below">
+        <div class="image-upload-row">
+          <label class="upload-btn" for="hero_image_file" id="uploadBtnLabel">Upload Image</label>
+          <input type="file" id="hero_image_file" accept=".png,.jpg,.jpeg,.webp,.gif" hidden>
+          <span class="upload-status" id="uploadStatus"></span>
+        </div>
+        <div class="image-preview-wrap" id="imagePreviewWrap" hidden>
+          <img id="imagePreviewThumb" alt="Hero image preview">
+          <button type="button" class="remove-image-btn" id="removeImageBtn" aria-label="Remove image">×</button>
+        </div>
       </div>
 
       <div class="form-group">
@@ -100,6 +109,88 @@
   const slugField = document.getElementById('slug');
   const descField = document.getElementById('description');
   const descCounter = document.getElementById('description-counter');
+  const heroUrlField = document.getElementById('hero_image_url');
+  const fileInput = document.getElementById('hero_image_file');
+  const uploadBtnLabel = document.getElementById('uploadBtnLabel');
+  const uploadStatus = document.getElementById('uploadStatus');
+  const previewWrap = document.getElementById('imagePreviewWrap');
+  const previewThumb = document.getElementById('imagePreviewThumb');
+  const removeImageBtn = document.getElementById('removeImageBtn');
+
+  const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+  const ALLOWED_EXT = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+
+  function setUploadStatus(text, kind) {
+    uploadStatus.textContent = text;
+    uploadStatus.className = 'upload-status' + (kind ? ` status-${kind}` : '');
+  }
+
+  function showPreview(url) {
+    previewThumb.src = url;
+    previewWrap.hidden = false;
+  }
+
+  removeImageBtn.addEventListener('click', () => {
+    heroUrlField.value = '';
+    previewWrap.hidden = true;
+    previewThumb.src = '';
+    fileInput.value = '';
+    setUploadStatus('', null);
+  });
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (!ALLOWED_EXT.includes(ext)) {
+      setUploadStatus('Unsupported file type. Use PNG, JPG, WEBP, or GIF.', 'error');
+      fileInput.value = '';
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setUploadStatus('Image is too large (5MB max).', 'error');
+      fileInput.value = '';
+      return;
+    }
+
+    uploadBtnLabel.classList.add('disabled');
+    setUploadStatus('Uploading…', 'uploading');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/appstore/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      heroUrlField.value = data.url;
+      showPreview(data.url);
+      setUploadStatus('Uploaded ✓', 'success');
+    } catch (err) {
+      setUploadStatus(err.message || 'Upload failed. Try again.', 'error');
+    } finally {
+      uploadBtnLabel.classList.remove('disabled');
+      fileInput.value = '';
+    }
+  });
+
+  // If a hero_image_url is typed/pasted in manually, show a preview too
+  heroUrlField.addEventListener('change', () => {
+    const val = heroUrlField.value.trim();
+    if (val) {
+      showPreview(val);
+    } else {
+      previewWrap.hidden = true;
+    }
+  });
 
   let slugManuallyEdited = false;
 
@@ -175,6 +266,9 @@
       form.reset();
       descCounter.textContent = '0 / 4000';
       slugManuallyEdited = false;
+      previewWrap.hidden = true;
+      previewThumb.src = '';
+      setUploadStatus('', null);
     } catch (err) {
       showAlert('error', 'Network error — the request did not reach the server.');
     } finally {
