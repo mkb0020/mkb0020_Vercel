@@ -487,14 +487,14 @@ html::-webkit-scrollbar-thumb {
 
 /* Pink variant -- secondary/support action */
 .btn-pink {
-  color: #FFC7FF;
-  border-left-color: #ff69b4;
+  color: #c4b5fd;
+  border-left-color: #830cde;
 }
 
 .btn-pink:hover, .btn-pink:focus {
   border-color: #00ffff;
-  border-left-color: #ff69b4;
-  box-shadow: 0 0 15px rgba(255, 105, 180, 0.35);
+  border-left-color: #830cde;
+  box-shadow: 0 0 15px rgba(131,12,222, 0.35);
   transform: translateY(-2px);
   outline: none;
 }
