@@ -1488,3 +1488,108 @@ main.narrow {
     padding: 0 12px;
   }
 }
+
+/* ============================================================
+   IMAGE UPLOAD CONTROL (admin new.html — hero image upload)
+   ============================================================ */
+.image-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid #00ffff;
+  color: #00ffff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 0.7rem 1.1rem;
+  cursor: pointer;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.upload-btn:hover {
+  background: rgba(0, 255, 255, 0.18);
+  box-shadow: 0 0 16px rgba(0, 255, 255, 0.3);
+}
+
+.upload-btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.upload-status {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: #9090C0;
+}
+
+.upload-status.status-uploading {
+  color: #c4b5fd;
+}
+
+.upload-status.status-success {
+  color: #67FEBD;
+}
+
+.upload-status.status-error {
+  color: #ff6961;
+}
+
+.image-preview-wrap {
+  position: relative;
+  display: inline-block;
+  margin-top: 14px;
+}
+
+.image-preview-wrap[hidden] {
+  display: none;
+}
+
+.image-preview-wrap img {
+  display: block;
+  max-width: 220px;
+  max-height: 140px;
+  object-fit: cover;
+  border: 1px solid #764ba2;
+  border-left: 3px solid #00ffff;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #170032;
+  border: 1px solid #dc4ce8;
+  color: #dc4ce8;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.remove-image-btn:hover {
+  background: #dc4ce8;
+  color: #170032;
+}
+
+@media (max-width: 768px) {
+  .image-upload-row {
+    flex-wrap: wrap;
+  }
+}
