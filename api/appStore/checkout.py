@@ -12,30 +12,53 @@ appstore_checkout_bp = Blueprint('appstore_checkout', __name__, url_prefix='/api
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 
 # Pre-created in the Stripe Dashboard: Product > Price > "Customer chooses price".
-# One shared price reused across every app -- metadata tells you which app it came from.
+# No longer used for session creation -- the frontend now collects the amount
+# itself (dropdown + custom input) and we build price_data per-session below.
+# Left in case you still want it as a fallback/reference in the dashboard.
 SUPPORT_PRICE_ID = os.environ.get('STRIPE_SUPPORT_PRICE_ID')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 SITE_URL = os.environ.get('SITE_URL', 'https://mkb0020.vercel.app')
+
+# Guardrails on the custom amount input -- $1 minimum, $2,000 ceiling.
+# The ceiling mainly protects against a typo'd amount (e.g. an extra zero)
+# turning into a very unpleasant Stripe charge.
+MIN_SUPPORT_AMOUNT_CENTS = 100
+MAX_SUPPORT_AMOUNT_CENTS = 200_000
 
 
 @appstore_checkout_bp.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     """
-    Called from an app's detail page when someone clicks "Support this project".
-    Expects JSON body: { "app_id": "captron-x", "app_name": "CAPTRON-X" }
-    Returns: { "url": "<stripe checkout url>" } for the frontend to redirect to.
+    Called from an app's detail page when someone clicks "Support this project"
+    and picks an amount from the dropdown (or enters a custom one).
+    Expects JSON body: { "app_id": "captron-x", "app_name": "CAPTRON-X", "amount": 500 }
+    "amount" is in cents. Returns: { "url": "<stripe checkout url>" } for the
+    frontend to redirect to.
     """
     data = request.get_json(silent=True) or {}
     app_id = data.get('app_id', 'unknown')
     app_name = data.get('app_name', 'Unknown App')
+    amount = data.get('amount')
 
-    if not SUPPORT_PRICE_ID:
-        return jsonify({'error': 'STRIPE_SUPPORT_PRICE_ID is not configured'}), 500
+    if not isinstance(amount, int) or isinstance(amount, bool):
+        return jsonify({'error': 'amount must be an integer number of cents'}), 400
+
+    if amount < MIN_SUPPORT_AMOUNT_CENTS or amount > MAX_SUPPORT_AMOUNT_CENTS:
+        return jsonify({
+            'error': f'amount must be between {MIN_SUPPORT_AMOUNT_CENTS} and {MAX_SUPPORT_AMOUNT_CENTS} cents'
+        }), 400
 
     try:
         session = stripe.checkout.Session.create(
             mode='payment',
-            line_items=[{'price': SUPPORT_PRICE_ID, 'quantity': 1}],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {'name': f'Support {app_name}'},
+                    'unit_amount': amount,
+                },
+                'quantity': 1,
+            }],
             success_url=f'{SITE_URL}/appstore/support-success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'{SITE_URL}/appstore/support-cancel?app_id={app_id}',
             metadata={'app_id': app_id, 'app_name': app_name},
