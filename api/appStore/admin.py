@@ -11,12 +11,22 @@ Add these two env vars in Vercel before deploying:
 """
 import os
 import re
+import time
 from functools import wraps
 
 import psycopg2
+import requests
 from flask import Blueprint, Response, jsonify, request, send_from_directory
 
 appstore_admin_bp = Blueprint('appstore_admin_bp', __name__)
+
+# ---- Supabase Storage config (for admin hero image uploads) ----
+SUPABASE_URL = os.environ.get('SUPABASE_URL')       # e.g. https://xxxx.supabase.co
+SUPABASE_SECRET = os.environ.get('SUPABASE_SECRET')  # service role key -- server-side only, never sent to the browser
+SUPABASE_BUCKET = os.environ.get('SUPABASE_DEFAULT')  # bucket name
+
+ALLOWED_IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp', '.gif'}
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB
 
 
 def require_admin_auth(f):
@@ -57,6 +67,60 @@ def slugify(text):
 @require_admin_auth
 def new_project_form():
     return send_from_directory('forms/appStore', 'new.html')
+
+
+# ---- API: uploads a hero image to Supabase Storage, returns its public URL ----
+@appstore_admin_bp.route('/api/appstore/admin/upload-image', methods=['POST'])
+@require_admin_auth
+def upload_image():
+    """
+    Accepts a multipart/form-data upload (field name: 'file') from the admin
+    form, pushes it to the Supabase Storage bucket, and returns the public
+    URL so the form can drop it straight into hero_image_url.
+    """
+    if not SUPABASE_URL or not SUPABASE_SECRET or not SUPABASE_BUCKET:
+        return jsonify({'error': 'Supabase is not configured on the server'}), 500
+
+    file = request.files.get('file')
+    if not file or not file.filename:
+        return jsonify({'error': 'No file provided'}), 400
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return jsonify({'error': f'Unsupported file type: {ext or "unknown"}. Use PNG, JPG, WEBP, or GIF.'}), 400
+
+    file_bytes = file.read()
+    if len(file_bytes) > MAX_UPLOAD_BYTES:
+        return jsonify({'error': 'Image is too large (5MB max)'}), 400
+
+    # Timestamped filename so repeat uploads for the same app don't
+    # collide with or silently overwrite an earlier one.
+    safe_stub = slugify(os.path.splitext(file.filename)[0]) or 'image'
+    object_path = f"{safe_stub}-{int(time.time())}{ext}"
+
+    upload_url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{object_path}"
+
+    try:
+        resp = requests.post(
+            upload_url,
+            headers={
+                'Authorization': f'Bearer {SUPABASE_SECRET}',
+                'apikey': SUPABASE_SECRET,
+                'Content-Type': file.mimetype or 'application/octet-stream',
+            },
+            data=file_bytes,
+            timeout=20,
+        )
+    except requests.RequestException as e:
+        return jsonify({'error': f'Could not reach Supabase: {e}'}), 502
+
+    if resp.status_code not in (200, 201):
+        return jsonify({'error': f'Supabase upload failed: {resp.text}'}), 502
+
+    # Requires the bucket to be marked Public in the Supabase dashboard --
+    # otherwise this URL won't resolve and you'd need signed URLs instead.
+    public_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{object_path}"
+    return jsonify({'url': public_url}), 201
 
 
 # ---- API: creates a new appstore_projects row ----
