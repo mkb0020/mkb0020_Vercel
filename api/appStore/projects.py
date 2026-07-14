@@ -43,11 +43,11 @@ def get_project(slug):
         conn = _get_conn()
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute("""
-            SELECT slug, name, tagline, description, hero_image_url,
-                   itch_url, ms_store_url, other_url, tags
-            FROM appstore_projects
-            WHERE slug = %s
-        """, (slug,))
+                    SELECT slug, name, tagline, description, hero_image_url,
+                        itch_url, ms_store_url, other_url, tags, youtube_url
+                    FROM appstore_projects
+                    WHERE slug = %s
+                """, (slug,))
         row = cur.fetchone()
         cur.close()
         if not row:

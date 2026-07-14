@@ -144,6 +144,7 @@ def create_project():
     itch_url = (data.get('itch_url') or '').strip() or None
     ms_store_url = (data.get('ms_store_url') or '').strip() or None
     other_url = (data.get('other_url') or '').strip() or None
+    youtube_url = (data.get('youtube_url') or '').strip() or None
 
     raw_tags = data.get('tags') or ''
     if isinstance(raw_tags, list):
@@ -162,18 +163,18 @@ def create_project():
     try:
         with conn.cursor() as cur:
             cur.execute(
-                """
-                INSERT INTO appstore_projects
-                    (slug, name, tagline, description, hero_image_url,
-                     itch_url, ms_store_url, other_url, tags, is_featured, sort_order)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING slug
-                """,
-                (
-                    slug, name, tagline, description, hero_image_url,
-                    itch_url, ms_store_url, other_url, tags, is_featured, sort_order,
-                ),
-            )
+                            """
+                            INSERT INTO appstore_projects
+                                (slug, name, tagline, description, hero_image_url,
+                                itch_url, ms_store_url, other_url, tags, is_featured, sort_order, youtube_url)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            RETURNING slug
+                            """,
+                            (
+                                slug, name, tagline, description, hero_image_url,
+                                itch_url, ms_store_url, other_url, tags, is_featured, sort_order, youtube_url,
+                            ),
+                        )
             result = cur.fetchone()
             conn.commit()
     except psycopg2.errors.UniqueViolation:
