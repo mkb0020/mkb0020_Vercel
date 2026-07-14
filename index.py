@@ -219,7 +219,7 @@ def appstore_support_success_page():
     return send_from_directory('forms/appStore', 'success.html')
 
 @app.route('/appstore/supportMK')
-def appstore_terms_page():
+def appstore_supportMK_page():
     return send_from_directory('forms/appStore', 'supportMK.html')
 
 @app.route('/appstore/app/<slug>')
