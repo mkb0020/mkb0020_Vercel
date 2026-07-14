@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Support MK | mkb0020 Studios</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/appStore.css">
+</head>
+<body>
+
+  <div class="scanlines"></div>
+  <div class="cyber-grid"></div>
+  <div id="stars"></div>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="left-dropdown">
+        <button class="menu-trigger" aria-label="Menu">
+          <img src="/static/images/Niels2.png" alt="Menu" class="home-icon">
+        </button>
+        <div class="left-menu">
+          <a href="https://mkb0020.vercel.app/" class="menu-item glow-sweep">Home</a>
+          <a href="https://mkb0020.github.io/" class="menu-item glow-sweep">Projects</a>
+          <a href="https://mkb0020.vercel.app/appstore" class="menu-item glow-sweep">App Store</a>
+          <a href="https://mkb0020.vercel.app/appstore/supportMK" class="menu-item glow-sweep">Support My Work</a>
+          <a href="https://mkb0020.github.io/resume.html" class="menu-item glow-sweep">Resume</a>
+          <a href="https://mkb0020.vercel.app/comments" class="menu-item glow-sweep">Guestbook</a>
+          <div class="social-links">
+            <a href="https://www.youtube.com/@mkb0020" target="_blank" aria-label="YouTube">
+              <img src="/static/images/youtube-icon.png" alt="YouTube" class="social-icon">
+            </a>
+            <a href="https://www.linkedin.com/in/mkb0020/" target="_blank" aria-label="LinkedIn">
+              <img src="/static/images/linkedin-icon.png" alt="LinkedIn" class="social-icon">
+            </a>
+            <a href="https://soundcloud.com/mkb0020" target="_blank" aria-label="Soundcloud">
+              <img src="/static/images/music-icon.png" alt="Soundcloud" class="social-icon">
+            </a>
+            <a href="https://github.com/mkb0020" target="_blank" aria-label="GitHub">
+              <img src="/static/images/github-icon.png" alt="GitHub" class="social-icon">
+            </a>
+            <a href="https://mkb0020.itch.io" target="_blank" aria-label="Itch.io">
+              <img src="/static/images/itchio-icon.png" alt="Itch.io" class="social-icon">
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <a href="https://mkb0020.github.io">
+        <div class="logo">♡ mkb0020</div>
+      </a>
+
+      <div class="help-dropdown">
+        <button class="help-icon" id="helpBtn" aria-label="Help Menu">
+          <div class="question-mark">?</div>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <button id="openMainHelp" class="glow-sweep">About</button>
+          <a href="https://mkb0020.vercel.app/support" class="menu-item glow-sweep">Report an Issue</a>
+          <a href="https://mkb0020.vercel.app/appstore/policy" class="menu-item glow-sweep">Privacy Policy</a>
+          <a href="https://mkb0020.vercel.app/appstore/terms" class="menu-item glow-sweep">Terms and Conditions</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title" id="modalTitle">V4V</h1>
+        <button class="modal-close" id="closeModal">X</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <p>Every app I release is free forever, no paywalls and no ads. If something I've made has been useful to you, this page is an optional way to send some value back to me.</p>
+        <p>Support here goes toward the time, tools, and hosting that keep the whole catalog running.</p>
+      </div>
+    </div>
+  </div>
+
+  <main class="narrow">
+    <div id="content">
+      <div class="media-frame hero-image">
+        <div class="media-fallback"><img src="/static/images/wall.gif" alt="Support MK's Work"></div>
+      </div>
+      <h1 class="project-title">Support MK's Work</h1>
+      <div class="tagline">Keep the apps free. Keep the lights on.</div>
+      <div class="description">
+            <p>This storefront operates on a simple principle called Value for Value.</p>
+            <p>Instead of asking you to pay before you know whether an app is useful, I'd rather let the software speak for itself.</p>
+            <p>If it helps you accomplish your goals, saves you time, teaches you something, or simply makes your day a little easier, then it has created value.</p>
+            <p>If you'd like to return some value back, you can do so here.</p>
+            <p>If not, that's completely okay too.</p>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-pink" id="support-btn">Support MK's Work</button>
+      </div>
+
+      <div class="amount-panel" id="amountPanel" hidden>
+        <div class="form-group">
+          <label for="amountSelect">Choose an amount</label>
+          <select id="amountSelect">
+            <option value="300">$3</option>
+            <option value="500">$5</option>
+            <option value="1000">$10</option>
+            <option value="2500">$25</option>
+            <option value="custom">Custom amount</option>
+          </select>
+        </div>
+        <div class="form-group custom-amount-group" id="customAmountGroup" hidden>
+          <label for="customAmountInput">Custom amount (USD)</label>
+          <div class="currency-prefix-wrap">
+            <span>$</span>
+            <input type="number" id="customAmountInput" min="1" step="1" placeholder="10" />
+          </div>
+        </div>
+        <button class="btn btn-pink submit-btn" id="confirmSupportBtn" type="button">Continue to Checkout</button>
+        <button class="cancel-support-btn" id="cancelSupportBtn" type="button">Cancel</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+    <a href="javascript:void(0);" class="button-container" aria-label="Scroll to top">
+      <img src="/static/images/top.png" alt="Scroll to top">
+    </a>
+  </div>
+
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="/static/js/KittyCore.js"></script>
+
+  <script>
+    // ---------- Background stars ----------
+    const starsDiv = document.getElementById('stars');
+    const colors = ['#00ffff', '#A55AFF', '#FFC7FF'];
+    for (let i = 0; i < 100; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.width = star.style.height = Math.random() * 2.5 + 'px';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.background = colors[Math.floor(Math.random() * colors.length)];
+      star.style.animationDelay = Math.random() * 4 + 's';
+      starsDiv.appendChild(star);
+    }
+
+    // ---------- General support identity sent to Stripe ----------
+    // Not tied to any single project -- checkout.py accepts any app_id/app_name,
+    // so these just label the payment as a general (non-project) support.
+    const GENERAL_SUPPORT_ID = 'general-support';
+    const GENERAL_SUPPORT_NAME = 'mkb0020 Studios (General Support)';
+
+    // ---------- Toasts ----------
+    const toastContainer = document.getElementById('toastContainer');
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    function showToast(message, type = 'error', duration = 5000) {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `
+        <span class="toast-icon">${type === 'error' ? '!' : '✓'}</span>
+        <span class="toast-message">${escapeHtml(message)}</span>
+        <button class="toast-close" aria-label="Dismiss">×</button>
+      `;
+      toastContainer.appendChild(toast);
+
+      const dismiss = () => {
+        toast.classList.add('toast-out');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+      };
+
+      toast.querySelector('.toast-close').addEventListener('click', dismiss);
+      setTimeout(dismiss, duration);
+    }
+
+    // ---------- Amount panel wiring ----------
+    const toggleBtn = document.getElementById('support-btn');
+    const panel = document.getElementById('amountPanel');
+    const select = document.getElementById('amountSelect');
+    const customGroup = document.getElementById('customAmountGroup');
+    const customInput = document.getElementById('customAmountInput');
+    const confirmBtn = document.getElementById('confirmSupportBtn');
+    const cancelBtn = document.getElementById('cancelSupportBtn');
+
+    toggleBtn.addEventListener('click', () => {
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      panel.hidden = true;
+    });
+
+    select.addEventListener('change', () => {
+      customGroup.hidden = select.value !== 'custom';
+      if (!customGroup.hidden) customInput.focus();
+    });
+
+    confirmBtn.addEventListener('click', () => {
+      let amountCents;
+      if (select.value === 'custom') {
+        const dollars = parseFloat(customInput.value);
+        if (!dollars || dollars < 1) {
+          showToast('Enter a custom amount of at least $1.', 'error');
+          customInput.focus();
+          return;
+        }
+        amountCents = Math.round(dollars * 100);
+      } else {
+        amountCents = parseInt(select.value, 10);
+      }
+      supportMK(amountCents);
+    });
+
+    async function supportMK(amountCents) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Redirecting...';
+      cancelBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/appstore/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            app_id: GENERAL_SUPPORT_ID,
+            app_name: GENERAL_SUPPORT_NAME,
+            amount: amountCents
+          })
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error(data.error || 'Something went wrong');
+        }
+      } catch (e) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Continue to Checkout';
+        cancelBtn.disabled = false;
+        showToast('Could not start checkout right now. Please try again in a moment.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

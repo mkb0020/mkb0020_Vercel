@@ -26,7 +26,7 @@
           <a href="https://mkb0020.vercel.app/" class="menu-item glow-sweep">Home</a>
           <a href="https://mkb0020.github.io/" class="menu-item glow-sweep">Projects</a>
           <a href="https://mkb0020.vercel.app/appstore" class="menu-item glow-sweep">App Store</a>
-          <a href="LINK TBD" class="menu-item glow-sweep">Support My Work</a>
+          <a href="https://mkb0020.vercel.app/appstore/supportMK" class="menu-item glow-sweep">Support My Work</a>
           <a href="https://mkb0020.github.io/resume.html" class="menu-item glow-sweep">Resume</a>
           <a href="https://mkb0020.vercel.app/comments" class="menu-item glow-sweep">Guestbook</a>
           <div class="social-links">
@@ -113,6 +113,12 @@
       const div = document.createElement('div');
       div.textContent = str || '';
       return div.innerHTML;
+    }
+
+    function getYouTubeEmbedUrl(url) {
+      if (!url) return null;
+      const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      return match ? `https://www.youtube.com/embed/${match[1]}` : null;
     }
 
     // Slug comes from the URL path: /appstore/app/<slug>
@@ -250,38 +256,58 @@
       }
     }
 
-    function renderProject(project) {
-      const imageHtml = project.hero_image_url
-        ? `<img src="${escapeHtml(project.hero_image_url)}" alt="${escapeHtml(project.name)}" />`
-        : `<div class="media-fallback">${escapeHtml(project.name)}</div>`;
+      function renderProject(project) {
+            const imageHtml = project.hero_image_url
+              ? `<img src="${escapeHtml(project.hero_image_url)}" alt="${escapeHtml(project.name)}" />`
+              : `<div class="media-fallback">${escapeHtml(project.name)}</div>`;
 
-      const tagsHtml = (project.tags || [])
-        .map(t => `<span class="tag">${escapeHtml(t)}</span>`)
-        .join('');
+            const tagsHtml = (project.tags || [])
+              .map(t => `<span class="tag">${escapeHtml(t)}</span>`)
+              .join('');
 
-      const downloadUrl = project.ms_store_url || project.itch_url || project.other_url;
-      const downloadLabel = project.ms_store_url
-        ? 'Download from Microsoft Store'
-        : project.itch_url
-          ? 'Download on itch.io'
-          : 'View Project';
+            const downloadUrl = project.ms_store_url || project.itch_url || project.other_url;
+            const downloadLabel = project.ms_store_url
+              ? 'Download from Microsoft Store'
+              : project.itch_url
+                ? 'Download on itch.io'
+                : 'View Project';
 
-      content.innerHTML = `
-        <div class="media-frame hero-image">${imageHtml}</div>
-        <h1 class="project-title">${escapeHtml(project.name)}</h1>
-        <div class="tagline">${escapeHtml(project.tagline)}</div>
-        <div class="tags">${tagsHtml}</div>
-        <div class="description">${escapeHtml(project.description)}</div>
-        <div class="action-row">
-          ${downloadUrl ? `<a class="btn btn-cyan" href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener">${downloadLabel}</a>` : ''}
-          <button class="btn btn-pink" id="support-btn">Support this project</button>
-        </div>
-        <div class="support-note">100% optional. This app is free forever either way.</div>
-        ${buildAmountPanel()}
-      `;
+            const embedUrl = getYouTubeEmbedUrl(project.youtube_url);
+            const videoHtml = embedUrl
+              ? `
+              <div class="video-section">
+                <h2 class="video-heading">Tutorial</h2>
+                <div class="video-frame">
+                  <iframe
+                    src="${embedUrl}"
+                    title="${escapeHtml(project.name)} tutorial"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                    loading="lazy">
+                  </iframe>
+                </div>
+              </div>`
+              : '';
 
-      currentProject = project;
-      wireAmountPanel(project.slug, project.name);
+            content.innerHTML = `
+              <div class="media-frame hero-image">${imageHtml}</div>
+              <h1 class="project-title">${escapeHtml(project.name)}</h1>
+              <div class="tagline">${escapeHtml(project.tagline)}</div>
+              <div class="tags">${tagsHtml}</div>
+              <div class="description">${escapeHtml(project.description)}</div>
+              ${videoHtml}
+              <div class="action-row">
+                ${downloadUrl ? `<a class="btn btn-cyan" href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener">${downloadLabel}</a>` : ''}
+                <button class="btn btn-pink" id="support-btn">Support this project</button>
+              </div>
+              <div class="support-note">100% optional. This app is free forever either way.</div>
+              ${buildAmountPanel()}
+            `;
+
+            currentProject = project;
+            wireAmountPanel(project.slug, project.name);
+   
 
       // Fill in the help modal with this specific app's info
       const modalTitle = document.getElementById('modalTitle');

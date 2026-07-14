@@ -78,6 +78,11 @@
       </div>
 
       <div class="form-group">
+        <label for="youtube_url">Tutorial Video (YouTube URL)</label>
+        <input type="url" id="youtube_url" name="youtube_url" autocomplete="off" placeholder="https://www.youtube.com/watch?v=...">
+      </div>
+
+      <div class="form-group">
         <label for="tags">Tags</label>
         <input type="text" id="tags" name="tags" autocomplete="off" placeholder="comma-separated, e.g. budgeting, tauri, desktop">
       </div>
@@ -236,18 +241,19 @@
     alertSlot.innerHTML = '';
 
     const payload = {
-      name: nameField.value.trim(),
-      slug: slugField.value.trim(),
-      tagline: document.getElementById('tagline').value.trim(),
-      description: descField.value.trim(),
-      hero_image_url: document.getElementById('hero_image_url').value.trim(),
-      itch_url: document.getElementById('itch_url').value.trim(),
-      ms_store_url: document.getElementById('ms_store_url').value.trim(),
-      other_url: document.getElementById('other_url').value.trim(),
-      tags: document.getElementById('tags').value.trim(),
-      sort_order: document.getElementById('sort_order').value,
-      is_featured: document.getElementById('is_featured').checked,
-    };
+          name: nameField.value.trim(),
+          slug: slugField.value.trim(),
+          tagline: document.getElementById('tagline').value.trim(),
+          description: descField.value.trim(),
+          hero_image_url: document.getElementById('hero_image_url').value.trim(),
+          itch_url: document.getElementById('itch_url').value.trim(),
+          ms_store_url: document.getElementById('ms_store_url').value.trim(),
+          other_url: document.getElementById('other_url').value.trim(),
+          youtube_url: document.getElementById('youtube_url').value.trim(),
+          tags: document.getElementById('tags').value.trim(),
+          sort_order: document.getElementById('sort_order').value,
+          is_featured: document.getElementById('is_featured').checked,
+        };
 
     try {
       const res = await fetch('/api/appstore/admin/projects', {
